@@ -4,7 +4,6 @@ from Edge import EDGE
 
 
 def modular_product(g1, g2):
-    print(g1, g2)
     # Number of vertices is the product of the number of vertices of both graphs
     new_number_of_vertices = g1.get_number_of_vertices() * g2.get_number_of_vertices()
     # Initialize all vertices of the modular product by concatenating the IDs (cartesian product)
@@ -28,11 +27,8 @@ def modular_product(g1, g2):
                 g2_cut.remove(v3)
                 for v4 in g2_cut:
                     # If, for both graphs, a two-element list is identical, add an edge. The elements in this list
-                    # correspond to booleans that are evaluated from ID check of vertex 1 in the neighbours attribute of
-                    # vertex 2 and vice versa.
-                    # print(v1.get_id())
-                    # print(v2.get_neighbours())
-                    # print(v1.get_id() in [vertex.get_id() for vertex in v2.get_neighbours()])
+                    # correspond to booleans that are evaluated from ID check of vertex 1 with the IDs of the neighbours
+                    # attribute of vertex 2 and vice versa.
                     if ([v1.get_id() in [vertex.get_id() for vertex in v2.get_neighbours()],
                          v2.get_id() in [vertex.get_id() for vertex in v1.get_neighbours()]] ==
                             [v3.get_id() in [vertex.get_id() for vertex in v4.get_neighbours()],
