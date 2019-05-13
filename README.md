@@ -24,7 +24,7 @@ python [graphalign.py](http://graphalign.py) [file] [Argument]
 * -o [output-file] (outputfile)
 * -mp [second graph file] (modulares produkt)
 * -a [ankor file] (bron kerbosch mit anchor)
-* -p max|random (gibt die art wie pivot gewählt werden soll an)
+* -p max|random (gibt die art wie pivot gewÃ¤hlt werden soll an)
 * -bk (bron kerbosch)
 * -ga (muktiples graph alignment)
 
@@ -42,10 +42,9 @@ python [graphalign.py](http://graphalign.py) [file] [Argument]
 * git pull
 * git add
 * git commit
-* git push origin <yourBranch>
-* git merge <branchYouWantToMergeWith>
+* git push origin [yourBranch]
 
-## Daten zu dev hinzufügen
+## Daten zu dev hinzufÃ¼gen
 * alle deine Daten sind in deinem branch gepusht
 * git checkout dev
 * git merge deins 
