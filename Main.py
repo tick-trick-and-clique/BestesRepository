@@ -9,6 +9,8 @@ from Vertex import VERTEX
 from Edge import EDGE
 from Command_Line_Parser import parse_command_line
 from Modulares_Produkt import modular_product
+from Matching_Based import GRAPHMATCHER
+
 
 def parser(file):
     """
@@ -152,13 +154,13 @@ if __name__ == '__main__':
         g1 = parser(file)
         g1.set_name("my cute Graphy MC Graphface")
 
-        print(str(g1))
+        #print(str(g1))
 
         file = sys.argv[2]
         g2 = parser(file)
         g2.set_name("Badass Graph")
 
-        print(str(g2))
+        #print(str(g2))
 
 
 
@@ -166,13 +168,9 @@ if __name__ == '__main__':
         print("shit")
 
 
-    #mod = modular_product(g1,g1)
+    graphmatch = GRAPHMATCHER(g1, g2)
 
-    #print(str(mod))
-
-    #print(mod.bron_kerbosch([],mod.get_list_of_vertices(),[]))
-
-    print(g1.bron_kerbosch_pivot([],g1.get_list_of_vertices(),[]))
+    print(graphmatch.get_name())
 
 
 
