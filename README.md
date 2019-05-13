@@ -20,13 +20,13 @@ branches, wie wir noch brauchen: tille, def
 ## parameter 
 python [graphalign.py](http://graphalign.py) [file] [Argument] 
 
-Arguments:
--o [output-file] (outputfile)
--mp [second graph file] (modulares produkt)
--a [ankor file] (bron kerbosch mit anchor)
--p max|random (gibt die art wie pivot gewählt werden soll an)
--bk (bron kerbosch)
--ga (muktiples graph alignment)
+### Arguments:
+* -o [output-file] (outputfile)
+* -mp [second graph file] (modulares produkt)
+* -a [ankor file] (bron kerbosch mit anchor)
+* -p max|random (gibt die art wie pivot gewählt werden soll an)
+* -bk (bron kerbosch)
+* -ga (muktiples graph alignment)
 
 
 ## usefull git commands
