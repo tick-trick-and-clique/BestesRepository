@@ -19,11 +19,10 @@ branches, wie wir noch brauchen: tille, def
 ---
 
 ## usefull git commands
-
-git pull
-git add
-git commit
-git push origin <yourBranch>
-git merge <branchYouWantToMergeWith>
+* git pull
+* git add
+* git commit
+* git push origin <yourBranch>
+* git merge <branchYouWantToMergeWith>
 
 ---
