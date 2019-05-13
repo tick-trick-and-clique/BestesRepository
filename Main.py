@@ -10,6 +10,7 @@ from Edge import EDGE
 from Command_Line_Parser import parse_command_line
 from Modulares_Produkt import modular_product
 
+
 def parser(file):
     """
     Parsing the .graph format to the class Graph
@@ -158,6 +159,7 @@ def parser(file):
     print(graph)
     return graph
 
+
 def check_true_or_false(statement):
     """
     Checks if header statements are "True" or "False"
@@ -171,6 +173,7 @@ def check_true_or_false(statement):
     else:
         raise Exception("Wrong input file format\n statement has to be 'True' or 'False.' Currently: " + statement )
 
+
 def check_start_end_in_vertices(edge_start_end, currentEdge):
     """
     Check if the vertices of an edge already exists in the vertices list
@@ -179,29 +182,61 @@ def check_start_end_in_vertices(edge_start_end, currentEdge):
         raise Exception("One or both vertices of edge: " + currentEdge + " doenst exist in list of vertices")
     return
 
-if __name__ == '__main__':
-    try:
-        file = sys.argv[1]
-        graph = parser(file)
-    except IOError:
-        print('An error occured trying to read the file.')
 
+if __name__ == '__main__':
+
+    # Command line parsing
     try:
         args = parse_command_line()
         print(args.input_file)
         print(args)
     except IOError:
         print("An error occured trying to read the file!")
+
+    # Graph parsing
     graph = parser(args.input_file)
+
+    # Log statement for the console about the Pivot Mode!
+    if args.pivot_mode is None:
+        print("Pivot Mode: None")
+    else:
+        print("Pivot Mode: " + args.pivot_mode)
+
+    # Checking for an anchor graph file and checking anchor for clique property. Anchor default is a list.
+    # Log statement for the console about the anchor file!
+    if isinstance(args.anchor, list):
+        anchor = []
+        print("Anchor File: --")
+    else:
+        anchor_graph = parser(args.anchor)
+        if not anchor_graph.check_clique_properties():
+            raise Exception("Anchor is not a clique nor empty!")
+        anchor = anchor_graph.get_list_of_vertices()
+        print("Anchor File: " + args.anchor)
+
+
+    # Checking for modular product option
     if args.modular_product is not None:
         second_graph = parser(args.modular_product)
-        graph_result = modular_product(graph, second_graph)
+        graph = modular_product(graph, second_graph)
+        # Log statement for the console about the modular product
+        print("Modular Product of " + graph.get_name() + " and " + second_graph.get_name() + " was calculated!")
+
+    # Checking for bron-kerbosch option
     if args.bron_kerbosch:
-        clique_finding_result = graph.bron_kerbosch_pivot(args.anchor, graph.get_list_of_vertices(), [],
-                                                          pivot=args.pivot_mode)
+        clique_finding_result = graph.bron_kerbosch(anchor, graph.get_list_of_vertices(), [], pivot=args.pivot_mode)
+        # Log statement for the console about Bron-Kerbosch
+        print("Clique finding via Bron-Kerbosch...")
+
     # if args.output_file:
         # Code to be added
+
+    # Checking for graph alignment option. This option performs the modular product AND bron-kerbosch!
     if args.graph_alignment is not None:
         second_graph = parser(args.graph_alignment)
-        graph_result = modular_product(graph, second_graph)
-        graph_result.bron_kerbosch_pivot(args.anchor, graph.get_list_of_vertices(), [], pivot=args.pivot_mode)
+        graph = modular_product(graph, second_graph)
+        # Log statement for the console about the modular product
+        print("Modular Product of " + g1.get_name() + " and " + g2.get_name() + " was calculated!")
+        graph.bron_kerbosch(anchor, graph.get_list_of_vertices(), [], pivot=args.pivot_mode)
+        # Log statement for the console about Bron-Kerbosch
+        print("Clique finding via Bron-Kerbosch...")
