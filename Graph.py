@@ -61,14 +61,12 @@ class GRAPH(object):
         res += "number of edges:\n"
         res += str(self.__number_of_edges) + "\n"
 
-
         res += "edges:\n"
         for edge in self.__list_of_edges:
             res += str(edge) + ",\n"
         return res
 
-
-    def reverse_edges(self,list_of_vertices, current_vertex):
+    def reverse_edges(self, list_of_vertices, current_vertex):
         """
         Checks if neighbours of current vertex has reversed edge to currentvertex
         """
@@ -123,7 +121,7 @@ class GRAPH(object):
 
     def select_max_pivot(self, P, X):
         '''
-        seletcs a pivot element by maximal cardinality of possible vertices
+        selects a pivot element by maximal cardinality of possible vertices
         '''
         pivot = -math.inf
         for vertex in (set(P) | set(X)):
@@ -134,12 +132,34 @@ class GRAPH(object):
 
         return pivot
 
-    def check_clique_properties(self, R):
+    def check_clique_properties(self):
         """
         checks if all vertices in R(list) are adjacent to every other vertex in R
         """
         check = True
-        for vertex in R:
-            if vertex.get_neighbours().sort() != (R - [vertex]).sort():
+        for vertex in self.get_list_of_vertices():
+            if vertex.get_neighbours().sort() != (self.get_list_of_vertices() - [vertex]).sort():
                 check = False
         return check
+
+    def check_partial_graph_of(self, graph):
+        """
+        checks whether self is partial graph of graph
+        """
+        partial = True
+
+        # check whether the ids of all vertices of self are also found in the list of vertices of graph
+        for v1 in self.get_list_of_vertices():
+            if v1.get_id() not in [v2.get_id() for v2 in graph.get_list_of_vertices()]:
+                partial = False
+
+        # check whether the ids of all edges of self are also found in the list of edges of graph
+        for e1 in self.get_list_of_edges():
+            if e1.get_id() not in [e2.get_id() for e2 in graph.get_list_of_edges()]:
+                partial = False
+
+        # check whether the __is_directed attribute ist the same
+        if self.__is_directed != graph.__is_directed:
+            partial = False
+
+        return partial
