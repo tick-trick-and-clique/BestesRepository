@@ -27,119 +27,86 @@ def parser(file):
             directed = check_true_or_false(directed_graph)
         except:
             raise Exception("Wrong input file format: Mistake in header part.")
-
-        if number_vertices == 0 and number_edges == 0:
+        #read empty line
+        empty = f.readline()
+        if empty is not "\n":
+            raise Exception("Wrong input file format!")
+        #read vertices part
+        try:
+            newline = f.readline()
             vertices = []
-            edges = []
-        elif number_vertices == 0:
-            vertices  = []
-            #read empty line
-            empty = f.readline()
-            if empty is not "\n":
-                raise Exception("Wrong input file format!")
-            try:
-                lastlines = f.readlines()
-                edges = []
-                for elem in lastlines:
-                    edges.append(elem.rstrip())
-            except:
-                raise Exception("Wrong input file format: Mistake in edges part.")
-        elif number_edges == 0:
-            edges = []
-            #read empty line
-            empty = f.readline()
-            if empty is not "\n":
-                raise Exception("Wrong input file format!")
-            try:
-                lastlines = f.readlines()
-                vertices = []
-                for elem in lastlines:
-                    vertices.append(elem.rstrip())
-            except:
-                raise Exception("Wrong input file format: Mistake in vertices part.")
-        else:
-            #read empty line
-            empty = f.readline()
-            if empty is not "\n":
-                raise Exception("Wrong input file format!")
-            #read vertices part
-            try:
+            while newline is not "\n":
+                vertices.append(newline.rstrip())
                 newline = f.readline()
-                vertices = []
-                while newline is not "\n":
-                    vertices.append(newline.rstrip())
-                    newline = f.readline()
-            except:
-                raise Exception("Wrong input file format: Mistake in vertices part.")
-            #read empty line
-            if newline is not "\n":
-                raise Exception("Wrong input file format!")
-            #read edges part
-            try:
-                lastlines = f.readlines()
-                edges = []
-                for elem in lastlines:
-                    edges.append(elem.rstrip())
-            except:
-                raise Exception("Wrong input file format: Mistake in edges part.")
+        except:
+            raise Exception("Wrong input file format: Mistake in vertices part.")
+        #read empty line
+        if newline is not "\n":
+            raise Exception("Wrong input file format!")
+        #read edges part
+        try:
+            lastlines = f.readlines()
+            edges = []
+            for elem in lastlines:
+                edges.append(elem.rstrip())
+        except:
+            raise Exception("Wrong input file format: Mistake in edges part.")
 
     f.close()
-    
+
+    #save vertices as objects
     vertices_objets = []
-    if number_vertices != 0:
-        #save vertices as objects
-        for vertex in vertices:
-            if vertices_labelled == True: #if vertices are labelled
-                vertex_splitted = vertex.split(";")
-                if len(vertex_splitted) == 1:
-                    raise Exception("Wrong format: Vertices should be labelled but arent.")
-                vertices_objets.append(VERTEX([vertex_splitted[0]],vertex_splitted[1]))
-            else: #if vertices arent labelled
-                vertex_splitted = vertex.split(";")
-                if len(vertex_splitted) == 2:
-                    raise Exception("Wrong format: Vertices are labelled but header dont say so.")
-                vertices_objets.append(VERTEX([vertex],""))
+    for vertex in vertices:
+        if vertices_labelled: #if vertices are labelled
+            vertex_splitted = vertex.split(";")
+            if len(vertex_splitted) == 1:
+                raise Exception("Wrong format: Vertices should be labelled but arent.")
+            vertices_objets.append(VERTEX([vertex_splitted[0]],vertex_splitted[1]))
+        else: #if vertices arent labelled
+            vertex_splitted = vertex.split(";")
+            if len(vertex_splitted) == 2:
+                raise Exception("Wrong format: Vertices are labelled but header dont say so.")
+            vertices_objets.append(VERTEX([vertex],""))
 
     #save edges as objects
     edges_objects = []
-    if number_edges != 0:
-        identifier = 1 #each edge gets an id
-        for edge in edges:
-            edge_splitted = edge.split(";")
-            #search for start vertex in vertices_objects and for end vertex
-            start_and_end = [item for item in vertices_objets if (item.get_id() == [edge_splitted[0]])] \
-                            + [item for item in vertices_objets if (item.get_id() == [edge_splitted[1]])]
-            check_start_end_in_vertices(start_and_end, edge) #check if start and end vertex are in vertices list
-            end_and_start = [item for item in vertices_objets if (item.get_id() == [edge_splitted[1]])] \
-                            + [item for item in vertices_objets if (item.get_id() == [edge_splitted[0]])]
-    
-            if edges_labbelled == True: #if edges are labelled
-                if len(edge_splitted) == 2:
-                    raise Exception("Wrong format: Edges should be labelled but arent.")
-                if directed == True: #if graph is directed
-                    edges_objects.append(EDGE(identifier,start_and_end,edge_splitted[2]))
-                    identifier += 1
-                else:  #if graph is undirected, insert both edges automtically
-                    edges_objects.append(EDGE(identifier,start_and_end,edge_splitted[2]))
-                    identifier += 1
-                    edges_objects.append(EDGE(identifier,end_and_start,edge_splitted[2]))
-                    identifier += 1
-            else: #if edges arent labelled
-                if len(edge_splitted) == 3:
-                    raise Exception("Wrong format: Edges are labelled but header dont say so.")
-                if directed == True: #if graph is directed
-                    edges_objects.append(EDGE(identifier,start_and_end,""))
-                    identifier += 1
-                else: #if graph is undirected, insert both edges automtically
-                    edges_objects.append(EDGE(identifier,start_and_end,""))
-                    identifier += 1
-                    edges_objects.append(EDGE(identifier,end_and_start,""))
-                    identifier += 1
+    identifier = 1 #each edge gets an id
+    for edge in edges:
+        edge_splitted = edge.split(";")
+        #search for start vertex in vertices_objects and for end vertex
+        start_and_end = [item for item in vertices_objets if (item.get_id() == [edge_splitted[0]])] \
+                        + [item for item in vertices_objets if (item.get_id() == [edge_splitted[1]])]
+        check_start_end_in_vertices(start_and_end, edge) #check if start and end vertex are in vertices list
+        end_and_start = [item for item in vertices_objets if (item.get_id() == [edge_splitted[1]])] \
+                        + [item for item in vertices_objets if (item.get_id() == [edge_splitted[0]])]
+
+        if edges_labbelled: #if edges are labelled
+            if len(edge_splitted) == 2:
+                raise Exception("Wrong format: Edges should be labelled but arent.")
+            if directed: #if graph is directed
+                edges_objects.append(EDGE(identifier,start_and_end,edge_splitted[2]))
+                identifier += 1
+            else:  #if graph is undirected, insert both edges automtically
+                edges_objects.append(EDGE(identifier,start_and_end,edge_splitted[2]))
+                identifier += 1
+                edges_objects.append(EDGE(identifier,end_and_start,edge_splitted[2]))
+                identifier += 1
+        else: #if edges arent labelled
+            if len(edge_splitted) == 3:
+                raise Exception("Wrong format: Edges are labelled but header dont say so.")
+            if directed: #if graph is directed
+                edges_objects.append(EDGE(identifier,start_and_end,""))
+                identifier += 1
+            else: #if graph is undirected, insert both edges automtically
+                edges_objects.append(EDGE(identifier,start_and_end,""))
+                identifier += 1
+                edges_objects.append(EDGE(identifier,end_and_start,""))
+                identifier += 1
 
     #Testing header fits actual number of vertices and edges
     if not len(vertices_objets) == number_vertices:
         raise Exception("Number of vertices doesn't fit predicted number in header!")
-    if directed == False:
+    if not directed:
         if not len(edges_objects)/2 == number_edges:
             raise Exception("Number of edges doesn't fit predicted number in header!")
     else:
@@ -155,7 +122,6 @@ def parser(file):
 
     #create graph from class GRAPH
     graph = GRAPH("graph",vertices_objets,edges_objects,number_vertices,number_edges,directed)
-    print(graph)
     return graph
 
 def check_true_or_false(statement):
@@ -180,6 +146,37 @@ def check_start_end_in_vertices(edge_start_end, currentEdge):
     return
 
 if __name__ == '__main__':
+
+    try:
+        file = sys.argv[1]
+        g1 = parser(file)
+        g1.set_name("my cute Graphy MC Graphface")
+
+        print(str(g1))
+
+        file = sys.argv[2]
+        g2 = parser(file)
+        g2.set_name("Badass Graph")
+
+        print(str(g2))
+
+
+
+    except IOError:
+        print("shit")
+
+
+    #mod = modular_product(g1,g1)
+
+    #print(str(mod))
+
+    #print(mod.bron_kerbosch([],mod.get_list_of_vertices(),[]))
+
+    print(g1.bron_kerbosch_pivot([],g1.get_list_of_vertices(),[]))
+
+
+
+    '''
     try:
         file = sys.argv[1]
         graph = parser(file)
@@ -205,3 +202,4 @@ if __name__ == '__main__':
         second_graph = parser(args.graph_alignment)
         graph_result = modular_product(graph, second_graph)
         graph_result.bron_kerbosch_pivot(args.anchor, graph.get_list_of_vertices(), [], pivot=args.pivot_mode)
+    '''

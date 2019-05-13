@@ -1,9 +1,16 @@
+'''
+Created on 07.05.2019
+
+@author: jo
+'''
+
+
 class VERTEX(object):
     def __init__(self, id, label):
         self.__id = id
         self.__neighbours = []
         self.__label = label
-        
+
     def __str__(self):
         '''
         builds a string representation of a vertex
@@ -31,7 +38,7 @@ class VERTEX(object):
             raise TypeError("\n Dude... passed parameter has to be a list! \n")
         else:
             if len(new_neighbours) == 1:
-                self.__neighbours.append(new_neighbours)        # Hier wird eine Liste angefügt, oder?!
+                self.__neighbours.append(new_neighbours)        # Hier wird eine Liste angefÃ¼gt, oder?!
             elif len(new_neighbours) > 1:
                 self.__neighbours.extend(new_neighbours)
 

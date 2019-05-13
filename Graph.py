@@ -1,3 +1,9 @@
+'''
+Created on 07.05.2019
+
+@author: jo
+'''
+
 import math
 import random
 
@@ -51,19 +57,26 @@ class GRAPH(object):
         '''
         builds a string representation of of vertices and edges the graph
         '''
-        res = "vertices: "
+        res = "\n\nstring representation of graph: " + str(self.__name) + "\n"
+
+        res += "number of vertices: " + str(self.__number_of_vertices)
+
+        res += "\nnumber of edges: " + str(self.__number_of_edges)
+
+        res += "\ndirectional: " + str(self.__is_directed)
+
+
+        res += "\n\nvertices: "
         for vertex in self.__list_of_vertices:
-            res += str(vertex) + ", "
+            res += "\n" + str(vertex)
 
-        res += "\nnumber of vertices: "
-        res += str(self.__number_of_vertices)
+        
 
-        res += "\nedges: "
+        res += "\n\nedges: "
         for edge in self.__list_of_edges:
-            res += str(edge) + ", "
+            res += "\n" + str(edge)
 
-        res += "\nnumber of edges: "
-        res += str(self.__number_of_edges)
+        
         return res
 
     def bron_kerbosch(self, R, P, X):
@@ -103,9 +116,9 @@ class GRAPH(object):
         with pivot
         """
         if not P and not X:
-            print("Found Clique:")
+            print("Found Clique")
             for elem in R:
-                print(elem)
+                print(elem.get_id())
             return
         if pivot == None:
             for vertex in P[:]:

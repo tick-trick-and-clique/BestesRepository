@@ -1,3 +1,10 @@
+'''
+Created on 12.05.2019
+
+@author: AJ
+'''
+
+
 from Graph import GRAPH
 from Vertex import VERTEX
 from Edge import EDGE
