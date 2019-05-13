@@ -93,7 +93,7 @@ def parser(file):
                 vertex_splitted = vertex.split(";")
                 if len(vertex_splitted) == 1:
                     raise Exception("Wrong format: Vertices should be labelled but arent.")
-                vertices_objets.append(VERTEX([vertex_splitted[0]],vertex_splitted[1]))
+                vertices_objets.append(VERTEX([vertex_splitted[0]],vertex_splitted[1])) #id consits of a list because of modular product
             else: #if vertices arent labelled
                 vertex_splitted = vertex.split(";")
                 if len(vertex_splitted) == 2:
