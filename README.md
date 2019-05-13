@@ -24,6 +24,6 @@ git pull
 git add
 git commit
 git push origin <yourBranch>
-git merge 
+git merge <branchYouWantToMergeWith>
 
 ---
