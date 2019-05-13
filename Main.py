@@ -187,15 +187,16 @@ if __name__ == '__main__':
     # Command line parsing
     try:
         args = parse_command_line()
-        print(args.input_file)
-        print(args)
+
+        # Log statement for the console about the input file
+        print("Input file: " + args.input_file)
     except IOError:
         print("An error occured trying to read the file!")
 
     # Graph parsing
     graph = parser(args.input_file)
 
-    # Dev Log statment for graph checking
+    # Dev Log statement for graph checking
     print(graph)
 
     # Log statement for the console about the Pivot Mode!
