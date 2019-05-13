@@ -24,5 +24,6 @@ branches, wie wir noch brauchen: tille, def
 * git commit
 * git push origin <yourBranch>
 * git merge <branchYouWantToMergeWith>
-
+* git mergetool
+* git status
 ---
