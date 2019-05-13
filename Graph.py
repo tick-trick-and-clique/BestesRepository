@@ -1,15 +1,17 @@
 import math
 import random
 
-
+#
 class GRAPH(object):
-    def __init__(self, name, list_of_vertices, list_of_edges, number_of_vertices, number_of_edges, is_directed):
+    def __init__(self, name, list_of_vertices, list_of_edges, number_of_vertices, number_of_edges, is_directed, is_labeled_nodes=False, is_labeled_edges=False):
         self.__name = name
         self.__list_of_vertices = list_of_vertices
         self.__list_of_edges = list_of_edges
         self.__number_of_vertices = number_of_vertices
         self.__number_of_edges = number_of_edges
         self.__is_directed = is_directed
+        self.__is_labeled_nodes = is_labeled_nodes  #has to be transferred while initialising the graph
+        self.__is_labeled_edges = is_labeled_edges  #has to be transferred while initialising the graph
 
     def get_name(self):
         '''
@@ -79,15 +81,17 @@ class GRAPH(object):
 
         for vertex in P[:]:
             new_R = R + [vertex]
-            new_P = [val for val in P if val in self.reverse_edges(vertex.get_neighbours(),vertex)]  # P intersects w/ neighbours of vertex
-            new_X = [val for val in X if val in self.reverse_edges(vertex.get_neighbours(),vertex)]  # X intersects w/ neighbours of vertex
+            new_P = [val for val in P if
+                     val in self.reverse_edges(vertex.get_neighbours(), vertex)]  # P intersects w/ neighbours of vertex
+            new_X = [val for val in X if
+                     val in self.reverse_edges(vertex.get_neighbours(), vertex)]  # X intersects w/ neighbours of vertex
 
             self.bron_kerbosch(new_R, new_P, new_X)
             P.remove(vertex)
             X.append(vertex)
         return
 
-    def reverse_edges(self,list_of_vertices, current_vertex):
+    def reverse_edges(self, list_of_vertices, current_vertex):
         """
         Checks if neighbours of current vertex has reversed edge to currentvertex
         """
@@ -96,22 +100,24 @@ class GRAPH(object):
             if current_vertex in elem.get_neighbours():
                 vertices_with_reverse_edges.append(elem)
         return vertices_with_reverse_edges
-    
+
     def bron_kerbosch_pivot(self, R, P, X, pivot=None):
         """
         bron kerbosch algo to find maximal cliques in graph
         with pivot
         """
         if not P and not X:
-            print("Found Clique:")
+            print("Found Clique")
             for elem in R:
                 print(elem)
             return
         if pivot == None:
             for vertex in P[:]:
                 new_R = R + [vertex]
-                new_P = [val for val in P if val in self.reverse_edges(vertex.get_neighbours(),vertex)]   # P intersects w/ neighbours of vertex
-                new_X = [val for val in X if val in self.reverse_edges(vertex.get_neighbours(),vertex)]   # X intersects w/ neighbours of vertex
+                new_P = [val for val in P if val in self.reverse_edges(vertex.get_neighbours(),
+                                                                       vertex)]  # P intersects w/ neighbours of vertex
+                new_X = [val for val in X if val in self.reverse_edges(vertex.get_neighbours(),
+                                                                       vertex)]  # X intersects w/ neighbours of vertex
 
                 self.bron_kerbosch_pivot(new_R, new_P, new_X)
                 P.remove(vertex)
@@ -126,8 +132,10 @@ class GRAPH(object):
 
         for vertex in [elem for elem in P if elem not in pivot_vertex.get_neighbours()]:
             new_R = R + [vertex]
-            new_P = [val for val in P if val in self.reverse_edges(vertex.get_neighbours(),vertex)]  # p intersects/geschnitten N(vertex)
-            new_X = [val for val in X if val in self.reverse_edges(vertex.get_neighbours(),vertex)]  # x intersects/geschnitten N(vertex)
+            new_P = [val for val in P if
+                     val in self.reverse_edges(vertex.get_neighbours(), vertex)]  # p intersects/geschnitten N(vertex)
+            new_X = [val for val in X if
+                     val in self.reverse_edges(vertex.get_neighbours(), vertex)]  # x intersects/geschnitten N(vertex)
             self.bron_kerbosch_pivot(new_R, new_P, new_X, pivot)
             P.remove(vertex)
             X.append(vertex)
@@ -159,7 +167,7 @@ class GRAPH(object):
         bron kerbosch algorithm to find maximal cliques in graph using an anchor in R
         """
         if self.check_clique_properties(R):
-            # Für alle Knoten im Anker wird die Menge P auf den Schnitt mit den Nachbarn des jeweiligen Knotens
+            # FÃ¼r alle Knoten im Anker wird die Menge P auf den Schnitt mit den Nachbarn des jeweiligen Knotens
             # reduziert.
             for vertex in R:
                 P = [v for v in P if v in vertex.get_neighbours()]
@@ -179,3 +187,26 @@ class GRAPH(object):
             if vertex.get_neighbours().sort() != (R - [vertex]).sort():
                 check = False
         return check
+
+    def save_to_txt(self):
+        """
+        saves representation of the GRAPH object to textfile: ["self.__name.graph"]
+        """
+        filename=str(self.__name)+".graph"
+        with open(filename, "w") as f:
+            f.write("#nodes;" + str(self.__number_of_vertices) + "\n")
+            f.write("#edges;" + str(self.__number_of_edges) + "\n") #streng genommen abhängig von davon, ob directed oder undirected, da bei undirected beide Richtungen als 1 zählen
+            f.write("nodes labeled;" + str(self.__is_labeled_nodes) + "\n")  #HOW DO I FIGURE OUT THE BEST? PROBABLY WHEN ADDING NODES TO GRAPH?! PROBABLY WHEN ADDING NODES TO THE GRAPH
+            f.write("edges labeled;" + str(self.__is_labeled_edges) + "\n")
+            f.write("directed graph;" + str(self.__is_directed))
+            if len(self.__list_of_vertices) > 0:
+                f.write("\n")
+                for vertex in self.__list_of_vertices:
+                    f.write("\n" + str(vertex.get_id()) + ";" + str(vertex.get_label()))    #Wenn nodes ohne Label ";" weglassen?
+
+            if len(self.__list_of_edges) > 0:
+                f.write("\n")
+                for edge in self.__list_of_edges:
+                    f.write("\n" + str(edge.get_start_and_end()[0].get_id()) + ";"
+                            + str(edge.get_start_and_end()[1].get_id()) + ";" + str(edge.get_label()))
+        f.close()
