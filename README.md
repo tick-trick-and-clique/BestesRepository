@@ -28,12 +28,27 @@ python [graphalign.py](http://graphalign.py) [file] [Argument]
 * -bk (bron kerbosch)
 * -ga (muktiples graph alignment)
 
+---
 
 ## usefull git commands
+
+## Daten aus dev holen:
+* git checkout dev
+* git pull 
+* git checkout seins
+* git merge dev 
+
+## Daten bei sich bearbeiten und hochladen
 * git pull
 * git add
 * git commit
 * git push origin <yourBranch>
 * git merge <branchYouWantToMergeWith>
+
+## Daten zu dev hinzufügen
+* alle deine Daten sind in deinem branch gepusht
+* git checkout dev
+* git merge deins 
+* git push dev
 
 ---
