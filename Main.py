@@ -223,18 +223,37 @@ if __name__ == '__main__':
     # Checking for modular product option
     if args.modular_product is not None:
         second_graph = parser(args.modular_product)
-        modular_product = modular_product(graph, second_graph)
+        graph1_name = graph.get_name()
+        graph2_name = second_graph.get_name()
+        graph = modular_product(graph, second_graph)
 
         # Log statement for the console about the modular product
-        print("Modular Product of " + graph.get_name() + " and " + second_graph.get_name() + " was calculated!")
+        print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
 
         # Dev Log statement for modular product graph checking
-        print(modular_product)
+        print(graph)
 
     # Checking for bron-kerbosch option
     if args.bron_kerbosch:
         clique_finding_result = graph.bron_kerbosch(anchor, graph.get_list_of_vertices(), [], pivot=args.pivot_mode)
 
+        # Log statement for the console about Bron-Kerbosch
+        print("Clique finding via Bron-Kerbosch...")
+
+    # Checking for graph alignment option. This option performs the modular product AND bron-kerbosch!
+    if args.graph_alignment is not None:
+        second_graph = parser(args.graph_alignment)
+        graph1_name = graph.get_name()
+        graph2_name = second_graph.get_name()
+        graph = modular_product(graph, second_graph)
+
+        # Log statement for the console about the modular product
+        print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
+
+        # Dev Log statement for graph checking
+        print(graph)
+
+        clique_finding_result = graph.bron_kerbosch(anchor, graph.get_list_of_vertices(), [], pivot=args.pivot_mode)
         # Log statement for the console about Bron-Kerbosch
         print("Clique finding via Bron-Kerbosch...")
 
@@ -246,18 +265,3 @@ if __name__ == '__main__':
             graph.save_to_txt()
         else:
             graph.save_to_txt(args.output_file)
-
-    # Checking for graph alignment option. This option performs the modular product AND bron-kerbosch!
-    if args.graph_alignment is not None:
-        second_graph = parser(args.graph_alignment)
-        graph = modular_product(graph, second_graph)
-
-        # Log statement for the console about the modular product
-        print("Modular Product of " + g1.get_name() + " and " + g2.get_name() + " was calculated!")
-
-        # Dev Log statement for graph checking
-        print(graph)
-
-        graph.bron_kerbosch(anchor, graph.get_list_of_vertices(), [], pivot=args.pivot_mode)
-        # Log statement for the console about Bron-Kerbosch
-        print("Clique finding via Bron-Kerbosch...")
