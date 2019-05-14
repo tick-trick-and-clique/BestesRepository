@@ -3,12 +3,13 @@ Created on 07.05.2019
 
 @author: chris
 '''
-import sys
+import os
 from Graph import GRAPH
 from Vertex import VERTEX
 from Edge import EDGE
 from Command_Line_Parser import parse_command_line
 from Modulares_Produkt import modular_product
+from Graph_Builder import buildRndGraph
 
 
 def parser(file):
@@ -188,17 +189,64 @@ if __name__ == '__main__':
     # Command line parsing
     try:
         args = parse_command_line()
-
-        # Log statement for the console about the input file
-        print("Input file: " + args.input_file)
     except IOError:
         print("An error occured trying to read the file!")
 
-    # Graph parsing
-    graph = parser(args.input_file)
+    # The first command line arguments should either be a file (path) name (1 argument) or the two necessary parameters
+    # for random graph building (2 arguments) with the third parameter (directed/undirected) being optional. 4 or more
+    # arguments are illegal.
+
+    # Too many arguments:
+    third_arg = False
+    if len(args.input_file) > 3:
+        raise IOError("Illegal number of arguments!")
+    # 0 Arguments:
+    elif len(args.input_file) == 0:
+        raise IOError("Please provide either a file (path) name or vertex number and connection probability for "
+                      "random graph building")
+
+    # 1 Argument:
+    # If input_file argument is neither a valid path nor a file in the current working directory. If, raise
+    # FileNotFoundError.
+    elif len(args.input_file) == 1:
+        if not os.path.isdir(os.path.dirname(args.input_file[0])) \
+                and not os.path.exists(args.input_file[0]):
+            raise FileNotFoundError("No such file with given path or filename!")
+
+        # If input_file argument is a not a full path, add current working directory. Else, take what's given.
+        if not os.path.isdir(os.path.dirname(args.input_file[0])):
+            input_file = os.path.abspath(args.input_file[0])
+        else:
+            input_file = args.input_file
+
+        # Log statement for the console about the input file
+        print("First input file path: " + input_file)
+
+        # Graph parsing
+        graph = parser(input_file)
+
+    # 3 Arguments:
+    # Random graph building, third Argument mus be either 'true' or 'false'
+    elif len(args.input_file) == 3:
+        if not args.input_file[2] == "true" and not args.input_file[2] == "false":
+            raise ValueError("Third positional argument must be either 'true' or 'false'!")
+        third_arg = (args.input_file[2] == "true")
+
+    # 2 Arguments:
+    # Random graph building, arguments must be integer and real number, respectively.
+    if len(args.input_file) >= 2:
+        try:
+            int(args.input_file[0])
+        except ValueError:
+            print("Provide integer value for the number of vertices for random graph building!")
+        try:
+            float(args.input_file[1])
+        except ValueError:
+            print("Provide real number for the connection probability for random graph building!")
+        graph = buildRndGraph(int(args.input_file[0]), float(args.input_file[1]), directed=third_arg)
 
     # Dev Log statement for graph checking
-    print(graph)
+    # print(graph)
 
     # Log statement for the console about the Pivot Mode!
     if args.pivot_mode is None:
@@ -228,10 +276,11 @@ if __name__ == '__main__':
         graph = modular_product(graph, second_graph)
 
         # Log statement for the console about the modular product
+        print("Second input file path/name: " + args.modular_product)
         print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
 
         # Dev Log statement for modular product graph checking
-        print(graph)
+        # print(graph)
 
     # Checking for bron-kerbosch option
     if args.bron_kerbosch:
@@ -248,10 +297,11 @@ if __name__ == '__main__':
         graph = modular_product(graph, second_graph)
 
         # Log statement for the console about the modular product
+        print("Second input file path/name: " + args.graph_alignment)
         print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
 
         # Dev Log statement for graph checking
-        print(graph)
+        # print(graph)
 
         clique_finding_result = graph.bron_kerbosch(anchor, graph.get_list_of_vertices(), [], pivot=args.pivot_mode)
         # Log statement for the console about Bron-Kerbosch

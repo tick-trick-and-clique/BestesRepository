@@ -25,9 +25,9 @@ def buildRndGraph(nr_nodes: int, p_connected: float, labeled_nodes=False, labele
     # Create Vertices
     for vertex_id in range(1, nr_nodes+1): #
         if labeled_nodes:
-            list_vertices.append(VERTEX(str(vertex_id), randomString()))
+            list_vertices.append(VERTEX([str(vertex_id)], randomString()))
         else:
-            list_vertices.append(VERTEX(str(vertex_id), ""))
+            list_vertices.append(VERTEX([str(vertex_id)], ""))
 
     # Create Edges if arbitrarily number [0.0,1.0] <=p_connected
     list_combinations = combinations(list(range(len(list_vertices))),2)   #list of all possible combinations of length 2 ; lookup list for vertex combinations
@@ -70,11 +70,11 @@ def buildRndGraph(nr_nodes: int, p_connected: float, labeled_nodes=False, labele
     if not directed:
         # For undirected graphs, the number of edges is half the number of edges entries in the GRAPH object
         graph = GRAPH(name_graph, list_vertices, list_edges, len(list_vertices),
-                      len(list_edges)/2, directed, labeled_nodes, labeled_edges)
+                      int(len(list_edges)/2), directed, labeled_nodes, labeled_edges)
     else:
         graph = GRAPH(name_graph, list_vertices, list_edges, len(list_vertices),
                       len(list_edges), directed, labeled_nodes, labeled_edges)
-    graph.save_to_txt()
+    return graph
 
 def randomString(stringLength=3):
     """ Generate a random string of fixed length """
