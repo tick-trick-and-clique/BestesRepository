@@ -48,5 +48,7 @@ def modular_product(g1, g2):
                         new_list_of_edges.append(EDGE("Default_id", [start_vertex, end_vertex], "Default_Label"))
                         new_number_of_edges += 1
     # The modular product as undirected graph is returned with a default name.
+    # Vertex and Edge labels are enabled, yet set to a default value for the moment, same as the edge id.
     return GRAPH("Modular Product of " + g1.get_name() + " and " + g2.get_name(),
-                 new_list_of_vertices, new_list_of_edges, new_number_of_vertices, int(new_number_of_edges/2), False)
+                 new_list_of_vertices, new_list_of_edges, new_number_of_vertices, int(new_number_of_edges/2),
+                 False, is_labeled_edges=True, is_labeled_nodes=True)

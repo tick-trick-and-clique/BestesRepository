@@ -156,7 +156,8 @@ def parser(file):
                 vertex.append_neighbour(neighbour)
 
     # create graph from class GRAPH
-    return GRAPH("graph", vertices_objets, edges_objects, number_vertices, number_edges, directed)
+    return GRAPH("graph", vertices_objets, edges_objects, number_vertices, number_edges, directed,
+                 is_labeled_nodes=vertices_labelled, is_labeled_edges=edges_labbelled)
 
 
 def check_true_or_false(statement):
