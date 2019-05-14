@@ -26,4 +26,6 @@ branches, wie wir noch brauchen: tille, def
 * git merge <branchYouWantToMergeWith>
 * git mergetool
 * git status
+* git log -p (or * git whatchanged -p)
+* git diff [commit_1_hash]..[commit_2_hash]
 ---
