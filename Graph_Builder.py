@@ -58,13 +58,22 @@ def buildRndGraph(nr_nodes: int, p_connected: float, labeled_nodes=False, labele
             #print("2-NON-direct")
             list_edges.append(EDGE(edge_id, [list_vertices[combination[0]], list_vertices[combination[1]]],
                                    randomString(label_edge_length)))
-            list_vertices[combination[0]].append_neighbour(list_vertices[combination[1]])
-            list_vertices[combination[1]].append_in_neighbour(list_vertices[combination[0]])
+            # Edges have to be appended in both directions for undirected graphs
             edge_id += 1
+            list_edges.append(EDGE(edge_id, [list_vertices[combination[1]], list_vertices[combination[0]]],
+                                   randomString(label_edge_length)))
+            edge_id += 1
+            list_vertices[combination[0]].append_neighbour(list_vertices[combination[1]])
+            list_vertices[combination[1]].append_neighbour(list_vertices[combination[0]])
 
     # Create Graph
-    graph=GRAPH(name_graph, list_vertices, list_edges, len(list_vertices),
-                len(list_edges), directed, labeled_nodes, labeled_edges)
+    if not directed:
+        # For undirected graphs, the number of edges is half the number of edges entries in the GRAPH object
+        graph = GRAPH(name_graph, list_vertices, list_edges, len(list_vertices),
+                      len(list_edges)/2, directed, labeled_nodes, labeled_edges)
+    else:
+        graph = GRAPH(name_graph, list_vertices, list_edges, len(list_vertices),
+                      len(list_edges), directed, labeled_nodes, labeled_edges)
     graph.save_to_txt()
 
 def randomString(stringLength=3):
