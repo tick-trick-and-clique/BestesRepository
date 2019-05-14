@@ -1,7 +1,7 @@
 import math
 import random
 
-#
+
 class GRAPH(object):
     def __init__(self, name, list_of_vertices, list_of_edges, number_of_vertices, number_of_edges, is_directed, is_labeled_nodes=False, is_labeled_edges=False):
         self.__name = name
@@ -10,8 +10,8 @@ class GRAPH(object):
         self.__number_of_vertices = number_of_vertices
         self.__number_of_edges = number_of_edges
         self.__is_directed = is_directed
-        self.__is_labeled_nodes = is_labeled_nodes  #has to be transferred while initialising the graph
-        self.__is_labeled_edges = is_labeled_edges  #has to be transferred while initialising the graph
+        self.__is_labeled_nodes = is_labeled_nodes  # has to be transferred while initialising the graph
+        self.__is_labeled_edges = is_labeled_edges  # has to be transferred while initialising the graph
 
     def get_name(self):
         '''
@@ -68,29 +68,6 @@ class GRAPH(object):
             res += str(edge) + ",\n"
         return res
 
-    def bron_kerbosch(self, R, P, X):
-        '''
-        bron-kerbosch-algorithm w/out pivoting
-        '''
-
-        if not P and not X:
-            print("Found Clique")
-            for elem in R:
-                print(elem.get_id())
-            return
-
-        for vertex in P[:]:
-            new_R = R + [vertex]
-            new_P = [val for val in P if
-                     val in self.reverse_edges(vertex.get_neighbours(), vertex)]  # P intersects w/ neighbours of vertex
-            new_X = [val for val in X if
-                     val in self.reverse_edges(vertex.get_neighbours(), vertex)]  # X intersects w/ neighbours of vertex
-
-            self.bron_kerbosch(new_R, new_P, new_X)
-            P.remove(vertex)
-            X.append(vertex)
-        return
-
     def reverse_edges(self, list_of_vertices, current_vertex):
         """
         Checks if neighbours of current vertex has reversed edge to currentvertex
@@ -131,8 +108,10 @@ class GRAPH(object):
             raise ValueError("Given optional pivot argument is illegal!")
         for vertex in [elem for elem in P if elem not in pivot_vertex.get_neighbours()]:
             new_R = R + [vertex]
-            new_P = [val for val in P if val in self.reverse_edges(vertex.get_neighbours(), vertex)]  # p intersects/geschnitten N(vertex)
-            new_X = [val for val in X if val in self.reverse_edges(vertex.get_neighbours(), vertex)]  # x intersects/geschnitten N(vertex)
+            # p intersects/geschnitten N(vertex
+            new_P = [val for val in P if val in self.reverse_edges(vertex.get_neighbours(), vertex)]
+            # x intersects/geschnitten N(vertex)
+            new_X = [val for val in X if val in self.reverse_edges(vertex.get_neighbours(), vertex)]
             self.bron_kerbosch(new_R, new_P, new_X, pivot=pivot)
             P.remove(vertex)
             X.append(vertex)
