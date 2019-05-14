@@ -46,8 +46,9 @@ python [graphalign.py](http://graphalign.py) [file] [Argument]
 
 ### wenn man nun i.wann zufrieden ist mit seinen Änderungen in seinem branch
 * Worklflow idealerweise:
-* man ist im GitHub in seinem branch und drückt auf "compare, review, create a pull request" (links einen kleiner grüner button)
-* dann kommt man auf eine Seite wo man seine Änderungen sieht
+* man ist im GitHub in seinem branch und drückt auf "compare and request" (grüner button)
+* dann kommt man auf eine Seite wo man seine Änderungen sieht 
+* hier angeben in das man sein branch nach dev mergen will (GANZ WICHTIG DAS NICHT MASTER DA STEHT)
 * nun "Create Pull Request" drücken, sagen was man verändert hat (und z.b. @AJ kannst du das mal überprüfen) 
 * nun ist jemand anders an der Reihe zu checken ob die Änderung so klar geht
 * jemand kann nun "merge pull request" drücken  & "confirm merge" 
