@@ -238,8 +238,14 @@ if __name__ == '__main__':
         # Log statement for the console about Bron-Kerbosch
         print("Clique finding via Bron-Kerbosch...")
 
-    # if args.output_file:
-        # Code to be added
+    # Checking for output option.
+    # If no argument is provided (default = 0), graph will be saved using its name attribute
+    # and the current working directory.
+    if args.output_file is not None:
+        if args.output_file == 0:
+            graph.save_to_txt()
+        else:
+            graph.save_to_txt(args.output_file)
 
     # Checking for graph alignment option. This option performs the modular product AND bron-kerbosch!
     if args.graph_alignment is not None:

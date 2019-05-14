@@ -1,5 +1,6 @@
 import math
 import random
+import os
 
 
 class GRAPH(object):
@@ -149,11 +150,29 @@ class GRAPH(object):
                 check = False
         return check
 
-    def save_to_txt(self):
+    def save_to_txt(self, output_file=1):
         """
         saves representation of the GRAPH object to textfile: ["self.__name.graph"]
         """
-        filename=str(self.__name)+".graph"
+        # Default value should be self.__name.graph
+        if output_file == 1:
+            output_file = self.get_name() + ".graph"        # Couldn't call self.get_name() in the method parameter list
+
+        # If provided argument is not a valid directory and also is not a valid file name, raise NotADirectoryError
+        if not os.path.isdir(os.path.dirname(output_file)) \
+                and not os.path.isdir(os.path.dirname(os.path.abspath(output_file))):
+            raise NotADirectoryError("Given path is not a directory!")
+
+        # Provided argument is a directory, else it is a filename and the current working directory path is added
+        if os.path.isdir(os.path.dirname(output_file)):
+            filename = output_file
+        else:
+            filename = os.path.abspath(output_file)
+
+        # If the provided argument does not end with '.graph', raise NameError
+        if output_file[-6:] != ".graph":
+            raise NameError("Given path of filename must end with '.graph'")
+
         with open(filename, "w") as f:
             f.write("#nodes;" + str(self.__number_of_vertices) + "\n")
             f.write("#edges;" + str(self.__number_of_edges) + "\n") #streng genommen abhängig von davon, ob directed oder undirected, da bei undirected beide Richtungen als 1 zählen
