@@ -10,6 +10,7 @@ from Edge import EDGE
 from Command_Line_Parser import parse_command_line
 from Modulares_Produkt import modular_product
 from Graph_Builder import buildRndGraph
+from MP_Vertex import modular_product_MP_VERTEX
 
 
 def parser(file):
@@ -273,14 +274,14 @@ if __name__ == '__main__':
         second_graph = parser(args.modular_product)
         graph1_name = graph.get_name()
         graph2_name = second_graph.get_name()
-        graph = modular_product(graph, second_graph)
+        graph = modular_product_MP_VERTEX(graph, second_graph)
 
         # Log statement for the console about the modular product
         print("Second input file path/name: " + args.modular_product)
         print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
 
         # Dev Log statement for modular product graph checking
-        # print(graph)
+        print(graph)
 
     # Checking for bron-kerbosch option
     if args.bron_kerbosch:
@@ -294,14 +295,14 @@ if __name__ == '__main__':
         second_graph = parser(args.graph_alignment)
         graph1_name = graph.get_name()
         graph2_name = second_graph.get_name()
-        graph = modular_product(graph, second_graph)
+        graph = modular_product_MP_VERTEX(graph, second_graph)
 
         # Log statement for the console about the modular product
         print("Second input file path/name: " + args.graph_alignment)
         print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
 
         # Dev Log statement for graph checking
-        # print(graph)
+        print(graph)
 
         clique_finding_result = graph.bron_kerbosch(anchor, graph.get_list_of_vertices(), [], pivot=args.pivot_mode)
         # Log statement for the console about Bron-Kerbosch
