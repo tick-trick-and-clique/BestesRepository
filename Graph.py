@@ -3,6 +3,7 @@ import random
 import os
 
 
+
 class GRAPH(object):
     def __init__(self, name, list_of_vertices, list_of_edges, number_of_vertices, number_of_edges, is_directed, is_labeled_nodes=False, is_labeled_edges=False):
         self.__name = name
@@ -145,8 +146,14 @@ class GRAPH(object):
         checks if all vertices in R(list) are adjacent to every other vertex in R
         """
         check = True
-        for vertex in self.get_list_of_vertices():
-            if vertex.get_neighbours().sort() != (self.get_list_of_vertices() - [vertex]).sort():
+        v_list = self.get_list_of_vertices()
+        for vertex in v_list:
+            n_list = vertex.get_neighbours()
+            n_list.sort(key=lambda v: v.get_id())
+            v_list_copy = v_list.copy()
+            v_list_copy.remove(vertex)
+            v_list_copy.sort(key=lambda v: v.get_id())
+            if n_list != v_list_copy:
                 check = False
         return check
 
