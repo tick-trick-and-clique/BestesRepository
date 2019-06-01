@@ -219,3 +219,34 @@ class GRAPH(object):
             partial = False
 
         return partial
+
+    def is_compatible_vertex(self, own_vertex, vertex_other_graph):
+        # TODO: Function should return whether two vertices of this and another graph are 'compatible'
+        print("'is_compatible_vertex' not yet implemented!")
+        return True
+
+    def is_compatible_edge(self, own_edge, edge_other_graph):
+        # TODO: Function should return whether two edges of this and another graph are 'compatible'
+        print("'is_compatible_edge' not yet implemented!")
+        return True
+
+    def get_out_edge_list(self, vertex):
+        # TODO: Function should return list of directional edges leaving this vertex
+        print("'get_out_edge_count' is not yet implemented!")
+        return []
+
+    def get_in_edge_list(self, vertex):
+        # TODO: Function should return list of directional edges going to this vertex
+        print("'get_in_edge_count' is not yet implemented!")
+        return []
+
+    def has_edge(self, vertex1, vertex2):
+        # TODO: Function should return whether there is a directional edge from vertex1 to vertex2
+        some_boolean = True
+        print("'has_edge' is not yet implemented!")
+        return some_boolean
+
+    def get_edge(self, vertex1, vertex2):
+        # TODO: Function should return EDGE type, this should only be invoked when self.has_edge has been performed
+        print("'get_edge' is not yet implemented!")
+        return None
