@@ -57,11 +57,11 @@ class MB_State:
 
     def all_vertices_of_g2_covered(self):
         # TODO: Check g2 coverage
-        return some_boolean
+        return True
 
     def compute_candidates(self):
         # TODO: Implement function that produces a set of vertex tuples
-        return p
+        return {}
 
     def is_feasible(self, candidate):
         # TODO: Check for feasibility of candidate pair
@@ -147,7 +147,7 @@ class MB_State:
             other_v_in_g2 = edge.get_start_and_end()[0]
             if self.core_2[other_v_in_g2.get_id()] is not None:
                 other_v_in_g1 = self.core_2[other_v_in_g2.get_id()]
-                if not self.graph1.has_edge(other_v_in_g1, g1_vertex):        g2_vertex).get_label()):
+                if not self.graph1.has_edge(other_v_in_g1, g1_vertex):       
                     return False
             else:
                 if self.in_2[other_v_in_g2.get_id()] > 0:
