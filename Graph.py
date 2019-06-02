@@ -221,32 +221,51 @@ class GRAPH(object):
         return partial
 
     def is_compatible_vertex(self, own_vertex, vertex_other_graph):
-        # TODO: Function should return whether two vertices of this and another graph are 'compatible'
-        print("'is_compatible_vertex' not yet implemented!")
-        return True
+        # Function returns whether two vertices of this and another graph are 'compatible'.
+        # Here, this is performed by comparison of vertex labels.
+        if own_vertex.get_label() == vertex_other_graph.get_label():
+            return True
+        else:
+            return False
 
     def is_compatible_edge(self, own_edge, edge_other_graph):
-        # TODO: Function should return whether two edges of this and another graph are 'compatible'
-        print("'is_compatible_edge' not yet implemented!")
-        return True
+        # Function returns whether two edges of this and another graph are 'compatible'.
+        # Here, this is performed by comparison of edge labels.
+        if own_edge.get_label() == edge_other_graph.get_label():
+            return True
+        else:
+            return False
 
     def get_out_edge_list(self, vertex):
-        # TODO: Function should return list of directional edges leaving this vertex
-        print("'get_out_edge_count' is not yet implemented!")
-        return []
+        # Function returns a list of directional edges leaving this vertex.
+        edge_list = []
+        for edge in self.get_list_of_edges():
+            if vertex == edge.get_start_and_end()[0]:
+                edge_list.append(edge)
+        return edge_list
 
     def get_in_edge_list(self, vertex):
-        # TODO: Function should return list of directional edges going to this vertex
-        print("'get_in_edge_count' is not yet implemented!")
-        return []
+        # Function returns a list of directional edges going to this vertex.
+        edge_list = []
+        for edge in self.get_list_of_edges():
+            if vertex == edge.get_start_and_end()[1]:
+                edge_list.append(edge)
+        return edge_list
 
     def has_edge(self, vertex1, vertex2):
-        # TODO: Function should return whether there is a directional edge from vertex1 to vertex2
-        some_boolean = True
-        print("'has_edge' is not yet implemented!")
-        return some_boolean
+        # Function should return whether there is a directional edge from vertex1 to vertex2
+        if vertex2 in vertex1.get_neighbours():
+            return True
+        else:
+            return False
 
     def get_edge(self, vertex1, vertex2):
-        # TODO: Function should return EDGE type, this should only be invoked when self.has_edge has been performed
-        print("'get_edge' is not yet implemented!")
-        return None
+        # Function returns EDGE type, this should only be invoked when self.has_edge has been performed
+        edge_result = None
+        for edge in self.get_list_of_edges():
+            if edge.get_start_and_end()[0] == vertex1 and \
+                    edge.get_start_and_end()[1] == vertex2:
+                edge_result = edge
+        if edge_result is None:
+            print("Function GRAPH.get_edge: No edge could be found between given vertices!")
+        return edge_result
