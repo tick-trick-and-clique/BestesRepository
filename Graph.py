@@ -5,7 +5,8 @@ import os
 
 
 class GRAPH(object):
-    def __init__(self, name, list_of_vertices, list_of_edges, number_of_vertices, number_of_edges, is_directed, is_labeled_nodes=False, is_labeled_edges=False):
+    def __init__(self, name, list_of_vertices, list_of_edges, number_of_vertices, number_of_edges, is_directed,
+                 is_labeled_nodes=False, is_labeled_edges=False, mapping=None):
         self.__name = name
         self.__list_of_vertices = list_of_vertices
         self.__list_of_edges = list_of_edges
@@ -14,6 +15,7 @@ class GRAPH(object):
         self.__is_directed = is_directed
         self.__is_labeled_nodes = is_labeled_nodes  # has to be transferred while initialising the graph
         self.__is_labeled_edges = is_labeled_edges  # has to be transferred while initialising the graph
+        self.__mapping = mapping
 
     def get_name(self):
         '''
@@ -83,18 +85,19 @@ class GRAPH(object):
     def bron_kerbosch(self, R, P, X, pivot=None):
         """
         bron kerbosch algo to find maximal cliques in graph
-        with pivot
+        with pivot. Function returns a list of cliques, which are lists of vertices.
         """
         if not P and not X:
             print("Found Clique")
             for elem in R:
                 print(elem)
-            return
+            return [R]
         if pivot == "max":
             pivot_vertex = self.select_max_pivot(P, X)
         elif pivot == "random":
             pivot_vertex = self.select_random_pivot(P, X)
         elif pivot is None:
+            result = []
             for vertex in P[:]:
                 new_R = R + [vertex]
                 new_P = [val for val in P if val in self.reverse_edges(vertex.get_neighbours(),
@@ -102,10 +105,10 @@ class GRAPH(object):
                 new_X = [val for val in X if val in self.reverse_edges(vertex.get_neighbours(),
                                                                        vertex)]  # X intersects w/ neighbours of vertex
 
-                self.bron_kerbosch(new_R, new_P, new_X)
+                result += self.bron_kerbosch(new_R, new_P, new_X)
                 P.remove(vertex)
                 X.append(vertex)
-            return
+            return result
         else:
             raise ValueError("Given optional pivot argument is illegal!")
         for vertex in [elem for elem in P if elem not in pivot_vertex.get_neighbours()]:
@@ -269,3 +272,6 @@ class GRAPH(object):
         if edge_result is None:
             print("Function GRAPH.get_edge: No edge could be found between given vertices!")
         return edge_result
+
+    def get_mapping(self):
+        return self.__mapping

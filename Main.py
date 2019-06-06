@@ -274,7 +274,7 @@ if __name__ == '__main__':
         second_graph = parser(args.modular_product)
         graph1_name = graph.get_name()
         graph2_name = second_graph.get_name()
-        graph = modular_product_MP_VERTEX(graph, second_graph)
+        graph = modular_product(graph, second_graph)
 
         # Log statement for the console about the modular product
         print("Second input file path/name: " + args.modular_product)
@@ -295,7 +295,7 @@ if __name__ == '__main__':
         second_graph = parser(args.graph_alignment)
         graph1_name = graph.get_name()
         graph2_name = second_graph.get_name()
-        graph = modular_product_MP_VERTEX(graph, second_graph)
+        graph = modular_product(graph, second_graph)
 
         # Log statement for the console about the modular product
         print("Second input file path/name: " + args.graph_alignment)
