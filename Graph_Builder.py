@@ -25,9 +25,9 @@ def buildRndGraph(nr_nodes: int, p_connected: float, labeled_nodes=False, labele
     # Create Vertices
     for vertex_id in range(1, nr_nodes+1): #
         if labeled_nodes:
-            list_vertices.append(VERTEX([str(vertex_id)], randomString()))
+            list_vertices.append(VERTEX(vertex_id, randomString()))
         else:
-            list_vertices.append(VERTEX([str(vertex_id)], ""))
+            list_vertices.append(VERTEX(vertex_id, ""))
 
     # Create Edges if arbitrarily number [0.0,1.0] <=p_connected
     list_combinations = combinations(list(range(len(list_vertices))),2)   #list of all possible combinations of length 2 ; lookup list for vertex combinations

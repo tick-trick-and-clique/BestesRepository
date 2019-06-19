@@ -5,7 +5,7 @@ matching-based algorithm by Cordella et al.
 
 
 class MB_State:
-    def __init__(self, g1, g2, sortVertices):
+    def __init__(self, g1, g2, sortVertices=False):
 
         # DEV NOTE: core_1 and core_2 are supposed to be dictionaries with integers keys and VERTEX type values here
         # while the other four data structures

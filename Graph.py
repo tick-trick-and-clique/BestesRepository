@@ -1,6 +1,8 @@
 import math
 import random
 import os
+from Edge import EDGE
+
 
 
 
@@ -53,6 +55,9 @@ class GRAPH(object):
         '''
         return self.__number_of_edges
 
+    def get_is_directed(self):
+        return self.__is_directed
+
     def __str__(self):
         '''
         builds a string representation of of vertices and edges the graph
@@ -87,24 +92,25 @@ class GRAPH(object):
         bron kerbosch algo to find maximal cliques in graph
         with pivot. Function returns a list of cliques, which are lists of vertices.
         """
+        result = []
         if not P and not X:
-            print("Found Clique")
+            # Dev Log Statement
+            # print("Found Clique")
             for elem in R:
-                print(elem)
-            return [R]
+                # Dev Log Statement
+                # print(elem)
+                return [R]
         if pivot == "max":
             pivot_vertex = self.select_max_pivot(P, X)
         elif pivot == "random":
             pivot_vertex = self.select_random_pivot(P, X)
         elif pivot is None:
-            result = []
             for vertex in P[:]:
                 new_R = R + [vertex]
                 new_P = [val for val in P if val in self.reverse_edges(vertex.get_neighbours(),
                                                                        vertex)]  # P intersects w/ neighbours of vertex
                 new_X = [val for val in X if val in self.reverse_edges(vertex.get_neighbours(),
                                                                        vertex)]  # X intersects w/ neighbours of vertex
-
                 result += self.bron_kerbosch(new_R, new_P, new_X)
                 P.remove(vertex)
                 X.append(vertex)
@@ -117,10 +123,10 @@ class GRAPH(object):
             new_P = [val for val in P if val in self.reverse_edges(vertex.get_neighbours(), vertex)]
             # x intersects/geschnitten N(vertex)
             new_X = [val for val in X if val in self.reverse_edges(vertex.get_neighbours(), vertex)]
-            self.bron_kerbosch(new_R, new_P, new_X, pivot=pivot)
+            result += self.bron_kerbosch(new_R, new_P, new_X, pivot=pivot)
             P.remove(vertex)
             X.append(vertex)
-        return
+        return result
 
     def select_random_pivot(self, P, X):
         '''
@@ -275,3 +281,46 @@ class GRAPH(object):
 
     def get_mapping(self):
         return self.__mapping
+
+
+def density(graph1, graph2):
+    """ function to calculate the density of two graphs and return the difference between """
+    vn1 = graph1.get_number_of_vertices()
+    en1 = graph1.get_number_of_edges()
+    vn2 = graph2.get_number_of_vertices()
+    en2 = graph2.get_number_of_edges()
+    dens1 = 2.0 * en1 / (vn1 * (vn1 - 1))
+    dens2 = 2.0 * en2 / (vn2 * (vn2 - 1))
+    return abs(dens1 - dens2)
+
+
+def retrieve_graph_from_clique(clique, mapping, orig_graph):
+    # The vertices in the clique will also be the vertices in the new graph so that the mapping does not have to be
+    # updated. The connectivity though needs to be reduced. Therefore it is necessary for each pair of clique vertices
+    # to identify the corresponding pair in one of the original graphs and see whether there is an edge.
+    loe = []
+    for vertex_mp in clique:
+        v_id = vertex_mp.get_id()
+        orig_v_id = mapping[v_id][0]                                            # only consider first graph in mapping
+        for vertex_orig in orig_graph.get_list_of_vertices():
+            if orig_v_id == vertex_orig.get_id():
+                for neighbour in vertex_orig.get_neighbours():
+                    n_id = neighbour.get_id()
+                    for vertex_mp2 in clique:
+                        if n_id == mapping[vertex_mp2.get_id()][0]:             # only consider first graph in mapping
+                            new_edge = EDGE("Default_id", [vertex_mp, vertex_mp2], "Default_Label")
+                            loe.append(new_edge)
+    # Delete the neighbours attribute for all vertices in the clique.
+    for vertex in clique:
+        vertex.set_neighbours([])
+    # Then, for each edge and vertex in the clique, append to the neighbours attribute of the vertex if it is the start
+    # vertex in an edge.
+    for edge in loe:
+        for vertex in clique:
+            if vertex == edge.get_start_and_end()[0]:
+                vertex.append_neighbour(edge.get_start_and_end()[1])
+    # Now the new graph can be built
+    new_graph = GRAPH("Default_name", clique, loe, len(clique), len(loe), orig_graph.get_is_directed(),
+                      mapping=orig_graph.get_mapping())
+    return new_graph
+

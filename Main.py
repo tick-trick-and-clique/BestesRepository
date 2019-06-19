@@ -4,13 +4,14 @@ Created on 07.05.2019
 @author: chris
 '''
 import os
-from Graph import GRAPH
+from Graph import GRAPH, density, retrieve_graph_from_clique
 from Vertex import VERTEX
 from Edge import EDGE
 from Command_Line_Parser import parse_command_line
 from Modulares_Produkt import modular_product
 from Graph_Builder import buildRndGraph
-from MP_Vertex import modular_product_MP_VERTEX
+from MB_State import MB_State
+from GuideTree import match_by_guide_tree, upgma, guide_tree_to_newick
 
 
 def parser(file):
@@ -87,22 +88,20 @@ def parser(file):
                 print("Wrong input file format: Mistake in edges part.")
 
     f.close()
-    
-    vertices_objets = []
+    vertices_objects = []
     if number_vertices != 0:
         # save vertices as objects
         for vertex in vertices:
             if vertices_labelled:  # if vertices are labelled
                 vertex_splitted = vertex.split(";")
                 if len(vertex_splitted) == 1:
-                    raise Exception("Wrong format: Vertices should be labelled but arent.")
-                vertices_objets.append(VERTEX([vertex_splitted[0]], vertex_splitted[1]))  # id consits of a list because
-                # of modular product
+                    raise Exception("Wrong format: Vertices should be labelled but aren't.")
+                vertices_objects.append(VERTEX(int(vertex_splitted[0]), vertex_splitted[1]))
             else:  # if vertices arent labelled
                 vertex_splitted = vertex.split(";")
                 if len(vertex_splitted) == 2:
                     raise Exception("Wrong format: Vertices are labelled but header doesn't say so.")
-                vertices_objets.append(VERTEX([vertex], ""))
+                vertices_objects.append(VERTEX(int(vertex_splitted[0]), ""))
 
     # save edges as objects
     edges_objects = []
@@ -111,11 +110,11 @@ def parser(file):
         for edge in edges:
             edge_splitted = edge.split(";")
             # search for start vertex in vertices_objects and for end vertex
-            start_and_end = [item for item in vertices_objets if (item.get_id() == [edge_splitted[0]])] \
-                            + [item for item in vertices_objets if (item.get_id() == [edge_splitted[1]])]
+            start_and_end = [item for item in vertices_objects if (item.get_id() == int(edge_splitted[0]))] \
+                            + [item for item in vertices_objects if (item.get_id() == int(edge_splitted[1]))]
             check_start_end_in_vertices(start_and_end, edge)  # check if start and end vertex are in vertices list
-            end_and_start = [item for item in vertices_objets if (item.get_id() == [edge_splitted[1]])] \
-                            + [item for item in vertices_objets if (item.get_id() == [edge_splitted[0]])]
+            end_and_start = [item for item in vertices_objects if (item.get_id() == int(edge_splitted[1]))] \
+                            + [item for item in vertices_objects if (item.get_id() == int(edge_splitted[0]))]
     
             if edges_labbelled:  # if edges are labelled
                 if len(edge_splitted) == 2:
@@ -123,42 +122,48 @@ def parser(file):
                 if directed:    # if graph is directed
                     edges_objects.append(EDGE(identifier, start_and_end, edge_splitted[2]))
                     identifier += 1
-                else:   # if graph is undirected, insert both edges automatically
-                    edges_objects.append(EDGE(identifier, start_and_end, edge_splitted[2]))
-                    identifier += 1
-                    edges_objects.append(EDGE(identifier, end_and_start, edge_splitted[2]))
-                    identifier += 1
+                else:   # if graph is undirected, insert both edges automatically unless it is inserted already because
+                        # the format includes unnecessarily all edges
+                    if start_and_end not in [edge.get_start_and_end() for edge in edges_objects]:
+                        edges_objects.append(EDGE(identifier, start_and_end, edge_splitted[2]))
+                        identifier += 1
+                    if end_and_start not in [edge.get_start_and_end() for edge in edges_objects]:
+                        edges_objects.append(EDGE(identifier, end_and_start, edge_splitted[2]))
+                        identifier += 1
             else:   # if edges aren't labelled
                 if len(edge_splitted) == 3:
                     raise Exception("Wrong format: Edges are labelled but header dont say so.")
                 if directed:  # if graph is directed
                     edges_objects.append(EDGE(identifier, start_and_end, ""))
                     identifier += 1
-                else:   # if graph is undirected, insert both edges automatically
-                    edges_objects.append(EDGE(identifier, start_and_end, ""))
-                    identifier += 1
-                    edges_objects.append(EDGE(identifier, end_and_start, ""))
-                    identifier += 1
+                else:   # if graph is undirected, insert both edges automatically unless it is inserted already because
+                        # the format includes unnecessarily all edges
+                    if start_and_end not in [edge.get_start_and_end() for edge in edges_objects]:
+                        edges_objects.append(EDGE(identifier, start_and_end, ""))
+                        identifier += 1
+                    if end_and_start not in [edge.get_start_and_end() for edge in edges_objects]:
+                        edges_objects.append(EDGE(identifier, end_and_start, ""))
+                        identifier += 1
 
     # Testing header fits actual number of vertices and edges
-    if not len(vertices_objets) == number_vertices:
+    if not len(vertices_objects) == number_vertices:
         raise Exception("Number of vertices doesn't fit predicted number in header!")
     if not directed:
-        if not len(edges_objects)/2 == number_edges:
+        if not len(edges_objects)/2 == number_edges or len(edges_objects) == number_edges:
             raise Exception("Number of edges doesn't fit predicted number in header!")
     else:
         if not len(edges_objects) == number_edges:
             raise Exception("Number of edges doesn't fit predicted number in header!")
 
     # neighbours setting
-    for vertex in vertices_objets:
+    for vertex in vertices_objects:
         for edge in edges_objects:
             if edge.get_start_and_end()[0].get_id() == vertex.get_id():
                 neighbour = edge.get_start_and_end()[1]
                 vertex.append_neighbour(neighbour)
 
     # create graph from class GRAPH
-    return GRAPH("graph", vertices_objets, edges_objects, number_vertices, number_edges, directed,
+    return GRAPH("graph", vertices_objects, edges_objects, number_vertices, number_edges, directed,
                  is_labeled_nodes=vertices_labelled, is_labeled_edges=edges_labbelled)
 
 
@@ -181,7 +186,7 @@ def check_start_end_in_vertices(edge_start_end, currentEdge):
     Check if the vertices of an edge already exists in the vertices list
     """
     if not len(edge_start_end) == 2:
-        raise Exception("One or both vertices of edge: " + currentEdge + " doenst exist in list of vertices")
+        raise Exception("One or both vertices of edge: " + currentEdge + " don't exist in list of vertices")
     return
 
 
@@ -193,58 +198,42 @@ if __name__ == '__main__':
     except IOError:
         print("An error occured trying to read the file!")
 
-    # The first command line arguments should either be a file (path) name (1 argument) or the two necessary parameters
-    # for random graph building (2 arguments) with the third parameter (directed/undirected) being optional. 4 or more
-    # arguments are illegal.
-
-    # Too many arguments:
-    third_arg = False
-    if len(args.input_file) > 3:
-        raise IOError("Illegal number of arguments!")
-    # 0 Arguments:
-    elif len(args.input_file) == 0:
-        raise IOError("Please provide either a file (path) name or vertex number and connection probability for "
-                      "random graph building")
-
-    # 1 Argument:
-    # If input_file argument is neither a valid path nor a file in the current working directory. If, raise
-    # FileNotFoundError.
-    elif len(args.input_file) == 1:
-        if not os.path.isdir(os.path.dirname(args.input_file[0])) \
-                and not os.path.exists(args.input_file[0]):
-            raise FileNotFoundError("No such file with given path or filename!")
-
-        # If input_file argument is a not a full path, add current working directory. Else, take what's given.
-        if not os.path.isdir(os.path.dirname(args.input_file[0])):
-            input_file = os.path.abspath(args.input_file[0])
+    # Check for random graph option
+    if args.random_graph:
+        if args.random_graph[2] == "True":
+            directed = True
         else:
-            input_file = args.input_file
-
-        # Log statement for the console about the input file
-        print("First input file path: " + input_file)
-
-        # Graph parsing
-        graph = parser(input_file)
-
-    # 3 Arguments:
-    # Random graph building, third Argument mus be either 'true' or 'false'
-    elif len(args.input_file) == 3:
-        if not args.input_file[2] == "true" and not args.input_file[2] == "false":
-            raise ValueError("Third positional argument must be either 'true' or 'false'!")
-        third_arg = (args.input_file[2] == "true")
-
-    # 2 Arguments:
-    # Random graph building, arguments must be integer and real number, respectively.
-    if len(args.input_file) >= 2:
+            directed = False
         try:
-            int(args.input_file[0])
+            graph = buildRndGraph(int(args.random_graph[0]), float(args.random_graph[1]), directed=directed)
+        except IOError:
+            print("Invalid number of arguments for random graph building!")
         except ValueError:
-            print("Provide integer value for the number of vertices for random graph building!")
-        try:
-            float(args.input_file[1])
-        except ValueError:
-            print("Provide real number for the connection probability for random graph building!")
-        graph = buildRndGraph(int(args.input_file[0]), float(args.input_file[1]), directed=third_arg)
+            print("invalid type of arguments for random graph building!")
+
+    # If neither input file(s) not random graph option are given, raise Error. Else, parse input!
+    elif not args.input and not args.random_graph:
+        raise FileNotFoundError("Please provide input file(s)!")
+    else:
+        graphs = []
+        for i in range(len(args.input)):
+
+            # If input argument is neither a valid path nor a file in the current working directory. If, raise
+            # FileNotFoundError.
+            if not os.path.isdir(os.path.dirname(args.input[i])) and not os.path.exists(args.input[i]):
+                raise FileNotFoundError("No such file with given path or filename!")
+
+            # If input argument is a not a full path, add current working directory. Else, take what's given.
+            if not os.path.isdir(os.path.dirname(args.input[i])):
+                file_path = os.path.abspath(args.input[i])
+            else:
+                file_path = args.input
+
+            # Log statement for the console about the input file
+            print("Input file path of file " + str(i) + ": " + file_path)
+
+            graph = parser(file_path)
+            graphs.append(graph)
 
     # Dev Log statement for graph checking
     # print(graph)
@@ -261,52 +250,83 @@ if __name__ == '__main__':
         anchor = []
         print("Anchor File: --")
     else:
-        anchor_graph = parser(args.anchor)
+        # If input argument is neither a valid path nor a file in the current working directory. If, raise
+        # FileNotFoundError.
+        if not os.path.isdir(os.path.dirname(args.anchor)) and not os.path.exists(args.anchor):
+            raise FileNotFoundError("No such file with given path or filename!")
+        # If anchor argument is a not a full path, add current working directory. Else, take what's given.
+        if not os.path.isdir(os.path.dirname(args.anchor)):
+            file_path = os.path.abspath(args.anchor)
+        else:
+            file_path = args.anchor
+        anchor_graph = parser(file_path)
         if not anchor_graph.check_clique_properties():
             raise Exception("Anchor is not a clique nor empty!")
-        if not anchor_graph.check_partial_graph_of(graph):
+        if not anchor_graph.check_partial_graph_of(graphs[0]):
             raise Exception("Anchor is not a partial graph of the input graph!")
         anchor = anchor_graph.get_list_of_vertices()
         print("Anchor File: " + args.anchor)
 
-    # Checking for modular product option
-    if args.modular_product is not None:
-        second_graph = parser(args.modular_product)
-        graph1_name = graph.get_name()
-        graph2_name = second_graph.get_name()
-        graph = modular_product(graph, second_graph)
-
-        # Log statement for the console about the modular product
-        print("Second input file path/name: " + args.modular_product)
-        print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
-
-        # Dev Log statement for modular product graph checking
-        print(graph)
-
     # Checking for bron-kerbosch option
     if args.bron_kerbosch:
-        clique_finding_result = graph.bron_kerbosch(anchor, graph.get_list_of_vertices(), [], pivot=args.pivot_mode)
+        if len(graphs) != 1:
+            raise Exception("For clique finding via bron-kerbosch, please provide exactly one file path of a graph!")
+        else:
+            bk_graph_name = graphs[0].get_name()
+            clique_finding_result = graphs[0].bron_kerbosch(anchor, graphs[0].get_list_of_vertices(), [],
+                                                            pivot=args.pivot_mode)
+            # TODO: Clique selection
+            selected_cliques = clique_finding_result
+            # Log statement for the console about Bron-Kerbosch
+            print("Clique finding via Bron-Kerbosch...")
 
-        # Log statement for the console about Bron-Kerbosch
-        print("Clique finding via Bron-Kerbosch...")
+    # Checking for modular product option
+    if args.modular_product:
+        if len(graphs) != 2:
+            raise Exception("For formation of the modular product, please provide exactly two files containing a graph "
+                            "each!")
+        else:
+            graph1_name = graphs[0].get_name()
+            graph2_name = graphs[1].get_name()
+            graph = modular_product(graphs[0], graphs[1])
+            # Log statement for the console about the modular product
+            print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
+            # Dev Log statement for modular product graph checking
+            # print(graph)
 
-    # Checking for graph alignment option. This option performs the modular product AND bron-kerbosch!
-    if args.graph_alignment is not None:
-        second_graph = parser(args.graph_alignment)
-        graph1_name = graph.get_name()
-        graph2_name = second_graph.get_name()
-        graph = modular_product(graph, second_graph)
-
-        # Log statement for the console about the modular product
-        print("Second input file path/name: " + args.graph_alignment)
-        print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
-
-        # Dev Log statement for graph checking
-        print(graph)
-
-        clique_finding_result = graph.bron_kerbosch(anchor, graph.get_list_of_vertices(), [], pivot=args.pivot_mode)
-        # Log statement for the console about Bron-Kerbosch
-        print("Clique finding via Bron-Kerbosch...")
+    # Checking for graph alignment option. This option performs graph alignment of a number of graphs given as input
+    # files. The matching order is the order in which the graph file names were provided unless guide_tree option is
+    # selected. Then, a guide tree is constructed via UPGMA (default) using graph density as comparison attribute
+    # (default). Matching is done either by forming the modular product and performing bron-kerbosch-algorithm or by
+    # the matching-based VF2 algorithm (Cordella et al.)!
+    if args.graph_alignment and args.guide_tree:
+        if args.graph_alignment not in ["bk", "mb"]:
+            raise Exception("Illegal identifier for matching algorithm!")
+        if args.guide_tree not in ["density"]:      # Other comparison function/attributes may be added
+            raise Exception("Illegal identifier for comparison function!")
+        graph = match_by_guide_tree(density, graphs, args.graph_alignment, anchor, args.pivot_mode)
+    elif args.graph_alignment:
+        graph = graphs[0]
+        if args.graph_alignment == "bk":
+            for i in range(len(graphs) - 1):
+                mp = modular_product(graph, graphs[i + 1])
+                mapping = mp.get_mapping()
+                # Dev Log statement for graph checking
+                # print(mp)
+                clique_finding_result = mp.bron_kerbosch(anchor, mp.get_list_of_vertices(), [], pivot=args.pivot_mode)
+                # Select the biggest clique and retrieve graph
+                # TODO: Clique selection
+                clique = clique_finding_result[0]
+                graph = retrieve_graph_from_clique(clique, mapping, graph)
+                # Log statement for the console about Bron-Kerbosch
+                print("Clique finding via Bron-Kerbosch...")
+        if args.graph_alignment == "mb":
+            for i in range(len(graphs)):
+                mb_state = MB_State(graph, graphs[i + 1])
+                graph = mb_state.mb_algorithm()
+    elif args.guide_tree:
+        cluster_tree = upgma(density, graphs)
+        newick = guide_tree_to_newick(cluster_tree)
 
     # Checking for output option.
     # If no argument is provided (default = 0), graph will be saved using its name attribute
@@ -316,3 +336,26 @@ if __name__ == '__main__':
             graph.save_to_txt()
         else:
             graph.save_to_txt(args.output_file)
+        # If bron-kerbosch option was selected, selected cliques from the result will be saved with default name of the
+        # graph plus a counter as identifier (e.g. 'GraphName_Clique_23').
+        try:
+            for i in range(len(selected_cliques)):
+                graph_from_clique = retrieve_graph_from_clique(selected_cliques[i], graphs[0].get_mapping(), graphs[0])
+                graph_from_clique.save_to_txt(bk_graph_name + "_Clique_" + str(i + 1))
+        except NameError:
+            pass
+        try:
+            pass
+            # TODO: Do something to save the newick
+        except NameError:
+            pass
+
+# TODO: In graph alignment only the biggest clique from bron-kerbosch result is considered... overthink!
+# TODO: In graph alignment with VF2 no check whether one of the graphs is partial of the other has been done yet...
+# TODO: Introduce integer identifier and mapping for edges, similarly like it has been for vertices already
+# TODO: Consider a vertex dictionary instead of list, with ids as keys
+# TODO: Performing bron-kerbosch on a modular product which has been read from .graph file and saving the resulting
+# cliques is not possible unless the matching can be saved as well.
+# TODO: Check that Vertex IDs can be converted to integer when parsing from .graph
+# TODO: Check that Edge IDs can be converted to integer when parsing from .graph
+# TODO: Test saving guide tree in newick format
