@@ -4,8 +4,6 @@ import os
 from Edge import EDGE
 
 
-
-
 class GRAPH(object):
     def __init__(self, name, list_of_vertices, list_of_edges, number_of_vertices, number_of_edges, is_directed,
                  is_labeled_nodes=False, is_labeled_edges=False, mapping=None):
@@ -323,4 +321,3 @@ def retrieve_graph_from_clique(clique, mapping, orig_graph):
     new_graph = GRAPH("Default_name", clique, loe, len(clique), len(loe), orig_graph.get_is_directed(),
                       mapping=orig_graph.get_mapping())
     return new_graph
-

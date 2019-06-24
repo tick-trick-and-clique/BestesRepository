@@ -60,6 +60,7 @@ def modular_product(g1, g2):
     # Skip cases where vertices are identical.
     new_list_of_edges = []
     new_number_of_edges = 0
+    edge_id = 1
     for v1 in g1_list:
         g1_cut = g1_list.copy()
         g1_cut.remove(v1)
@@ -103,8 +104,9 @@ def modular_product(g1, g2):
                                     start_vertex = new_v
                                 elif mapping[new_v.get_id()] == g2_map[v4.get_id()].append(v2.get_id()):
                                     end_vertex = new_v
-                        new_list_of_edges.append(EDGE("Default_id", [start_vertex, end_vertex], "Default_Label"))
+                        new_list_of_edges.append(EDGE(edge_id, [start_vertex, end_vertex], "Default_Label"))
                         new_number_of_edges += 1
+                        edge_id += 1
                         start_vertex.append_neighbour(end_vertex)
     # The modular product as undirected graph is returned with a default name.
     # Vertex and Edge labels are enabled, yet set to a default value for the moment, same as the edge id.
