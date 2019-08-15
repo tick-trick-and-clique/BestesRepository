@@ -205,28 +205,6 @@ class GRAPH(object):
                             + str(edge.get_start_and_end()[1].get_id()) + ";" + str(edge.get_label()))
         f.close()
 
-    def check_partial_graph_of(self, graph):
-        """
-        checks whether self is partial graph of graph
-        """
-        partial = True
-
-        # check whether the ids of all vertices of self are also found in the list of vertices of graph
-        for v1 in self.get_list_of_vertices():
-            if v1.get_id() not in [v2.get_id() for v2 in graph.get_list_of_vertices()]:
-                partial = False
-
-        # check whether the ids of all edges of self are also found in the list of edges of graph
-        for e1 in self.get_list_of_edges():
-            if e1.get_id() not in [e2.get_id() for e2 in graph.get_list_of_edges()]:
-                partial = False
-
-        # check whether the __is_directed attribute ist the same
-        if self.__is_directed != graph.__is_directed:
-            partial = False
-
-        return partial
-
     def is_compatible_vertex(self, own_vertex, vertex_other_graph):
         # Function returns whether two vertices of this and another graph are 'compatible'.
         # Here, this is performed by comparison of vertex labels.

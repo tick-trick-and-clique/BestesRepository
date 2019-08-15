@@ -27,7 +27,7 @@ parser.add_argument("-rg", "--random_graph", nargs=3,
 parser.add_argument("-gt", "--guide_tree", nargs='?', metavar="Comparison function", const="density",
                     help="Choose the comparison function/attribute for guide tree building: 'density' for graph "
                          "density")
-
+parser.add_argument("syntax", nargs="?", help="Only a dummy attribute to help using correct syntax...")
 
 def parse_command_line():
     args = parser.parse_args()

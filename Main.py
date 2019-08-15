@@ -103,7 +103,7 @@ def parser(file):
                 vertices_objects.append(VERTEX(int(vertex_splitted[0]), vertex_splitted[1]))
             else:  # if vertices arent labelled
                 vertex_splitted = vertex.split(";")
-                if len(vertex_splitted) == 2:
+                if len(vertex_splitted) == 2 and vertex_splitted[1]:
                     raise Exception("Wrong format: Vertices are labelled but header doesn't say so.")
                 try:
                     i = int(vertex_splitted[0])
@@ -139,8 +139,8 @@ def parser(file):
                         edges_objects.append(EDGE(identifier, end_and_start, edge_splitted[2]))
                         identifier += 1
             else:   # if edges aren't labelled
-                if len(edge_splitted) == 3:
-                    raise Exception("Wrong format: Edges are labelled but header dont say so.")
+                if len(edge_splitted) == 3 and edge_splitted[2]:
+                    raise Exception("Wrong format: Edges are labelled but header doesn't say so.")
                 if directed:  # if graph is directed
                     edges_objects.append(EDGE(identifier, start_and_end, ""))
                     identifier += 1
@@ -271,6 +271,9 @@ if __name__ == '__main__':
     except IOError:
         print("An error occured trying to read the file!")
 
+    if args.syntax is not None:
+        raise SyntaxError("Please use proper syntax, use '-h' for more information!")
+
     # Check for random graph option
     if args.random_graph:
         if args.random_graph[2] == "True":
@@ -286,7 +289,7 @@ if __name__ == '__main__':
 
     # If neither input file(s) not random graph option are given, raise Error. Else, parse input!
     elif not args.input and not args.random_graph:
-        raise FileNotFoundError("Please provide input file(s)!")
+        raise FileNotFoundError("Please provide input file(s) with preceding '-i' statement!")
     else:
         graphs = []
         direction = None
@@ -340,8 +343,6 @@ if __name__ == '__main__':
         anchor_graph = parser(file_path)
         if not anchor_graph.check_clique_properties():
             raise Exception("Anchor is not a clique nor empty!")
-        if not anchor_graph.check_partial_graph_of(graphs[0]):
-            raise Exception("Anchor is not a partial graph of the input graph!")
         anchor = anchor_graph.get_list_of_vertices()
         print("Anchor File: " + args.anchor)
 
@@ -415,11 +416,12 @@ if __name__ == '__main__':
             graph = recursive_matching_using_bk(graphs, int(args.graph_alignment[1]), anchor, args.pivot_mode)
         if args.graph_alignment[0] == "mb":
             graph = graphs[0]
-            for i in range(len(graphs)):
-                if not graph.check_partial_graph_of(graphs[i + 1]) and not graphs[i + 1].check_partial_graph_of(graph):
-                    raise Exception("After graph matching no. " + str(i) + ", none of both graphs to be matched next "
-                                                                           "are partial of the the other!")
-                mb_state = MB_State(graph, graphs[i + 1])
+            for i in range(len(graphs) - 1):
+                graph2 = graphs[i + 1]
+                if graph2.get_number_of_vertices() > graph.get_number_of_vertices():
+                    graph, graph2 = graph2, graph
+                mb_state = MB_State(graph, graph2)
+                print("Performing Cordella...\n")
                 graph = mb_state.mb_algorithm()
     elif args.guide_tree:
         cluster_tree = upgma(density, graphs)
@@ -448,3 +450,4 @@ if __name__ == '__main__':
 # TODO: Consider a vertex dictionary instead of list, with ids as keys, for better performance
 # TODO: Performing bron-kerbosch on a modular product which has been read from .graph file and saving the resulting
 # cliques is not possible unless the matching can be saved as well --> Consider saving the matching in the vertex label
+# TODO: Help message auf vordermann bringen...
