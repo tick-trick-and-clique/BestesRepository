@@ -49,6 +49,7 @@ class MB_State:
                 if value:
                     print(key, value.get_id(), sep="\t")
             print("\n")
+            self.restore_data_structures(previously_added)
             return
         else:
             p = self.compute_candidates()
@@ -190,18 +191,26 @@ class MB_State:
             other_v = edge.get_start_and_end()[0]
             if not self.out_1[other_v.get_id()]:
                 self.out_1[other_v.get_id()] = self.core_len
+                self.out_1_len += 1
+                self.both_1_len += 1
         for edge in self.graph1.get_in_edge_list(g1_vertex):
             other_v = edge.get_start_and_end()[0]
             if not self.in_1[other_v.get_id()]:
                 self.in_1[other_v.get_id()] = self.core_len
+                self.in_1_len += 1
+                self.both_1_len += 1
         for edge in self.graph2.get_out_edge_list(g2_vertex):
             other_v = edge.get_start_and_end()[0]
             if not self.out_2[other_v.get_id()]:
                 self.out_2[other_v.get_id()] = self.core_len
+                self.out_2_len += 1
+                self.both_2_len += 1
         for edge in self.graph1.get_in_edge_list(g2_vertex):
             other_v = edge.get_start_and_end()[0]
             if not self.in_2[other_v.get_id()]:
                 self.in_2[other_v.get_id()] = self.core_len
+                self.in_2_len += 1
+                self.both_2_len += 1
         return
 
     def restore_data_structures(self, previously_added):
@@ -211,17 +220,27 @@ class MB_State:
             for key, value in self.out_1.items():
                 if value == self.core_len:
                     self.in_1[key] = 0
+                    self.out_1_len -= 1
+                    self.both_1_len -= 1
             for key, value in self.in_1.items():
                 if value == self.core_len:
                     self.out_1[key] = 0
+                    self.in_1_len -= 1
+                    self.both_1_len -= 1
             for key, value in self.out_2.items():
                 if value == self.core_len:
                     self.out_2[key] = 0
+                    self.out_2_len -= 1
+                    self.both_2_len -= 1
             for key, value in self.in_2.items():
                 if value == self.core_len:
                     self.in_2[key] = 0
+                    self.in_2_len -= 1
+                    self.both_2_len -= 1
             self.core_len -= 1
             self.core_1[previously_added[0]] = None
             self.core_2[previously_added[1]] = None
         return
 
+# TODO: Vertices nach Kardinalität aufsteigend sortieren um den Rekursionsbaum oben schlank zu halten
+# TODO: Maps durch Listen ersetzen wo möglich, um bessere Performance zu erreichen
