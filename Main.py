@@ -226,9 +226,11 @@ def recursive_matching_using_bk(graphs, number_cliques, anchor, pivot_mode, curr
     for j in range(number_cliques):
         new_clique_as_graph = retrieve_graph_from_clique(clique_findings[j], mapping,
                                                          current_clique_as_graph)
-        if len(graphs) >= 2:
+        if len(graphs) >= 2 and current_clique_as_graph is None:
             result += recursive_matching_using_bk(graphs[pos:], number_cliques, anchor, pivot_mode,
                                                   new_clique_as_graph)
+        else:
+            result.append(new_clique_as_graph)
     return result
 
 
@@ -413,7 +415,7 @@ if __name__ == '__main__':
                 pass
             except ValueError("Illegal value for the number of cliques to expand search on!"):
                 pass
-            graph = recursive_matching_using_bk(graphs, int(args.graph_alignment[1]), anchor, args.pivot_mode)
+            result_graphs = recursive_matching_using_bk(graphs, int(args.graph_alignment[1]), anchor, args.pivot_mode)
         if args.graph_alignment[0] == "mb":
             graph = graphs[0]
             for i in range(len(graphs) - 1):
@@ -422,7 +424,7 @@ if __name__ == '__main__':
                     graph, graph2 = graph2, graph
                 mb_state = MB_State(graph, graph2)
                 print("Performing Cordella...\n")
-                graph = mb_state.mb_algorithm()
+                mb_state.mb_algorithm()
     elif args.guide_tree:
         cluster_tree = upgma(density, graphs)
         newick = guide_tree_to_newick(cluster_tree)
@@ -443,6 +445,7 @@ if __name__ == '__main__':
                     graph_from_clique.save_to_txt(bk_graph_name + "_Clique_" + str(i + 1))
             except NameError:
                 pass
+
 
 
 
