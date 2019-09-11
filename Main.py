@@ -442,7 +442,7 @@ if __name__ == '__main__':
             try:
                 for i in range(len(selected_cliques)):
                     graph_from_clique = retrieve_graph_from_clique(selected_cliques[i], graphs[0].get_mapping(), graphs[0])
-                    graph_from_clique.save_to_txt(bk_graph_name + "_Clique_" + str(i + 1))
+                    graph_from_clique.save_to_txt(bk_graph_name + "_Clique_" + str(i + 1) + ".graph")
             except NameError:
                 pass
 

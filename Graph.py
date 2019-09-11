@@ -185,7 +185,7 @@ class GRAPH(object):
 
         # If the provided argument does not end with '.graph', raise NameError
         if output_file[-6:] != ".graph":
-            raise NameError("Given path of filename must end with '.graph'")
+            raise RuntimeError("Given path of filename must end with '.graph'")
 
         with open(filename, "w") as f:
             f.write("#nodes;" + str(self.__number_of_vertices) + "\n")
@@ -274,27 +274,33 @@ def retrieve_graph_from_clique(clique, mapping, orig_graph):
     # The vertices in the clique will also be the vertices in the new graph so that the mapping does not have to be
     # updated. The connectivity though needs to be reduced. Therefore it is necessary for each pair of clique vertices
     # to identify the corresponding pair in one of the original graphs and see whether there is an edge.
-    loe = []
-    for vertex_mp in clique:
-        v_id = vertex_mp.get_id()
-        orig_v_id = mapping[v_id][0]                                            # only consider first graph in mapping
-        for vertex_orig in orig_graph.get_list_of_vertices():
-            if orig_v_id == vertex_orig.get_id():
-                for neighbour in vertex_orig.get_neighbours():
-                    n_id = neighbour.get_id()
-                    for vertex_mp2 in clique:
-                        if n_id == mapping[vertex_mp2.get_id()][0]:             # only consider first graph in mapping
-                            new_edge = EDGE("Default_id", [vertex_mp, vertex_mp2], "Default_Label")
-                            loe.append(new_edge)
-    # Delete the neighbours attribute for all vertices in the clique.
-    for vertex in clique:
-        vertex.set_neighbours([])
-    # Then, for each edge and vertex in the clique, append to the neighbours attribute of the vertex if it is the start
-    # vertex in an edge.
-    for edge in loe:
+    if mapping is None:
+        loe = []
+        for edge in orig_graph.get_list_of_edges():
+            if edge.get_start_and_end()[0] in clique and edge.get_start_and_end()[1] in clique:
+                loe.append(edge)
+    else:
+        loe = []
+        for vertex_mp in clique:
+            v_id = vertex_mp.get_id()
+            orig_v_id = mapping[v_id][0]                                         # only consider first graph in mapping
+            for vertex_orig in orig_graph.get_list_of_vertices():
+                if orig_v_id == vertex_orig.get_id():
+                    for neighbour in vertex_orig.get_neighbours():
+                        n_id = neighbour.get_id()
+                        for vertex_mp2 in clique:
+                            if n_id == mapping[vertex_mp2.get_id()][0]:          # only consider first graph in mapping
+                                new_edge = EDGE("Default_id", [vertex_mp, vertex_mp2], "Default_Label")
+                                loe.append(new_edge)
+        # Delete the neighbours attribute for all vertices in the clique.
         for vertex in clique:
-            if vertex == edge.get_start_and_end()[0]:
-                vertex.append_neighbour(edge.get_start_and_end()[1])
+            vertex.set_neighbours([])
+        # Then, for each edge and vertex in the clique, append to the neighbours attribute of the vertex if it is the
+        # start vertex in an edge.
+        for edge in loe:
+            for vertex in clique:
+                if vertex == edge.get_start_and_end()[0]:
+                    vertex.append_neighbour(edge.get_start_and_end()[1])
     # Now the new graph can be built
     new_graph = GRAPH("Default_name", clique, loe, len(clique), len(loe), orig_graph.get_is_directed(),
                       mapping=orig_graph.get_mapping())
