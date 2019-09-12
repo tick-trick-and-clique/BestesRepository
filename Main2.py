@@ -177,8 +177,13 @@ def parser(file):
     graph_name = file_path_name[pos + 1: -6]
 
     # create graph from class GRAPH
-    return GRAPH(graph_name, vertices_objects, edges_objects, number_vertices, number_edges, directed,
+    graph = GRAPH(graph_name, vertices_objects, edges_objects, number_vertices, number_edges, directed,
                  is_labeled_nodes=vertices_labelled, is_labeled_edges=edges_labbelled)
+
+    # for input graphs, each vertex needs to contain a mapping of itself
+    for v in graph.get_list_of_vertices():
+        v.add_vertex_to_mapping(v, graph.get_name())
+    return graph
 
 
 def check_true_or_false(statement):
