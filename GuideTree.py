@@ -142,9 +142,8 @@ def recursive_newick(cluster, direction_left=True, direction_right=True):
     return result, False
 
 
-def save_newick(newick_string, output_file):
+def save_newick(newick_string, output_file=1):
     """saves a guide tree in newick format in the designated output file as one string in the first line"""
-    # Default value should be self.__name.graph
     if output_file == 1:
         output_file = "Default.newick"
     # If provided argument is not a valid directory and also is not a valid file name, raise NotADirectoryError
@@ -156,8 +155,7 @@ def save_newick(newick_string, output_file):
         filename = output_file
     else:
         filename = os.path.abspath(output_file)
-    # If the provided argument does not end with '.graph', raise NameError
-    if output_file[-7:] != ".newick":
+    # If the provided argument does not end with '.newick
         raise NameError("Given path of filename must end with '.newick'")
     with open(filename, "w") as f:
         f.write(newick_string)
