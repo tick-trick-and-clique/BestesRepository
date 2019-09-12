@@ -35,8 +35,8 @@ parser.add_argument("-rg", "--random_graph", nargs=3,
                          "connectivity (p, float) and whether it should be directed (either 'True' or 'False') as "
                          "e.g. '10 0.8 True'.")
 parser.add_argument("-gt", "--guide_tree", nargs='?', metavar="Comparison function", const="density",
-                    help="Choose the comparison function/attribute for guide tree building: 'density' for graph "
-                         "density")
+                    help="Choose either a comparison function/attribute for guide tree building ('density' for graph "
+                         "density) or pass a '.newick' file. Default is construction of a guide tree by graph density.")
 parser.add_argument("syntax", nargs="?", help="Only a dummy attribute to help using correct syntax...")
 
 def parse_command_line():
