@@ -12,6 +12,7 @@ from Modulares_Produkt import modular_product
 from Graph_Builder import buildRndGraph
 from MB_State import MB_State
 from GuideTree import upgma, guide_tree_to_newick, save_newick, parse_newick_file_into_tree
+from Neo4j import NEO4J
 
 
 def parser(file):
@@ -175,7 +176,11 @@ def parser(file):
     if pos == -1:
         pos = file_path_name.rfind("\\")
     graph_name = file_path_name[pos + 1: -6]
-
+    
+    #create Neo4J View
+    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234")
+    neo4jProjekt.create_graphs(neo4jProjekt.get_graph(), vertices_objects,edges_objects, graph_name)
+    
     # create graph from class GRAPH
     return GRAPH(graph_name, vertices_objects, edges_objects, number_vertices, number_edges, directed,
                  is_labeled_nodes=vertices_labelled, is_labeled_edges=edges_labbelled)
