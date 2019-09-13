@@ -20,12 +20,16 @@ class MB_State:
         self.out_2 = {}
         self.vCount1 = g1.get_number_of_vertices()
         self.vCount2 = g2.get_number_of_vertices()
-        for v in self.graph1.get_list_of_vertices():
+        gv1 = self.graph1.get_list_of_vertices()
+        gv1 = sorted(gv1, key=lambda x: self.graph1.get_cardinality_of_vertex(x))
+        for v in gv1:
             id = v.get_id()
             self.core_1[id] = None
             self.in_1[id] = 0
             self.out_1[id] = 0
-        for v in self.graph2.get_list_of_vertices():
+        gv2 = self.graph2.get_list_of_vertices()
+        gv2 = sorted(gv2, key=lambda x: self.graph2.get_cardinality_of_vertex(x))
+        for v in gv2:
             id = v.get_id()
             self.core_2[id] = None
             self.in_2[id] = 0
@@ -38,9 +42,9 @@ class MB_State:
         self.out_1_len = 0
         self.out_2_len = 0
 
-        # TODO: Implement Vertex sorting???
-
     def mb_algorithm(self, previously_added=None):
+        result_as_mapping_dict = {}
+        result_as_mapping_list = []
         if self.all_vertices_of_g2_covered():
             print("Result:")
             print("IDs of Vertices")
@@ -48,17 +52,18 @@ class MB_State:
             for key, value in self.core_1.items():
                 if value:
                     print(key, value.get_id(), sep="\t")
+                    result_as_mapping_dict[key] = value.get_id()
             print("\n")
             self.restore_data_structures(previously_added)
-            return
+            return [result_as_mapping_dict]
         else:
             p = self.compute_candidates()
             for candidate in p:
                 if self.is_feasible(candidate):
                     self.add_pair(candidate)
-                    self.mb_algorithm(previously_added=candidate)
+                    result_as_mapping_list += self.mb_algorithm(previously_added=candidate)
             self.restore_data_structures(previously_added)
-            return
+            return result_as_mapping_list
 
     def all_vertices_of_g2_covered(self):
         return self.vCount2 == self.core_len
@@ -242,5 +247,4 @@ class MB_State:
             self.core_2[previously_added[1]] = None
         return
 
-# TODO: Vertices nach Kardinalität aufsteigend sortieren um den Rekursionsbaum oben schlank zu halten
 # TODO: Maps durch Listen ersetzen wo möglich, um bessere Performance zu erreichen

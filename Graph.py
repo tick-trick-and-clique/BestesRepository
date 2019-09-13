@@ -1,6 +1,7 @@
 import math
 import random
 import os
+import string
 from Edge import EDGE
 
 
@@ -15,7 +16,6 @@ class GRAPH(object):
         self.__is_directed = is_directed
         self.__is_labeled_nodes = is_labeled_nodes  # has to be transferred while initialising the graph
         self.__is_labeled_edges = is_labeled_edges  # has to be transferred while initialising the graph
-        self.__mapping = mapping
 
     def get_name(self):
         '''
@@ -55,6 +55,19 @@ class GRAPH(object):
 
     def get_is_directed(self):
         return self.__is_directed
+
+    def get_is_labelled_nodes(self):
+        return self.__is_labeled_nodes
+
+    def get_is_labelled_edges(self):
+        return self.__is_labeled_edges
+
+    def get_cardinality_of_vertex(self, vertex):
+        cardinality = len(vertex.get_neighbours())
+        for v in self.get_list_of_vertices():
+            if vertex in v.get_neighbours():
+                cardinality += 1
+        return cardinality
 
     def __str__(self):
         '''
@@ -142,15 +155,14 @@ class GRAPH(object):
         for vertex in (set(P) | set(X)):
             if pivot == -math.inf:
                 pivot = vertex
-            elif len(vertex.get_neighbours()) > len(pivot.get_neighbours()):
+            elif self.get_cardinality_of_vertex(vertex) > self.get_cardinality_of_vertex(pivot):
                 pivot = vertex
-
         return pivot
-
 
     def check_clique_properties(self):
         """
         checks if all vertices in R(list) are adjacent to every other vertex in R
+        # TODO: Correctness of sort function is untested!
         """
         check = True
         v_list = self.get_list_of_vertices()
@@ -164,7 +176,7 @@ class GRAPH(object):
                 check = False
         return check
 
-    def save_to_txt(self, output_file=1):
+    def save_to_txt(self, output_file=1, sequential_number=None):
         """
         saves representation of the GRAPH object to textfile: ["self.__name.graph"]
         """
@@ -177,15 +189,20 @@ class GRAPH(object):
                 and not os.path.isdir(os.path.dirname(os.path.abspath(output_file))):
             raise NotADirectoryError("Given path is not a directory!")
 
+        # If the provided argument does not end with '.graph', raise NameError
+        if output_file[-6:] != ".graph":
+            raise RuntimeError("Given path of filename must end with '.graph'")
+
+        # If multiple graphs should be saved to the same location, addition of a sequential number is necessary to
+        # impede overwriting
+        if sequential_number is not None:
+            output_file = output_file[:-6] + "_" + sequential_number + output_file[-6:0]
+
         # Provided argument is a directory, else it is a filename and the current working directory path is added
         if os.path.isdir(os.path.dirname(output_file)):
             filename = output_file
         else:
             filename = os.path.abspath(output_file)
-
-        # If the provided argument does not end with '.graph', raise NameError
-        if output_file[-6:] != ".graph":
-            raise RuntimeError("Given path of filename must end with '.graph'")
 
         with open(filename, "w") as f:
             f.write("#nodes;" + str(self.__number_of_vertices) + "\n")
@@ -270,38 +287,22 @@ def density(graph1, graph2):
     return abs(dens1 - dens2)
 
 
-def retrieve_graph_from_clique(clique, mapping, orig_graph):
+def retrieve_graph_from_clique(clique, orig_graph):
     # The vertices in the clique will also be the vertices in the new graph so that the mapping does not have to be
     # updated. The connectivity though needs to be reduced. Therefore it is necessary for each pair of clique vertices
     # to identify the corresponding pair in one of the original graphs and see whether there is an edge.
-    if mapping is None:
-        loe = []
-        for edge in orig_graph.get_list_of_edges():
-            if edge.get_start_and_end()[0] in clique and edge.get_start_and_end()[1] in clique:
-                loe.append(edge)
-    else:
-        loe = []
-        for vertex_mp in clique:
-            v_id = vertex_mp.get_id()
-            orig_v_id = mapping[v_id][0]                                         # only consider first graph in mapping
-            for vertex_orig in orig_graph.get_list_of_vertices():
-                if orig_v_id == vertex_orig.get_id():
-                    for neighbour in vertex_orig.get_neighbours():
-                        n_id = neighbour.get_id()
-                        for vertex_mp2 in clique:
-                            if n_id == mapping[vertex_mp2.get_id()][0]:          # only consider first graph in mapping
-                                new_edge = EDGE("Default_id", [vertex_mp, vertex_mp2], "Default_Label")
-                                loe.append(new_edge)
-        # Delete the neighbours attribute for all vertices in the clique.
-        for vertex in clique:
-            vertex.set_neighbours([])
-        # Then, for each edge and vertex in the clique, append to the neighbours attribute of the vertex if it is the
-        # start vertex in an edge.
-        for edge in loe:
-            for vertex in clique:
-                if vertex == edge.get_start_and_end()[0]:
-                    vertex.append_neighbour(edge.get_start_and_end()[1])
+    lov = []
+    loe = []
+    for vertex_mp in clique:
+        orig_vertex = vertex_mp.get_mapping()[orig_graph.get_name()]
+        lov.append(orig_vertex)
+        for neighbour in orig_vertex.get_neighbours():
+            for vertex_mp2 in clique:
+                if neighbour == vertex_mp2.get_mapping()[orig_graph.get_name()]:
+                    for edge in orig_graph.get_list_of_edges():
+                        if edge.get_start_and_end()[0] == orig_vertex and edge.get_start_and_end()[1] == neighbour:
+                            loe.append(edge)
     # Now the new graph can be built
-    new_graph = GRAPH("Default_name", clique, loe, len(clique), len(loe), orig_graph.get_is_directed(),
-                      mapping=orig_graph.get_mapping())
+    graph_name = "".join([random.choice(string.ascii_letters) for i in range(8)])
+    new_graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), orig_graph.get_is_directed())
     return new_graph
