@@ -34,8 +34,12 @@ class Cluster:
 
 
 def upgma(comp_function, graphs):
-    """ Takes a comparison function for graphs and list of graphs as input and calculates a guide
-    tree which is returned as a the top cluster of a binary tree of clusters. List of graphs ordered by minimal distance?????"""
+    """
+    Takes a comparison function for graphs and list of graphs as input and calculates a guide
+    tree which is returned as a the top cluster of a binary tree of clusters. List of graphs ordered by minimal
+    distance?????
+    Return type: Cluster
+    """
     # Initialize n clusters each containing one graph
     clusters = []
     n = len(graphs)
@@ -69,8 +73,11 @@ def upgma(comp_function, graphs):
 
 
 def distance_between_clusters(comp_function, cluster1, cluster2):
-    """ Takes a comparison function and two clusters of clusters/graphs as input and calculates the distance between the
-    two clusters. """
+    """
+    Takes a comparison function and two clusters of clusters/graphs as input and calculates the distance between the
+    two clusters.
+    Return type: float
+    """
     distance = 0
     c1e = cluster1.get_elements()
     c2e = cluster2.get_elements()
@@ -82,13 +89,16 @@ def distance_between_clusters(comp_function, cluster1, cluster2):
 
 
 def update_distance_matrix(comp_function, clusters, dist_matrix, new_cluster, index_previous1, index_previous2):
-    """ Takes
+    """
+    Takes
         a list of clusters,
         their corresponding distance matrix,
         a new cluster that is not yet represented in the matrix and
         the indices of two previous clusters whose values have to be deleted
     as input and returns the updated
-    distance matrix. """
+    distance matrix.
+    Return type:[[int, ...], ...]
+    """
 
     # Remove the previous two clusters and append the new cluster
     if index_previous1 < index_previous2:
@@ -114,16 +124,23 @@ def update_distance_matrix(comp_function, clusters, dist_matrix, new_cluster, in
 
 
 def guide_tree_to_newick(cluster):
-    """Takes a top cluster (i.e. tree root) as input and returns it in Newick format representation as string."""
+    """
+    Takes a top cluster (i.e. tree root) as input and returns it in Newick format representation as string.
+    Return type: String
+    """
     result, direction = recursive_newick(cluster)
     return result
 
 
 def recursive_newick(cluster, direction_left=True, direction_right=True):
-    """helper function for guide_tree_to_newick"""
+    """
+    Helper function for guide_tree_to_newick.
+    Return type: String
+    """
     # As long as direction is True, the algorithm has not touched the leaves yet.
     # If the children are not tree leaves (i.e. grandchildren exist), then call function for these children.
     # Left child.
+    result, result1, result2 = None, None, None
     if cluster.get_left_child().children_exist():
         result1, direction_left = recursive_newick(cluster.get_left_child())
     # Right child.
@@ -143,7 +160,10 @@ def recursive_newick(cluster, direction_left=True, direction_right=True):
 
 
 def save_newick(newick_string, output_file=1):
-    """saves a guide tree in newick format in the designated output file as one string in the first line"""
+    """
+    Saves a guide tree in newick format in the designated output file as one string in the first line.
+    Return type: boolean
+    """
     if output_file == 1:
         output_file = "Default.newick"
     # If provided argument is not a valid directory and also is not a valid file name, raise NotADirectoryError
@@ -166,8 +186,11 @@ def save_newick(newick_string, output_file=1):
 
 
 def parse_newick_file_into_tree(newick_file, graphs):
-    """Takes as input a file of a guide tree in newick format and a list of graphs that are represented by their
-    unique (!) names in the string. Returns a top cluster (i.e. tree root) of the guide tree."""
+    """
+    Takes as input a file of a guide tree in newick format and a list of graphs that are represented by their
+    unique (!) names in the string. Returns a top cluster (i.e. tree root) of the guide tree.
+    Return type: Cluster
+    """
     # Find the position of the branch separator (here: comma)
     with open(newick_file, "r") as f:
         newick_string = f.readline()
@@ -175,7 +198,10 @@ def parse_newick_file_into_tree(newick_file, graphs):
 
 
 def parse_newick_string_into_tree(newick_string, graphs):
-    """helper function for parse_newick_file_into_tree"""
+    """
+    Helper function for parse_newick_file_into_tree.
+    Return type: Cluster
+    """
     count = 1
     i = 1
     if newick_string[i] == "(":

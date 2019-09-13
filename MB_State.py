@@ -43,7 +43,8 @@ class MB_State:
         self.out_2_len = 0
 
     def mb_algorithm(self, previously_added=None):
-        result_as_mapping = [None]
+        result_as_mapping_dict = {}
+        result_as_mapping_list = []
         if self.all_vertices_of_g2_covered():
             print("Result:")
             print("IDs of Vertices")
@@ -51,18 +52,18 @@ class MB_State:
             for key, value in self.core_1.items():
                 if value:
                     print(key, value.get_id(), sep="\t")
-                    result_as_mapping[key] = value.get_id()
+                    result_as_mapping_dict[key] = value.get_id()
             print("\n")
             self.restore_data_structures(previously_added)
-            return [result_as_mapping]
+            return [result_as_mapping_dict]
         else:
             p = self.compute_candidates()
             for candidate in p:
                 if self.is_feasible(candidate):
                     self.add_pair(candidate)
-                    result_as_mapping += self.mb_algorithm(previously_added=candidate)
+                    result_as_mapping_list += self.mb_algorithm(previously_added=candidate)
             self.restore_data_structures(previously_added)
-            return [result_as_mapping]
+            return result_as_mapping_list
 
     def all_vertices_of_g2_covered(self):
         return self.vCount2 == self.core_len
