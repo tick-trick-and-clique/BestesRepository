@@ -375,6 +375,10 @@ if __name__ == '__main__':
             graph1_name = graphs[0].get_name()
             graph2_name = graphs[1].get_name()
             graph = modular_product(graphs[0], graphs[1])
+            
+            #neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234")
+            #neo4jProjekt.create_graphs(neo4jProjekt.get_graph(), graph.get_list_of_vertices(), graph.get_list_of_edges(),graph.get_name())
+    
             # Log statement for the console about the modular product
             print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
             # Dev Log statement for modular product graph checking
@@ -447,6 +451,8 @@ if __name__ == '__main__':
             try:
                 for i in range(len(selected_cliques)):
                     graph_from_clique = retrieve_graph_from_clique(selected_cliques[i], graphs[0].get_mapping(), graphs[0])
+                    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234")
+                    neo4jProjekt.create_graphs(neo4jProjekt.get_graph(), graph_from_clique.get_list_of_vertices(), graph_from_clique.get_list_of_edges(),bk_graph_name + "_Clique_" + str(i + 1))
                     graph_from_clique.save_to_txt(bk_graph_name + "_Clique_" + str(i + 1) + ".graph")
             except NameError:
                 pass

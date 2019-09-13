@@ -73,13 +73,17 @@ class NEO4J(object):
         graph_id -- specfic graph id to differentiate the graphs
         """
         #clear old Graphs
-        currentGraph.delete_all()
+        #currentGraph.delete_all()
+        print("Creating Neo4J View...")
         
         tx = currentGraph.begin()#begin transaction
          
         #for each vertex create a Node in Neo4J
         for vertex in vertices_objects:
-            currentNode = Node(vertex.get_label(), id=vertex.get_id(), label=vertex.get_label(), graph_id = graph_id)
+            if vertex.get_label() != "":
+                currentNode = Node(vertex.get_label(), id=vertex.get_id(), label=vertex.get_label(), graph_id = graph_id)
+            else:#if vertices doesnt have labels take id as label
+                currentNode = Node(str(vertex.get_id()), id=vertex.get_id(), label=str(vertex.get_id()), graph_id = graph_id)
             tx.create(currentNode)
             
         tx.commit()#commit transaction
@@ -94,10 +98,16 @@ class NEO4J(object):
             end = edge.get_start_and_end()[1] #get end node
                         
             matcher = NodeMatcher(currentGraph) #find nodes in existing graph
-            startNode = matcher.match(start.get_label(), id=start.get_id(),label=start.get_label(), graph_id = graph_id).first()
-            endNode = matcher.match(end.get_label(), id=end.get_id(),label= end.get_label(), graph_id = graph_id).first()
-            
-            relation = Relationship(startNode, relationship, endNode)
+            if start.get_label() != "":
+                startNode = matcher.match(start.get_label(), id=start.get_id(),label=start.get_label(), graph_id = graph_id).first()
+                endNode = matcher.match(end.get_label(), id=end.get_id(),label= end.get_label(), graph_id = graph_id).first()
+            else:#if edeges doesnt have labels take id as label
+                startNode = matcher.match(str(start.get_id()), id=start.get_id(),label=str(start.get_id()), graph_id = graph_id).first()
+                endNode = matcher.match(str(end.get_id()), id=end.get_id(),label= str(end.get_id()), graph_id = graph_id).first()
+            if relationship != "":
+                relation = Relationship(startNode, relationship, endNode)
+            else:
+                relation = Relationship(startNode, " ", endNode)
             
             tx.create(relation)
                         
