@@ -178,8 +178,7 @@ def parser(file):
     graph_name = file_path_name[pos + 1: -6]
     
     #create Neo4J View
-    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234")
-    neo4jProjekt.create_graphs(neo4jProjekt.get_graph(), vertices_objects,edges_objects, graph_name)
+    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", vertices_objects,edges_objects, graph_name)
     
     # create graph from class GRAPH
     graph = GRAPH(graph_name, vertices_objects, edges_objects, number_vertices, number_edges, directed,
@@ -504,6 +503,9 @@ if __name__ == '__main__':
             raise Exception("No graph to save in memory!")
         else:
             graph.save_to_txt(output_file=args.graph_output)
+            #create Neo4J View
+            neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name())
+    
     # Output of subgraphs from graph alignment or bron-kerbosch algorithm on a modular product.
     if args.subgraph_output and input_graphs and selected_subgraphs:
         if len(args.subgraph_output) > 2:
@@ -514,8 +516,8 @@ if __name__ == '__main__':
                 subgraph_number = int(args.subgraph_output[1])
                 for i in range(min(len(selected_subgraphs), subgraph_number)):
                     selected_subgraphs[i].save_to_txt(output_file=args.subgraph_output[0], sequential_number=i)
-                    #neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234")
-                    #neo4jProjekt.create_graphs(neo4jProjekt.get_graph(), graph_from_clique.get_list_of_vertices(), graph_from_clique.get_list_of_edges(),bk_graph_name + "_Clique_" + str(i + 1))
+                    #create Neo4J View
+                    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", selected_subgraphs[i].get_list_of_vertices(),selected_subgraphs[i].get_list_of_edges(), selected_subgraphs[i].get_name())
             except ValueError("Please provide an integer value for the number of subgraphs to be exported as second "
                               "argument!"):
                 pass
@@ -523,16 +525,22 @@ if __name__ == '__main__':
             for i in range(selected_subgraphs):
                 selected_subgraphs[i].save_to_txt(
                     output_file=input_graphs[0].get_name() + "_Subgraph_" + str(i + 1) + ".graph")
+                #create Neo4J View
+                neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", selected_subgraphs[i].get_list_of_vertices(),selected_subgraphs[i].get_list_of_edges(), selected_subgraphs[i].get_name())
         elif len(args.subgraph_output) == 1:
             try:
                 subgraph_number = int(args.subgraph_output[0])
                 for i in range(min(len(selected_subgraphs), subgraph_number)):
                     selected_subgraphs[i].save_to_txt(
                         output_file=input_graphs[0].get_name() + "_Subgraph_" + str(i + 1) + ".graph")
+                    #create Neo4J View
+                    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", selected_subgraphs[i].get_list_of_vertices(),selected_subgraphs[i].get_list_of_edges(), selected_subgraphs[i].get_name())
             except ValueError():
                 for i in range(len(selected_subgraphs)):
                     selected_subgraphs[i].save_to_txt(output_file=args.subgraph_output[0], sequential_number=i)
-
+                    #create Neo4J View
+                    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", selected_subgraphs[i].get_list_of_vertices(),selected_subgraphs[i].get_list_of_edges(), selected_subgraphs[i].get_name())
+                    
 # TODO: Consider a vertex dictionary instead of list, with ids as keys, for better performance
 # TODO: Consider different types of multiple alignment strategies concerning comparison of analogue attributes (e.g. a
 # specific vertex/edge label); How should those attributes be handled for graphs resulting from the alignment during

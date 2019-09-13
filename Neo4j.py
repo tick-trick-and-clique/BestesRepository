@@ -10,7 +10,7 @@ class NEO4J(object):
     classdocs
     '''
 
-    def __init__(self,uri, user_name, pwd):
+    def __init__(self,uri, user_name, pwd, vertices_objects, edges_objects, graph_id):
         '''
         Constructor
         '''
@@ -18,7 +18,14 @@ class NEO4J(object):
         self.__uri= uri 
         self.__user = user_name
         self.__pwd = pwd
-        self.__graph = Graph(uri, user=user_name, password=pwd)
+        try: 
+            self.__graph = Graph(uri, user=user_name, password=pwd)
+            self.create_graphs(vertices_objects, edges_objects, graph_id)
+        except:
+            print("Please connect with Neo4J Server")
+            print("URI: " + uri)
+            print("USER_NAME: " + user_name)
+            print("PASSWORD: " + pwd)
     
     def set_uri(self,uri):
         '''
@@ -65,7 +72,7 @@ class NEO4J(object):
         '''
         return self.__graph
     
-    def create_graphs(self,currentGraph, vertices_objects, edges_objects, graph_id):
+    def create_graphs(self, vertices_objects, edges_objects, graph_id):
         """
         creates the graph in currentGraph-Session 
         edges_objectes -- A list of edge objects
@@ -74,9 +81,9 @@ class NEO4J(object):
         """
         #clear old Graphs
         #currentGraph.delete_all()
-        print("Creating Neo4J View...")
+        print("Creating Neo4J View for '" + graph_id + "' ...")
         
-        tx = currentGraph.begin()#begin transaction
+        tx = self.get_graph().begin()#begin transaction
          
         #for each vertex create a Node in Neo4J
         for vertex in vertices_objects:
@@ -88,7 +95,7 @@ class NEO4J(object):
             
         tx.commit()#commit transaction
         
-        tx = currentGraph.begin()#begin new transaction
+        tx = self.get_graph().begin()#begin new transaction
            
         #for each egde create relationship in Neo4J
         for edge in edges_objects:
@@ -97,7 +104,7 @@ class NEO4J(object):
             start = edge.get_start_and_end()[0] #get start node
             end = edge.get_start_and_end()[1] #get end node
                         
-            matcher = NodeMatcher(currentGraph) #find nodes in existing graph
+            matcher = NodeMatcher(self.get_graph()) #find nodes in existing graph
             if start.get_label() != "":
                 startNode = matcher.match(start.get_label(), id=start.get_id(),label=start.get_label(), graph_id = graph_id).first()
                 endNode = matcher.match(end.get_label(), id=end.get_id(),label= end.get_label(), graph_id = graph_id).first()
