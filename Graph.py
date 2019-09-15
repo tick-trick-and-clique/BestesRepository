@@ -118,10 +118,9 @@ class GRAPH(object):
         elif pivot is None:
             for vertex in P[:]:
                 new_R = R + [vertex]
-                new_P = [val for val in P if val in self.reverse_edges(vertex.get_neighbours(),
-                                                                       vertex)]  # P intersects w/ neighbours of vertex
-                new_X = [val for val in X if val in self.reverse_edges(vertex.get_neighbours(),
-                                                                       vertex)]  # X intersects w/ neighbours of vertex
+                rev = self.reverse_edges(vertex.get_neighbours(), vertex)
+                new_P = [val for val in P if val in rev]  # P intersects w/ neighbours of vertex
+                new_X = [val for val in X if val in rev]  # X intersects w/ neighbours of vertex
                 result += self.bron_kerbosch(new_R, new_P, new_X)
                 P.remove(vertex)
                 X.append(vertex)
@@ -131,9 +130,10 @@ class GRAPH(object):
         for vertex in [elem for elem in P if elem not in pivot_vertex.get_neighbours()]:
             new_R = R + [vertex]
             # p intersects/geschnitten N(vertex
-            new_P = [val for val in P if val in self.reverse_edges(vertex.get_neighbours(), vertex)]
+            rev = self.reverse_edges(vertex.get_neighbours(), vertex)
+            new_P = [val for val in P if val in rev]
             # x intersects/geschnitten N(vertex)
-            new_X = [val for val in X if val in self.reverse_edges(vertex.get_neighbours(), vertex)]
+            new_X = [val for val in X if val in rev]
             result += self.bron_kerbosch(new_R, new_P, new_X, pivot=pivot)
             P.remove(vertex)
             X.append(vertex)
