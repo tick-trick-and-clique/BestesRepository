@@ -3,8 +3,8 @@ Created on 07.05.2019
 
 @author: chris
 '''
-import os, string, random
-from Graph import GRAPH, density, retrieve_graph_from_clique
+import os, string, random, itertools
+from Graph import GRAPH, density, retrieve_graph_from_clique, retrieve_original_subgraphs
 from Vertex import VERTEX
 from Edge import EDGE
 from Command_Line_Parser import parse_command_line
@@ -177,8 +177,8 @@ def parser(file):
         pos = file_path_name.rfind("\\")
     graph_name = file_path_name[pos + 1: -6]
     
-    #create Neo4J View
-    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", vertices_objects,edges_objects, graph_name)
+    # create Neo4J View
+    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", vertices_objects, edges_objects, graph_name)
     
     # create graph from class GRAPH
     graph = GRAPH(graph_name, vertices_objects, edges_objects, number_vertices, number_edges, directed,
@@ -227,8 +227,15 @@ def matching_using_bk(graph_left, graph_right, number_cliques, anchor, pivot):
     # Log statement for the console about Bron-Kerbosch
     print("Clique finding via Bron-Kerbosch...")
     clique_findings = mp.bron_kerbosch(anchor, mp.get_list_of_vertices(), [], pivot=pivot)
+    duplicates_removed = []
+    for clique in clique_findings:
+        clique = sorted(clique, key=lambda x: x.get_id())
+        duplicates_removed.append(tuple(clique))
+    clique_findings = list(set(duplicates_removed))  # removes duplicates
     clique_findings.sort(key=lambda x: len(x), reverse=True)
-    for j in range(min(number_cliques, len(clique_findings))):
+    number_cliques = min(len(clique_findings), number_cliques)
+    clique_findings = clique_findings[:number_cliques]
+    for j in range(number_cliques):
         new_clique_as_graph = retrieve_graph_from_clique(clique_findings[j], graph_left)
         result.append(new_clique_as_graph)
     return result
@@ -253,7 +260,7 @@ def matching_using_mb(graph_left, graph_right):
     return result
 
 
-def recursive_matching(cluster, matching_algorithm, anchor, pivot, number_cliques):
+def recursive_matching(cluster, matching_algorithm, anchor, pivot, number_cliques, smaller=0.0):
     """
     Performs graph alignment according to the guide tree in 'cluster' and the given matching algorithm.
     'number_cliques' specifies the maximum number of cliques that will be considered for further graph alignment.
@@ -281,6 +288,20 @@ def recursive_matching(cluster, matching_algorithm, anchor, pivot, number_clique
         for gl in graphs_left:
             for gr in graphs_right:
                 new_graphs += matching_using_mb(gl, gr)
+                if smaller:
+                    if gl.get_number_of_vertices() < gr.get_number_of_vertices():
+                        gl, gr = gr, gl
+                    grn = gr.get_number_of_vertices()
+                    margin = int(grn * smaller)
+                    new_gs = []
+                    combinations = []
+                    for i in range(margin):
+                        combinations += itertools.combinations(gr.get_list_of_vertices(), grn - i - 1)
+                    for c in combinations:
+                        new_g = gr.graph_from_vertex_combination(c)
+                        new_gs.append(new_g)
+                        for new_gr in new_gs:
+                            new_graphs += matching_using_mb(gl, new_gr)
     cluster.set_elements(new_graphs)
     cluster.set_children(None, None)
     return new_graphs
@@ -323,6 +344,8 @@ def mb_mapping_to_graph(result_as_mapping, graph1, graph2):
         graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), graph1.get_is_directed(),
                       graph1.get_is_labelled_nodes(), graph1.get_is_labelled_edges())
     return graph
+
+
 
 
 if __name__ == '__main__':
@@ -413,23 +436,21 @@ if __name__ == '__main__':
 
     # Checking for bron-kerbosch option
     if args.bron_kerbosch:
-        clique_number = 0
-        try:
-            clique_number = int(args.bron_kerbosch)
-            if clique_number < -1:
-                raise Exception("Please provide non-negative integer value for the number of subgraphs to be exported!")
-        except ValueError("Please provide integer value for the number of subgraphs to be exported!"):
-            pass
         if len(input_graphs) != 1:
             raise Exception("For clique finding via bron-kerbosch, please provide exactly one file path of a graph!")
         else:
             selected_cliques = input_graphs[0].bron_kerbosch(anchor, input_graphs[0].get_list_of_vertices(), [],
                                                              pivot=args.pivot)
+            duplicates_removed = []
+            for clique in selected_cliques:
+                clique = sorted(clique, key=lambda x: x.get_id())
+                duplicates_removed.append(tuple(clique))
+            selected_cliques = list(set(duplicates_removed))                # removes duplicates
             selected_cliques.sort(key=lambda x: len(x), reverse=True)
-            if clique_number > -1:
-                selected_cliques = selected_cliques[:clique_number]
             for i in range(len(selected_cliques)):
-                selected_subgraphs.append(retrieve_graph_from_clique(selected_cliques[i], input_graphs[0]))
+                matching_graph = retrieve_graph_from_clique(selected_cliques[i], input_graphs[0])
+                original_subgraph = retrieve_original_subgraphs(matching_graph, input_graphs)
+                selected_subgraphs.append(original_subgraph)
             # Log statement for the console about Bron-Kerbosch
             print("Clique finding via Bron-Kerbosch...")
 
@@ -442,8 +463,8 @@ if __name__ == '__main__':
             graph1_name = input_graphs[0].get_name()
             graph2_name = input_graphs[1].get_name()
             graph = modular_product(input_graphs[0], input_graphs[1])
-            #neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234")
-            #neo4jProjekt.create_graphs(neo4jProjekt.get_graph(), graph.get_list_of_vertices(), graph.get_list_of_edges(),graph.get_name())
+            # neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234")
+            # neo4jProjekt.create_graphs(neo4jProjekt.get_graph(), graph.get_list_of_vertices(), graph.get_list_of_edges(),graph.get_name())
             
             # Log statement for the console about the modular product
             print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
@@ -457,17 +478,24 @@ if __name__ == '__main__':
     if not args.graph_alignment:
         raise Exception("For graph alignment, please choose matching method!")
     if args.graph_alignment:
-        i = 0
+        i = 1
+        smaller = 0.0
         if args.graph_alignment[0] not in ["bk", "mb"]:
             raise Exception("Illegal identifier for matching algorithm!")
         if args.graph_alignment[0] == "bk":
+            if len(args.graph_alignment) == 2:
+                try:
+                    i = int(args.graph_alignment[1])
+                    if i < 1:
+                        raise Exception("Illegal value for the number of cliques to expand search on!")
+                except ValueError("Illegal value for the number of cliques to expand search on!"):
+                    pass
+        if args.graph_alignment[0] == "mb":
             try:
-                i = int(args.graph_alignment[1])
-                if i < 1:
-                    raise Exception("Illegal value for the number of cliques to expand search on!")
-            except IndexError("Please provide value for the number of cliques to expand search on!"):
-                pass
-            except ValueError("Illegal value for the number of cliques to expand search on!"):
+                smaller = float(args.graph_alignment[1])
+                if smaller <= 0.0 or smaller >= 1.0:
+                    raise Exception("Illegal value for the allowed reduction of subgraph size!")
+            except ValueError("Illegal value for the allowed reduction of subgraph size!"):
                 pass
         if args.guide_tree and input_graphs:
             if args.guide_tree[-7:] == ".newick":
@@ -479,7 +507,12 @@ if __name__ == '__main__':
                 cluster_tree = upgma(density, input_graphs)
         else:
             cluster_tree = upgma(density, input_graphs)
-        selected_subgraphs = recursive_matching(cluster_tree, args.graph_alignment[0], anchor, args.pivot, i)
+        matching_graphs = recursive_matching(cluster_tree, args.graph_alignment[0], anchor, args.pivot, i,
+                                             smaller=smaller)
+        for matching_graph in matching_graphs:
+            if matching_graph:
+                original_subgraphs = retrieve_original_subgraphs(matching_graph, input_graphs)
+                selected_subgraphs.append(original_subgraphs)
 
     # If guide tree option is selected, construct a guide using the passed comparison function.
     newick = None
@@ -503,8 +536,8 @@ if __name__ == '__main__':
             raise Exception("No graph to save in memory!")
         else:
             graph.save_to_txt(output_file=args.graph_output)
-            #create Neo4J View
-            neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name())
+            # create Neo4J View
+            # neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name())
     
     # Output of subgraphs from graph alignment or bron-kerbosch algorithm on a modular product.
     if args.subgraph_output and input_graphs and selected_subgraphs:
@@ -515,38 +548,47 @@ if __name__ == '__main__':
             try:
                 subgraph_number = int(args.subgraph_output[1])
                 for i in range(min(len(selected_subgraphs), subgraph_number)):
-                    selected_subgraphs[i].save_to_txt(output_file=args.subgraph_output[0], sequential_number=i)
-                    #create Neo4J View
-                    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", selected_subgraphs[i].get_list_of_vertices(),selected_subgraphs[i].get_list_of_edges(), selected_subgraphs[i].get_name())
+                    for subgraph in selected_subgraphs[i]:
+                        subgraph.save_to_txt(output_file=args.subgraph_output[0] + subgraph[i].get_name(), sequential_number=i)
+                        # create Neo4J View
+                        neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
+                                             subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
+                                             subgraph.get_name())
             except ValueError("Please provide an integer value for the number of subgraphs to be exported as second "
                               "argument!"):
                 pass
         elif len(args.subgraph_output) == 0:
-            for i in range(selected_subgraphs):
-                selected_subgraphs[i].save_to_txt(
-                    output_file=input_graphs[0].get_name() + "_Subgraph_" + str(i + 1) + ".graph")
-                #create Neo4J View
-                neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", selected_subgraphs[i].get_list_of_vertices(),selected_subgraphs[i].get_list_of_edges(), selected_subgraphs[i].get_name())
+            for i in range(len(selected_subgraphs)):
+                for subgraph in selected_subgraphs[i]:
+                    subgraph.save_to_txt(output_file=subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
+                    # create Neo4J View
+                    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
+                                         subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
+                                         subgraph.get_name())
         elif len(args.subgraph_output) == 1:
             try:
                 subgraph_number = int(args.subgraph_output[0])
                 for i in range(min(len(selected_subgraphs), subgraph_number)):
-                    selected_subgraphs[i].save_to_txt(
-                        output_file=input_graphs[0].get_name() + "_Subgraph_" + str(i + 1) + ".graph")
-                    #create Neo4J View
-                    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", selected_subgraphs[i].get_list_of_vertices(),selected_subgraphs[i].get_list_of_edges(), selected_subgraphs[i].get_name())
-            except ValueError():
+                    for subgraph in selected_subgraphs[i]:
+                        subgraph.save_to_txt(output_file=subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
+                        # create Neo4J View
+                        neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
+                                             subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
+                                             subgraph.get_name())
+            except ValueError:
                 for i in range(len(selected_subgraphs)):
-                    selected_subgraphs[i].save_to_txt(output_file=args.subgraph_output[0], sequential_number=i)
-                    #create Neo4J View
-                    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", selected_subgraphs[i].get_list_of_vertices(),selected_subgraphs[i].get_list_of_edges(), selected_subgraphs[i].get_name())
+                    for subgraph in selected_subgraphs[i]:
+                        subgraph.save_to_txt(output_file=args.subgraph_output[0] + subgraph.get_name(), sequential_number=i)
+                        # create Neo4J View
+                        neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
+                                             subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
+                                             subgraph.get_name())
                     
 # TODO: Consider a vertex dictionary instead of list, with ids as keys, for better performance
 # TODO: Consider different types of multiple alignment strategies concerning comparison of analogue attributes (e.g. a
 # specific vertex/edge label); How should those attributes be handled for graphs resulting from the alignment during
 # multiple alignments?
 # TODO: Consider a mapping of edges in multiple alignment as well
-
 
 # Notes:
 # When performing bron-kerbosch on a molecular product as command line input, it is not possible to identify the

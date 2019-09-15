@@ -2,12 +2,11 @@ import math
 import random
 import os
 import string
-from Edge import EDGE
 
 
 class GRAPH(object):
     def __init__(self, name, list_of_vertices, list_of_edges, number_of_vertices, number_of_edges, is_directed,
-                 is_labeled_nodes=False, is_labeled_edges=False, mapping=None):
+                 is_labeled_nodes=False, is_labeled_edges=False):
         self.__name = name
         self.__list_of_vertices = list_of_vertices
         self.__list_of_edges = list_of_edges
@@ -16,6 +15,7 @@ class GRAPH(object):
         self.__is_directed = is_directed
         self.__is_labeled_nodes = is_labeled_nodes  # has to be transferred while initialising the graph
         self.__is_labeled_edges = is_labeled_edges  # has to be transferred while initialising the graph
+        self.__mapping = None
 
     def get_name(self):
         '''
@@ -275,6 +275,21 @@ class GRAPH(object):
     def get_mapping(self):
         return self.__mapping
 
+    def graph_from_vertex_combination(self, list_of_vertices):
+        """
+        Return Type: GRAPH
+        """
+        lov = []
+        loe = []
+        for v in self.get_list_of_vertices():
+            if v in list_of_vertices:
+                lov.append(v)
+        for edge in self.get_list_of_edges():
+            if edge.get_start_and_end()[0] in list_of_vertices and edge.get_start_and_end()[1] in list_of_vertices:
+                loe.append(edge)
+        return GRAPH(self.get_name(), lov, loe, len(lov), len(loe), self.get_is_directed(),
+                     self.get_is_labelled_nodes(), self.get_is_labelled_edges())
+
 
 def density(graph1, graph2):
     """ function to calculate the density of two graphs and return the difference between """
@@ -295,6 +310,7 @@ def retrieve_graph_from_clique(clique, orig_graph):
     loe = []
     for vertex_mp in clique:
         orig_vertex = vertex_mp.get_mapping()[orig_graph.get_name()]
+        orig_vertex.combine_mapping(vertex_mp)
         lov.append(orig_vertex)
         for neighbour in orig_vertex.get_neighbours():
             for vertex_mp2 in clique:
@@ -306,3 +322,26 @@ def retrieve_graph_from_clique(clique, orig_graph):
     graph_name = "".join([random.choice(string.ascii_letters) for i in range(8)])
     new_graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), orig_graph.get_is_directed())
     return new_graph
+
+
+def retrieve_original_subgraphs(matching_graph, input_graphs):
+    """
+    Takes a matching_graph, which is the product of a successful search for a subgraph isomorphism and whose vertices'
+    mapping attribute carries the vertices in the input graphs that correspond to the identified isomorphism in the input
+    graphs
+    Return Type: [GRAPH, ...]
+    """
+    subgraphs = []
+    for graph in input_graphs:
+        lov = []
+        loe = []
+        for v1_mg in matching_graph.get_list_of_vertices():
+            orig_v1 = v1_mg.get_mapping()[graph.get_name()]
+            lov.append(orig_v1)
+            for neighbour in orig_v1.get_neighbours():
+                for edge in graph.get_list_of_edges():
+                    if edge.get_start_and_end()[0] == orig_v1 and edge.get_start_and_end()[1] == neighbour:
+                        loe.append(edge)
+        subgraphs.append(GRAPH(graph.get_name(), lov, loe, len(lov), len(loe), graph.get_is_directed(),
+                         graph.get_is_labelled_nodes(), graph.get_is_labelled_edges()))
+    return subgraphs

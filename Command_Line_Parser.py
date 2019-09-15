@@ -23,11 +23,14 @@ parser.add_argument("-no", "--newick_output", metavar="", nargs='?', const=1,
                          "saved with that name in the current working directory. Else it will be saved in the current "
                          "working directory using a default name.")
 parser.add_argument("-mp", "--modular_product", action="store_true", help="Forms the modular product of two graphs.")
-parser.add_argument("-bk", "--bron-kerbosch", nargs='?', const=-1, metavar="", help="Invokes maximal clique finding on input graph.")
+parser.add_argument("-bk", "--bron-kerbosch", action="store_true",
+                    help="Invokes maximal clique finding on input graph.")
 parser.add_argument("-ga", "--graph_alignment", nargs="*", metavar="",
                     help="Choose matching algorithm: Either 'bk' for bron-kerbosch or 'mb' for matching-based. If "
-                         "bron-kerbosch was chosen, also provide the number of cliques on which the matching should be "
-                         "expanded (e.g. 'bk 5').")
+                         "bron-kerbosch was chosen, you may also provide the number of cliques on which the matching "
+                         "should be expanded (e.g. 'bk 5'). Default is one clique only. If matching-based was chosen,"
+                         "you may provide a margin in percent to what extend the smaller graph may be reduced for"
+                         "isomorhpism search (e.g. 'mb 0.9').")
 parser.add_argument("-rg", "--random_graph", nargs=3, metavar="",
                     help="Create a random graph. Supply the number of vertices (N, integer), the mean relative "
                          "connectivity (p, float) and whether it should be directed (either 'True' or 'False') as "
