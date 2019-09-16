@@ -15,7 +15,7 @@ from GuideTree import upgma, guide_tree_to_newick, save_newick, parse_newick_fil
 from Neo4j import NEO4J
 
 
-def parser(file):
+def parser(file, neo4j):
     """
     Parsing the .graph format to the class Graph
     """
@@ -178,7 +178,8 @@ def parser(file):
     graph_name = file_path_name[pos + 1: -6]
     
     # create Neo4J View
-    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", vertices_objects, edges_objects, graph_name)
+    if neo4j:
+        neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", vertices_objects, edges_objects, graph_name)
     
     # create graph from class GRAPH
     graph = GRAPH(graph_name, vertices_objects, edges_objects, number_vertices, number_edges, directed,
@@ -400,7 +401,7 @@ if __name__ == '__main__':
             # Log statement for the console about the input file
             print("Input file path of file " + str(i) + ": " + file_path)
 
-            graph = parser(file_path)
+            graph = parser(file_path, args.neo4j)
             if direction is None:
                 direction = graph.get_is_directed()
             if direction != graph.get_is_directed():
@@ -428,7 +429,7 @@ if __name__ == '__main__':
             file_path = os.path.abspath(args.anchor)
         else:
             file_path = args.anchor
-        anchor_graph = parser(file_path)
+        anchor_graph = parser(file_path, args.neo4J)
         if not anchor_graph.check_clique_properties():
             raise Exception("Anchor is not a clique nor empty!")
         anchor = anchor_graph.get_list_of_vertices()
@@ -463,8 +464,9 @@ if __name__ == '__main__':
             graph1_name = input_graphs[0].get_name()
             graph2_name = input_graphs[1].get_name()
             graph = modular_product(input_graphs[0], input_graphs[1])
-            # neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234")
-            # neo4jProjekt.create_graphs(neo4jProjekt.get_graph(), graph.get_list_of_vertices(), graph.get_list_of_edges(),graph.get_name())
+            # if args.neo4j:
+                # neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234")
+                # neo4jProjekt.create_graphs(neo4jProjekt.get_graph(), graph.get_list_of_vertices(), graph.get_list_of_edges(),graph.get_name())
             
             # Log statement for the console about the modular product
             print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
@@ -491,12 +493,13 @@ if __name__ == '__main__':
                 except ValueError("Illegal value for the number of cliques to expand search on!"):
                     pass
         if args.graph_alignment[0] == "mb":
-            try:
-                smaller = float(args.graph_alignment[1])
-                if smaller <= 0.0 or smaller >= 1.0:
-                    raise Exception("Illegal value for the allowed reduction of subgraph size!")
-            except ValueError("Illegal value for the allowed reduction of subgraph size!"):
-                pass
+            if len(args.graph_alignment) == 2:
+                try:
+                    smaller = float(args.graph_alignment[1])
+                    if smaller <= 0.0 or smaller >= 1.0:
+                        raise Exception("Illegal value for the allowed reduction of subgraph size!")
+                except ValueError("Illegal value for the allowed reduction of subgraph size!"):
+                    pass
         if args.guide_tree and input_graphs:
             if args.guide_tree[-7:] == ".newick":
                 cluster_tree = parse_newick_file_into_tree(args.guide_tree, input_graphs)
@@ -536,11 +539,12 @@ if __name__ == '__main__':
             raise Exception("No graph to save in memory!")
         else:
             graph.save_to_txt(output_file=args.graph_output)
-            # create Neo4J View
-            # neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name())
+            # if args.neo4j:
+                # create Neo4J View
+                # neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name())
     
     # Output of subgraphs from graph alignment or bron-kerbosch algorithm on a modular product.
-    if args.subgraph_output and input_graphs and selected_subgraphs:
+    if args.subgraph_output is not None and input_graphs and selected_subgraphs:
         if len(args.subgraph_output) > 2:
             raise Exception("Please provide a maximum of two arguments: First the output file path and second the "
                             "number of subgraphs to be exported!")
@@ -551,9 +555,10 @@ if __name__ == '__main__':
                     for subgraph in selected_subgraphs[i]:
                         subgraph.save_to_txt(output_file=args.subgraph_output[0] + subgraph[i].get_name(), sequential_number=i)
                         # create Neo4J View
-                        neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
-                                             subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
-                                             subgraph.get_name())
+                        if args.neo4j:
+                            neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
+                                                 subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
+                                                 subgraph.get_name())
             except ValueError("Please provide an integer value for the number of subgraphs to be exported as second "
                               "argument!"):
                 pass
@@ -562,9 +567,10 @@ if __name__ == '__main__':
                 for subgraph in selected_subgraphs[i]:
                     subgraph.save_to_txt(output_file=subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
                     # create Neo4J View
-                    neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
-                                         subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
-                                         subgraph.get_name())
+                    if args.neo4j:
+                        neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
+                                             subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
+                                             subgraph.get_name())
         elif len(args.subgraph_output) == 1:
             try:
                 subgraph_number = int(args.subgraph_output[0])
@@ -572,17 +578,19 @@ if __name__ == '__main__':
                     for subgraph in selected_subgraphs[i]:
                         subgraph.save_to_txt(output_file=subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
                         # create Neo4J View
-                        neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
-                                             subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
-                                             subgraph.get_name())
+                        if args.neo4j:
+                            neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
+                                                 subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
+                                                 subgraph.get_name())
             except ValueError:
                 for i in range(len(selected_subgraphs)):
                     for subgraph in selected_subgraphs[i]:
                         subgraph.save_to_txt(output_file=args.subgraph_output[0] + subgraph.get_name(), sequential_number=i)
                         # create Neo4J View
-                        neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
-                                             subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
-                                             subgraph.get_name())
+                        if args.neo4j:
+                            neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
+                                                 subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
+                                                 subgraph.get_name())
                     
 # TODO: Consider a vertex dictionary instead of list, with ids as keys, for better performance
 # TODO: Consider different types of multiple alignment strategies concerning comparison of analogue attributes (e.g. a
@@ -594,3 +602,35 @@ if __name__ == '__main__':
 # When performing bron-kerbosch on a molecular product as command line input, it is not possible to identify the
 # vertices from the original graphs from which the molecular product was formed because this vertex mapping is not
 # saved.
+
+"""
+Testing calls:
+    General:
+        (1) Check for log statements
+        
+    Guide Tree/Multiple Graph Alignment (MGA):
+        (1) Perform MGA on a set of graphs
+
+    BK-alignments:
+        (1) creating a modular product and saving it. Check for the correct number of vertices and edges.
+        (2) bron-kerbosch on a modular Product and saving the subgraphs. Check for detection of all subgraphs
+            and for validity of subgraphs.
+        
+    MB-alignments:
+    
+    
+    Newick result saving:
+        (1) with passing name
+        (2) with passing path
+        (3) without passing anything
+    Graph result saving:
+        (1) with passing name
+        (2) with passing path
+        (3) without passing anything
+    Subgraph result saving:
+        (1) without passing (1.1) path, (1.2) name or (1.3) number of subgraphs to be exported
+        (2) with passing (2.1) path and number of subgraphs, (2.2) name and number of subgraphs,
+            (2.3) no path/name but number of subgraphs, (2.4) path but not number of subgraphs or
+            (2.5) name but not number of subgraphs.
+    
+"""
