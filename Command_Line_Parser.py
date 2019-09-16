@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser(usage="Software for graph analysis")
 parser.add_argument("-a", "--anchor", metavar="", default=[],
-                    help="Supply anchor graph file (path).")
+                    help="Supply anchor graph file (path) for an anchor to the first graph in the input graphs.")
 parser.add_argument("-bk", "--bron-kerbosch", action="store_true",
                     help="Invokes maximal clique finding on input graph.")
 parser.add_argument("-ga", "--graph_alignment", nargs="*", metavar="",

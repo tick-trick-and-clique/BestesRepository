@@ -33,7 +33,7 @@ class Cluster:
             return True
 
 
-def upgma(comp_function, graphs):
+def upgma(comp_function, graphs, anchor_graph=False):
     """
     Takes a comparison function for graphs and list of graphs as input and calculates a guide
     tree which is returned as a the top cluster of a binary tree of clusters. List of graphs ordered by minimal
@@ -55,12 +55,21 @@ def upgma(comp_function, graphs):
         current_smallest_dist = float("inf")
         cluster1 = None
         cluster2 = None
-        for i in range(n):
-            for j in range(i - n + 2):
+        if anchor_graph:
+            anchor_graph = False
+            i = 0
+            for j in range(1, n):
                 if dist_matrix[i][j] < current_smallest_dist:
                     current_smallest_dist = dist_matrix[i][j]
                     cluster1 = clusters[i]
                     cluster2 = clusters[j]
+        else:
+            for i in range(n):
+                for j in range(i - n + 2):
+                    if dist_matrix[i][j] < current_smallest_dist:
+                        current_smallest_dist = dist_matrix[i][j]
+                        cluster1 = clusters[i]
+                        cluster2 = clusters[j]
         new_cluster = Cluster(cluster1.get_elements() + cluster2.get_elements())
         new_cluster.set_children(cluster1, cluster2)
 

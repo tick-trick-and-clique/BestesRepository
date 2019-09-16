@@ -3,12 +3,13 @@ from Vertex import VERTEX
 from Edge import EDGE
 
 
-def modular_product(g1, g2):
+def modular_product(g1, g2, anchor_graph_parameters=None):
     # Number of vertices is the product of the number of vertices of both graphs
     new_number_of_vertices = g1.get_number_of_vertices() * g2.get_number_of_vertices()
     # Initialize all vertices of the modular product. For now, a
     # default label is passed. A mapping for each vertex is updated, serving as reference to the input vertices
     # including the mapping of those input vertices.
+    anchor = []
     new_list_of_vertices = []
     g1_list = g1.get_list_of_vertices()
     g2_list = g2.get_list_of_vertices()
@@ -19,6 +20,11 @@ def modular_product(g1, g2):
             v = VERTEX(i + j*g1_vn, "Default_Label")
             v.combine_mapping(g1_list[i])
             v.combine_mapping(g2_list[j])
+            if anchor_graph_parameters:
+                anchor_vertices = anchor_graph_parameters[0].get_list_of_vertices()
+                for anchor_vertex in anchor_vertices:
+                    if g1_list[i].get_id() == anchor_vertex.get_id():
+                        anchor.append(v)
             new_list_of_vertices.append(v)
     # Initialize an empty list of edges and an edge counter.
     # Iterate over all pairs of vertices (twice --> both directions) for both graphs.
@@ -61,4 +67,4 @@ def modular_product(g1, g2):
     # Vertex and Edge labels are enabled, yet set to a default value for the moment, same as the edge id.
     return GRAPH("Modular Product of " + g1.get_name() + " and " + g2.get_name(),
                  new_list_of_vertices, new_list_of_edges, new_number_of_vertices, int(new_number_of_edges/2),
-                 False, is_labeled_edges=True, is_labeled_nodes=True)
+                 False, is_labeled_edges=True, is_labeled_nodes=True), anchor

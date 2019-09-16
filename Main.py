@@ -216,7 +216,7 @@ def check_start_end_in_vertices(edge_start_end, currentEdge):
     return
 
 
-def matching_using_bk(graph_left, graph_right, number_cliques, anchor, pivot):
+def matching_using_bk(graph_left, graph_right, number_cliques, pivot, anchor_graph_parameters):
     """
     Helper function for graph alignment using bron-kerbosch algorithm. Takes two graphs and other bron-kerbosch
     matching parameters as input to perform graph alignment. 'number_cliques' specifies the maximum number of cliques
@@ -224,7 +224,12 @@ def matching_using_bk(graph_left, graph_right, number_cliques, anchor, pivot):
     Return type: [GRAPH, ...]
     """
     result = []
-    mp = modular_product(graph_left, graph_right)
+    if anchor_graph_parameters:
+        if graph_left.get_name() == anchor_graph_parameters[1]:
+            mp, anchor = modular_product(graph_left, graph_right, anchor_graph_parameters=anchor_graph_parameters)
+        elif graph_right.get_name() == anchor_graph_parameters[1]:
+            mp, anchor = modular_product(graph_right, graph_left, anchor_graph_parameters=anchor_graph_parameters)
+    mp, anchor = modular_product(graph_left, graph_right)
     # Log statement for the console about Bron-Kerbosch
     print("Clique finding via Bron-Kerbosch...")
     clique_findings = mp.bron_kerbosch(anchor, mp.get_list_of_vertices(), [], pivot=pivot)
@@ -261,7 +266,7 @@ def matching_using_mb(graph_left, graph_right):
     return result
 
 
-def recursive_matching(cluster, matching_algorithm, anchor, pivot, number_cliques, smaller=0.0):
+def recursive_matching(cluster, matching_algorithm, pivot, number_cliques, anchor_graph_parameters=None, smaller=0.0):
     """
     Performs graph alignment according to the guide tree in 'cluster' and the given matching algorithm.
     'number_cliques' specifies the maximum number of cliques that will be considered for further graph alignment.
@@ -270,10 +275,10 @@ def recursive_matching(cluster, matching_algorithm, anchor, pivot, number_clique
     # If the children are not tree leaves (i.e. grandchildren exist), then call function for these children.
     # Left child.
     if cluster.get_left_child().children_exist():
-        recursive_matching(cluster.get_left_child(), matching_algorithm, anchor, pivot, number_cliques)
+        recursive_matching(cluster.get_left_child(), matching_algorithm, pivot, number_cliques)
     # Right child.
     if cluster.get_right_child().children_exist():
-        recursive_matching(cluster.get_right_child(), matching_algorithm, anchor, pivot, number_cliques)
+        recursive_matching(cluster.get_right_child(), matching_algorithm, pivot, number_cliques)
     # Else, the cluster is the root of two leaves, then:
     # Perform graph matching of the two leaf graphs (use the matching method provided by user)
     # Update the cluster with one new leaf, deleting the previous two
@@ -284,7 +289,8 @@ def recursive_matching(cluster, matching_algorithm, anchor, pivot, number_clique
     if matching_algorithm == "bk":
         for gl in graphs_left:
             for gr in graphs_right:
-                new_graphs += matching_using_bk(gl, gr, number_cliques, anchor, pivot)
+                new_graphs += matching_using_bk(gl, gr, number_cliques, pivot,
+                                                anchor_graph_parameters=anchor_graph_parameters)
     if matching_algorithm == "mb":
         for gl in graphs_left:
             for gr in graphs_right:
@@ -347,6 +353,14 @@ def mb_mapping_to_graph(result_as_mapping, graph1, graph2):
     return graph
 
 
+def import_file(filename):
+    if not os.path.isdir(os.path.dirname(filename)) and not os.path.exists(filename):
+        raise FileNotFoundError("No such file with given path or filename!")
+    if not os.path.isdir(os.path.dirname(filename)):
+        file_path = os.path.abspath(filename)
+    else:
+        file_path = args.input
+    return
 
 
 if __name__ == '__main__':
@@ -364,6 +378,7 @@ if __name__ == '__main__':
     graph = None
     input_graphs = []
     selected_subgraphs = []
+    anchor = []
 
     # Check for random graph option
     if args.random_graph:
@@ -416,9 +431,13 @@ if __name__ == '__main__':
 
     # Checking for an anchor graph file and checking anchor for clique property. Anchor default is a list.
     # Log statement for the console about the anchor file!
+    """
     if isinstance(args.anchor, list):
-        anchor = []
         print("Anchor File: --")
+    else:
+    """
+    if not args.anchor:
+        anchor_graph = None
     else:
         # If input argument is neither a valid path nor a file in the current working directory. If, raise
         # FileNotFoundError.
@@ -429,10 +448,20 @@ if __name__ == '__main__':
             file_path = os.path.abspath(args.anchor)
         else:
             file_path = args.anchor
-        anchor_graph = parser(file_path, args.neo4J)
-        if not anchor_graph.check_clique_properties():
-            raise Exception("Anchor is not a clique nor empty!")
-        anchor = anchor_graph.get_list_of_vertices()
+        anchor_graph = parser(file_path, args.neo4j)
+        if not anchor_graph.check_clique_properties() and args.bron_kerbosch:
+            raise Exception("Anchor is not a clique nor empty! For clique finding on a modular product using an anchor "
+                            "pass a subgraph of the modular product which is a clique!")
+        elif args.bron_kerbosch:
+            if len(input_graphs) != 1:
+                raise Exception("For clique finding via bron-kerbosch, "
+                                "please provide exactly one file path of a graph!")
+            else:
+                anchor = []
+                for anchor_vertex in anchor_graph.get_list_of_vertices():
+                    for input_vertex in input_graphs[0].get_list_of_vertices():
+                        if anchor_vertex.get_id() == input_vertex.get_id():
+                            anchor.append(input_vertex)
         print("Anchor File: " + args.anchor)
 
     # Checking for bron-kerbosch option
@@ -463,7 +492,7 @@ if __name__ == '__main__':
         else:
             graph1_name = input_graphs[0].get_name()
             graph2_name = input_graphs[1].get_name()
-            graph = modular_product(input_graphs[0], input_graphs[1])
+            graph, anchor = modular_product(input_graphs[0], input_graphs[1])
             # if args.neo4j:
                 # neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234")
                 # neo4jProjekt.create_graphs(neo4jProjekt.get_graph(), graph.get_list_of_vertices(), graph.get_list_of_edges(),graph.get_name())
@@ -471,13 +500,16 @@ if __name__ == '__main__':
             # Log statement for the console about the modular product
             print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
 
+    if isinstance(args.guide_tree, list) and len(args.guide_tree) == 0:
+        raise Exception("For guide tree construction, please pass either a .newick file, a built-in comparison function"
+                        " or 'custom <file.py>' for introducing you own comparison function!")
     # Checking for graph alignment option. This option performs graph alignment of a number of graphs given as input
     # files. The matching order is according to the guide tree option (passing a comaprison function or a '.newick' file
     # , using graph density for guide tree construction is default. The graph names in the '.newick' file must be
     # unique!.
     # Matching is done either by forming the modular product and performing bron-kerbosch-algorithm or by the
     # matching-based VF2 algorithm (Cordella et al.)!
-    if not args.graph_alignment:
+    if isinstance(args.graph_alignment, list) and len(args.graph_alignment) == 0:
         raise Exception("For graph alignment, please choose matching method!")
     if args.graph_alignment:
         i = 1
@@ -501,16 +533,21 @@ if __name__ == '__main__':
                 except ValueError("Illegal value for the allowed reduction of subgraph size!"):
                     pass
         if args.guide_tree and input_graphs:
-            if args.guide_tree[-7:] == ".newick":
+            if args.guide_tree[0] == "custom":
+                pass
+                import_file
+                # TODO: Code that includes .py
+            elif args.guide_tree[0][-7:] == ".newick":
                 cluster_tree = parse_newick_file_into_tree(args.guide_tree, input_graphs)
-            elif args.guide_tree not in ["density"]:  # Other comparison function/attributes may be added
+            elif args.guide_tree[0] not in ["density"]:  # Other comparison function/attributes may be added
                 cluster_tree = None
                 raise Exception("Illegal identifier for comparison function!")
             else:
-                cluster_tree = upgma(density, input_graphs)
+                cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
         else:
-            cluster_tree = upgma(density, input_graphs)
-        matching_graphs = recursive_matching(cluster_tree, args.graph_alignment[0], anchor, args.pivot, i,
+            cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
+        matching_graphs = recursive_matching(cluster_tree, args.graph_alignment[0], args.pivot, i,
+                                             anchor_graph_parameters=[anchor_graph, input_graphs[0].get_name()],
                                              smaller=smaller)
         for matching_graph in matching_graphs:
             if matching_graph:
@@ -520,10 +557,13 @@ if __name__ == '__main__':
     # If guide tree option is selected, construct a guide using the passed comparison function.
     newick = None
     if args.guide_tree:
-        if args.guide_tree[-7:] == ".newick":
-            newick = args.guide_tree
-        elif args.guide_tree == "density" and input_graphs:
-            cluster_tree = upgma(density, input_graphs)
+        if args.guide_tree[0] == "custom":
+            pass
+            # TODO: Code that includes .py
+        elif args.guide_tree[0][-7:] == ".newick":
+            newick = args.guide_tree[0]
+        elif input_graphs:
+            cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
             newick = guide_tree_to_newick(cluster_tree)
 
     # Checking for output options.
@@ -595,42 +635,15 @@ if __name__ == '__main__':
 # TODO: Consider a vertex dictionary instead of list, with ids as keys, for better performance
 # TODO: Consider different types of multiple alignment strategies concerning comparison of analogue attributes (e.g. a
 # specific vertex/edge label); How should those attributes be handled for graphs resulting from the alignment during
-# multiple alignments?
+# multiple alignments (create a mean value?)?
 # TODO: Consider a mapping of edges in multiple alignment as well
+# TODO: BK algorithm in graph alignment; until now the largest cliques are used for ongoing alignment, consider a
+# different graph attribute for this
+# TODO:
+# TODO: Define anchor (graph) for matching-based algorithm. Probably need to initialize data structures differently.
 
 # Notes:
 # When performing bron-kerbosch on a molecular product as command line input, it is not possible to identify the
 # vertices from the original graphs from which the molecular product was formed because this vertex mapping is not
-# saved.
-
-"""
-Testing calls:
-    General:
-        (1) Check for log statements
-        
-    Guide Tree/Multiple Graph Alignment (MGA):
-        (1) Perform MGA on a set of graphs
-
-    BK-alignments:
-        (1) creating a modular product and saving it. Check for the correct number of vertices and edges.
-        (2) bron-kerbosch on a modular Product and saving the subgraphs. Check for detection of all subgraphs
-            and for validity of subgraphs.
-        
-    MB-alignments:
-    
-    
-    Newick result saving:
-        (1) with passing name
-        (2) with passing path
-        (3) without passing anything
-    Graph result saving:
-        (1) with passing name
-        (2) with passing path
-        (3) without passing anything
-    Subgraph result saving:
-        (1) without passing (1.1) path, (1.2) name or (1.3) number of subgraphs to be exported
-        (2) with passing (2.1) path and number of subgraphs, (2.2) name and number of subgraphs,
-            (2.3) no path/name but number of subgraphs, (2.4) path but not number of subgraphs or
-            (2.5) name but not number of subgraphs.
-    
-"""
+# saved. The mapping cannot be save as ID because concatenation of IDs would not be unique (e.g. ID 123 from vertices
+# 12 and 3 or 1 and 23)
