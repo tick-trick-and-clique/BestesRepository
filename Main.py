@@ -216,7 +216,8 @@ def check_start_end_in_vertices(edge_start_end, currentEdge):
     return
 
 
-def matching_using_bk(graph_left, graph_right, number_cliques, pivot, anchor_graph_parameters):
+def matching_using_bk(graph_left, graph_right, number_cliques, pivot, anchor_graph_parameters=None,
+                      clique_sort_func=None):
     """
     Helper function for graph alignment using bron-kerbosch algorithm. Takes two graphs and other bron-kerbosch
     matching parameters as input to perform graph alignment. 'number_cliques' specifies the maximum number of cliques
@@ -229,7 +230,10 @@ def matching_using_bk(graph_left, graph_right, number_cliques, pivot, anchor_gra
             mp, anchor = modular_product(graph_left, graph_right, anchor_graph_parameters=anchor_graph_parameters)
         elif graph_right.get_name() == anchor_graph_parameters[1]:
             mp, anchor = modular_product(graph_right, graph_left, anchor_graph_parameters=anchor_graph_parameters)
-    mp, anchor = modular_product(graph_left, graph_right)
+        else:
+            mp, anchor = modular_product(graph_left, graph_right)
+    else:
+        mp, anchor = modular_product(graph_left, graph_right)
     # Log statement for the console about Bron-Kerbosch
     print("Clique finding via Bron-Kerbosch...")
     clique_findings = mp.bron_kerbosch(anchor, mp.get_list_of_vertices(), [], pivot=pivot)
@@ -238,7 +242,10 @@ def matching_using_bk(graph_left, graph_right, number_cliques, pivot, anchor_gra
         clique = sorted(clique, key=lambda x: x.get_id())
         duplicates_removed.append(tuple(clique))
     clique_findings = list(set(duplicates_removed))  # removes duplicates
-    clique_findings.sort(key=lambda x: len(x), reverse=True)
+    if clique_sort_func:
+        clique_findings.sort(key=lambda x: clique_sort_func(x), reverse=True)
+    else:
+        clique_findings.sort(key=lambda x: len(x), reverse=True)
     number_cliques = min(len(clique_findings), number_cliques)
     clique_findings = clique_findings[:number_cliques]
     for j in range(number_cliques):
@@ -266,7 +273,8 @@ def matching_using_mb(graph_left, graph_right):
     return result
 
 
-def recursive_matching(cluster, matching_algorithm, pivot, number_cliques, anchor_graph_parameters=None, smaller=0.0):
+def recursive_matching(cluster, matching_algorithm, pivot, number_cliques, anchor_graph_parameters=None, smaller=0.0,
+                       clique_sort_func=None):
     """
     Performs graph alignment according to the guide tree in 'cluster' and the given matching algorithm.
     'number_cliques' specifies the maximum number of cliques that will be considered for further graph alignment.
@@ -275,10 +283,12 @@ def recursive_matching(cluster, matching_algorithm, pivot, number_cliques, ancho
     # If the children are not tree leaves (i.e. grandchildren exist), then call function for these children.
     # Left child.
     if cluster.get_left_child().children_exist():
-        recursive_matching(cluster.get_left_child(), matching_algorithm, pivot, number_cliques)
+        recursive_matching(cluster.get_left_child(), matching_algorithm, pivot, number_cliques,
+                           anchor_graph_parameters=anchor_graph_parameters, clique_sort_func=clique_sort_func)
     # Right child.
     if cluster.get_right_child().children_exist():
-        recursive_matching(cluster.get_right_child(), matching_algorithm, pivot, number_cliques)
+        recursive_matching(cluster.get_right_child(), matching_algorithm, pivot, number_cliques,
+                           anchor_graph_parameters=anchor_graph_parameters, clique_sort_func=clique_sort_func)
     # Else, the cluster is the root of two leaves, then:
     # Perform graph matching of the two leaf graphs (use the matching method provided by user)
     # Update the cluster with one new leaf, deleting the previous two
@@ -290,7 +300,8 @@ def recursive_matching(cluster, matching_algorithm, pivot, number_cliques, ancho
         for gl in graphs_left:
             for gr in graphs_right:
                 new_graphs += matching_using_bk(gl, gr, number_cliques, pivot,
-                                                anchor_graph_parameters=anchor_graph_parameters)
+                                                anchor_graph_parameters=anchor_graph_parameters,
+                                                clique_sort_func=clique_sort_func)
     if matching_algorithm == "mb":
         for gl in graphs_left:
             for gr in graphs_right:
@@ -516,15 +527,20 @@ if __name__ == '__main__':
     if args.graph_alignment:
         i = 1
         smaller = 0.0
+        clique_sort_func = None
         if args.graph_alignment[0] not in ["bk", "mb"]:
             raise Exception("Illegal identifier for matching algorithm!")
         if args.graph_alignment[0] == "bk":
-            if len(args.graph_alignment) == 2:
+            if len(args.graph_alignment) >= 2:
                 try:
                     i = int(args.graph_alignment[1])
+                    if len(args.graph_alignment) == 4:
+                        clique_sort_func = import_file(args.graph_alignment[2], args.graph_alignment[3])
                     if i < 1:
                         raise Exception("Illegal value for the number of cliques to expand search on!")
                 except ValueError("Illegal value for the number of cliques to expand search on!"):
+                    pass
+                except IndexError("Illegal number of input values for graph alignment using bron-kerbosch!"):
                     pass
         if args.graph_alignment[0] == "mb":
             if len(args.graph_alignment) == 2:
@@ -549,7 +565,7 @@ if __name__ == '__main__':
             cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
         matching_graphs = recursive_matching(cluster_tree, args.graph_alignment[0], args.pivot, i,
                                              anchor_graph_parameters=[anchor_graph, input_graphs[0].get_name()],
-                                             smaller=smaller)
+                                             smaller=smaller, clique_sort_func=clique_sort_func)
         for matching_graph in matching_graphs:
             if matching_graph:
                 original_subgraphs = retrieve_original_subgraphs(matching_graph, input_graphs)
@@ -632,15 +648,14 @@ if __name__ == '__main__':
                             neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
                                                  subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
                                                  subgraph.get_name())
+
                     
 # TODO: Consider a vertex dictionary instead of list, with ids as keys, for better performance
 # TODO: Consider different types of multiple alignment strategies concerning comparison of analogue attributes (e.g. a
 # specific vertex/edge label); How should those attributes be handled for graphs resulting from the alignment during
 # multiple alignments (create a mean value?)?
 # TODO: Consider a mapping of edges in multiple alignment as well
-# TODO: BK algorithm in graph alignment; until now the largest cliques are used for ongoing alignment, consider a
-# different graph attribute for this
-# TODO: Define anchor (graph) for matching-based algorithm. Probably need to initialize data structures differently.
+
 
 # Notes:
 # When performing bron-kerbosch on a molecular product as command line input, it is not possible to identify the
