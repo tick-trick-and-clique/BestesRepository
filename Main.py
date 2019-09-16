@@ -13,7 +13,7 @@ from Graph_Builder import buildRndGraph
 from MB_State import MB_State
 from GuideTree import upgma, guide_tree_to_newick, save_newick, parse_newick_file_into_tree
 from Neo4j import NEO4J
-
+from runpy import run_path
 
 def parser(file, neo4j):
     """
@@ -353,14 +353,16 @@ def mb_mapping_to_graph(result_as_mapping, graph1, graph2):
     return graph
 
 
-def import_file(filename):
+def import_file(filename, function_name):
     if not os.path.isdir(os.path.dirname(filename)) and not os.path.exists(filename):
-        raise FileNotFoundError("No such file with given path or filename!")
+        raise Exception("No such file with given path or filename!")
     if not os.path.isdir(os.path.dirname(filename)):
         file_path = os.path.abspath(filename)
     else:
         file_path = args.input
-    return
+    settings = run_path(file_path)
+    f = settings[function_name]
+    return f
 
 
 if __name__ == '__main__':
@@ -372,7 +374,7 @@ if __name__ == '__main__':
         args = None
 
     if args.syntax:
-        raise SyntaxError("Please use proper syntax, use '-h' for more information!")
+        raise Exception("Please use proper syntax, use '-h' for more information!")
 
     # Initialization of necessary variables
     graph = None
@@ -393,9 +395,9 @@ if __name__ == '__main__':
         except ValueError:
             print("invalid type of arguments for random graph building!")
 
-    # If neither input file(s) not random graph option are given, raise Error. Else, parse input!
+    # If neither input file(s) not random graph option are given, raise Exception. Else, parse input!
     elif not args.input and not args.random_graph:
-        raise FileNotFoundError("Please provide input file(s) with preceding '-i' statement!")
+        raise Exception("Please provide input file(s) with preceding '-i' statement!")
     else:
         if args.random_graph and graph:
             input_graphs.append(graph)
@@ -403,9 +405,9 @@ if __name__ == '__main__':
         for i in range(len(args.input)):
 
             # If input argument is neither a valid path nor a file in the current working directory. If, raise
-            # FileNotFoundError.
+            # Exception.
             if not os.path.isdir(os.path.dirname(args.input[i])) and not os.path.exists(args.input[i]):
-                raise FileNotFoundError("No such file with given path or filename!")
+                raise Exception("No such file with given path or filename!")
 
             # If input argument is a not a full path, add current working directory. Else, take what's given.
             if not os.path.isdir(os.path.dirname(args.input[i])):
@@ -440,9 +442,9 @@ if __name__ == '__main__':
         anchor_graph = None
     else:
         # If input argument is neither a valid path nor a file in the current working directory. If, raise
-        # FileNotFoundError.
+        # Exception.
         if not os.path.isdir(os.path.dirname(args.anchor)) and not os.path.exists(args.anchor):
-            raise FileNotFoundError("No such file with given path or filename!")
+            raise Exception("No such file with given path or filename!")
         # If anchor argument is a not a full path, add current working directory. Else, take what's given.
         if not os.path.isdir(os.path.dirname(args.anchor)):
             file_path = os.path.abspath(args.anchor)
@@ -534,9 +536,8 @@ if __name__ == '__main__':
                     pass
         if args.guide_tree and input_graphs:
             if args.guide_tree[0] == "custom":
-                pass
-                import_file
-                # TODO: Code that includes .py
+                f = import_file(args.guide_tree[1], args.guide_tree[2])
+                cluster_tree = upgma(f, input_graphs, anchor_graph=anchor_graph)
             elif args.guide_tree[0][-7:] == ".newick":
                 cluster_tree = parse_newick_file_into_tree(args.guide_tree, input_graphs)
             elif args.guide_tree[0] not in ["density"]:  # Other comparison function/attributes may be added
@@ -558,8 +559,8 @@ if __name__ == '__main__':
     newick = None
     if args.guide_tree:
         if args.guide_tree[0] == "custom":
-            pass
-            # TODO: Code that includes .py
+            f = import_file(args.guide_tree[1], args.guide_tree[2])
+            cluster_tree = upgma(f, input_graphs, anchor_graph=anchor_graph)
         elif args.guide_tree[0][-7:] == ".newick":
             newick = args.guide_tree[0]
         elif input_graphs:
@@ -639,7 +640,6 @@ if __name__ == '__main__':
 # TODO: Consider a mapping of edges in multiple alignment as well
 # TODO: BK algorithm in graph alignment; until now the largest cliques are used for ongoing alignment, consider a
 # different graph attribute for this
-# TODO:
 # TODO: Define anchor (graph) for matching-based algorithm. Probably need to initialize data structures differently.
 
 # Notes:

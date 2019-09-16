@@ -17,9 +17,12 @@ parser.add_argument("-go", "--graph_output", metavar="", nargs='?', const=1,
                          "there. If a .graph file name is provided, it will be saved with that name in the current "
                          "working directory. Else it will be saved in the current working directory using its name "
                          "attribute.")
-parser.add_argument("-gt", "--guide_tree", nargs='?', metavar="", const="density",
+parser.add_argument("-gt", "--guide_tree", nargs='*', metavar="",
                     help="Choose either a comparison function/attribute for guide tree building ('density' for graph "
-                         "density) or pass a '.newick' file. Default is construction of a guide tree by graph density.")
+                         "density), pass a '.newick' file or pass the keyword 'custom' together with a .py file and"
+                         "the name of the comparison function in that file. For detailed requirements of the custom"
+                         "comparison functions see the manual! Default is construction of a guide tree by graph "
+                         "density.")
 parser.add_argument("-i", "--input", metavar="", nargs='*', help="Supply input path(s) of input file(s).")
 parser.add_argument("-mp", "--modular_product", action="store_true", help="Forms the modular product of two graphs.")
 parser.add_argument("-n", "--neo4j", action="store_true",
