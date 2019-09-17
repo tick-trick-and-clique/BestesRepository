@@ -615,7 +615,7 @@ if __name__ == '__main__':
                         if args.neo4j:
                             neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
                                                  subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
-                                                 subgraph.get_name())
+                                                 subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
             except ValueError("Please provide an integer value for the number of subgraphs to be exported as second "
                               "argument!"):
                 pass
@@ -627,7 +627,7 @@ if __name__ == '__main__':
                     if args.neo4j:
                         neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
                                              subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
-                                             subgraph.get_name())
+                                             subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
         elif len(args.subgraph_output) == 1:
             try:
                 subgraph_number = int(args.subgraph_output[0])
@@ -638,7 +638,7 @@ if __name__ == '__main__':
                         if args.neo4j:
                             neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
                                                  subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
-                                                 subgraph.get_name())
+                                                 subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
             except ValueError:
                 for i in range(len(selected_subgraphs)):
                     for subgraph in selected_subgraphs[i]:
@@ -647,7 +647,7 @@ if __name__ == '__main__':
                         if args.neo4j:
                             neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
                                                  subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
-                                                 subgraph.get_name())
+                                                 subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
 
                     
 # TODO: Consider a vertex dictionary instead of list, with ids as keys, for better performance
