@@ -218,6 +218,8 @@ class GRAPH(object):
             if len(self.__list_of_edges) > 0:
                 f.write("\n")
                 for edge in self.__list_of_edges:
+                    print(edge.get_start_and_end()[0])
+                    print(edge.get_start_and_end()[1])
                     f.write("\n" + str(edge.get_start_and_end()[0].get_id()) + ";"
                             + str(edge.get_start_and_end()[1].get_id()) + ";" + str(edge.get_label()))
         f.close()
@@ -338,9 +340,10 @@ def retrieve_original_subgraphs(matching_graph, input_graphs):
         for v1_mg in matching_graph.get_list_of_vertices():
             orig_v1 = v1_mg.get_mapping()[graph.get_name()]
             lov.append(orig_v1)
-            for neighbour in orig_v1.get_neighbours():
-                for edge in graph.get_list_of_edges():
-                    if edge.get_start_and_end()[0] == orig_v1 and edge.get_start_and_end()[1] == neighbour:
+        for edge in graph.get_list_of_edges():
+            for v1 in lov:
+                for v2 in lov:
+                    if edge.get_start_and_end()[0] == v1 and edge.get_start_and_end()[1] == v2:
                         loe.append(edge)
         subgraphs.append(GRAPH(graph.get_name(), lov, loe, len(lov), len(loe), graph.get_is_directed(),
                          graph.get_is_labelled_nodes(), graph.get_is_labelled_edges()))

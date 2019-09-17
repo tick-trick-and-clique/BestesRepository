@@ -237,11 +237,6 @@ def matching_using_bk(graph_left, graph_right, number_cliques, pivot, anchor_gra
     # Log statement for the console about Bron-Kerbosch
     print("Clique finding via Bron-Kerbosch...")
     clique_findings = mp.bron_kerbosch(anchor, mp.get_list_of_vertices(), [], pivot=pivot)
-    duplicates_removed = []
-    for clique in clique_findings:
-        clique = sorted(clique, key=lambda x: x.get_id())
-        duplicates_removed.append(tuple(clique))
-    clique_findings = list(set(duplicates_removed))  # removes duplicates
     if clique_sort_func:
         clique_findings.sort(key=lambda x: clique_sort_func(x), reverse=True)
     else:
@@ -273,8 +268,8 @@ def matching_using_mb(graph_left, graph_right):
     return result
 
 
-def recursive_matching(cluster, matching_algorithm, pivot, number_cliques, anchor_graph_parameters=None, smaller=0.0,
-                       clique_sort_func=None):
+def recursive_matching(cluster, matching_algorithm, pivot, number_cliques, anchor_graph_parameters=[None, None],
+                       smaller=0.0, clique_sort_func=None):
     """
     Performs graph alignment according to the guide tree in 'cluster' and the given matching algorithm.
     'number_cliques' specifies the maximum number of cliques that will be considered for further graph alignment.
@@ -563,8 +558,12 @@ if __name__ == '__main__':
                 cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
         else:
             cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
+        if anchor_graph:
+            anchor_graph_parameters = [anchor_graph, input_graphs[0].get_name()]
+        else:
+            anchor_graph_parameters = None
         matching_graphs = recursive_matching(cluster_tree, args.graph_alignment[0], args.pivot, i,
-                                             anchor_graph_parameters=[anchor_graph, input_graphs[0].get_name()],
+                                             anchor_graph_parameters=anchor_graph_parameters,
                                              smaller=smaller, clique_sort_func=clique_sort_func)
         for matching_graph in matching_graphs:
             if matching_graph:
