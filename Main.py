@@ -381,8 +381,8 @@ if __name__ == '__main__':
     # Command line parsing
     try:
         args = parse_command_line()
-    except IOError("An error occured trying to read the file!"):
-        args = None
+    except IOError:
+        pass
 
     if args.syntax:
         raise Exception("Please use proper syntax, use '-h' for more information!")
