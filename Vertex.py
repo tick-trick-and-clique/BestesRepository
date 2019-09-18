@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 class VERTEX(object):
     def __init__(self, id, label):
         self.__id = id

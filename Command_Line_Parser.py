@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from argparse import ArgumentParser
 
 
@@ -38,6 +40,11 @@ parser.add_argument("-rg", "--random_graph", nargs=3, metavar="",
                     help="Create a random graph. Supply the number of vertices (N, integer), the mean relative "
                          "connectivity (p, float) and whether it should be directed (either 'True' or 'False') as "
                          "e.g. '10 0.8 True'.")
+parser.add_argument("-rc", "--random_cluster", nargs=4, type=int,
+                         help="Create a random clustered graph. Supply the number of vertices (N, integer), the desired"
+                              "degree at each node (d, integer), how many vertices you want to delete from the cluster"
+                              "(del_vert, int) and finally how mandy edges you want to delete(del_edges, int)"
+                              "e.g. '20 3 2 2'.")
 parser.add_argument("-sgo", "--subgraph_output", metavar="", nargs='*',
                     help="Saves found subgraphs as .graph file. If a path (in quotation marks!) is provided, subgraphs "
                          "will be saved there with an additional sequential number. If a .graph file name is provided, "

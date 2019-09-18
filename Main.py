@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 '''
 Created on 07.05.2019
 
@@ -9,7 +11,7 @@ from Vertex import VERTEX
 from Edge import EDGE
 from Command_Line_Parser import parse_command_line
 from Modulares_Produkt import modular_product
-from Graph_Builder import buildRndGraph
+from Graph_Builder import buildRndGraph, buildRndCluster
 from MB_State import MB_State
 from GuideTree import upgma, guide_tree_to_newick, save_newick, parse_newick_file_into_tree
 from Neo4j import NEO4J
@@ -388,7 +390,10 @@ if __name__ == '__main__':
     selected_subgraphs = []
     anchor = []
 
-    # Check for random graph option
+    #  Initialising list of graphs
+    graphs = []
+
+    #  Check for random graph option
     if args.random_graph:
         if args.random_graph[2] == "True":
             directed = True
@@ -396,16 +401,29 @@ if __name__ == '__main__':
             directed = False
         try:
             graph = buildRndGraph(int(args.random_graph[0]), float(args.random_graph[1]), directed=directed)
+            graphs.append(graph)
         except IOError:
             print("Invalid number of arguments for random graph building!")
         except ValueError:
             print("invalid type of arguments for random graph building!")
+    elif args.random_cluster:
+        print("random_cluster")
+        print(args.random_cluster)
+        try:
+            graph = buildRndCluster(args.random_cluster[0], args.random_cluster[1],
+                                    args.random_cluster[2], args.random_cluster[3])
+            graphs.append(graph)
+            print(len(graphs))
+        except IOError:
+            print("Invalid number of arguments for random cluster graph building!")
+        except ValueError:
+            print("invalid type of arguments for random cluster graph building!")
 
     # If neither input file(s) not random graph option are given, raise Exception. Else, parse input!
-    elif not args.input and not args.random_graph:
+    elif not args.input and not args.random_graph and not args.random_cluster:
         raise Exception("Please provide input file(s) with preceding '-i' statement!")
     else:
-        if args.random_graph and graph:
+        if (args.random_graph or args.random_cluster) and graph:
             input_graphs.append(graph)
         direction = None
         for i in range(len(args.input)):
