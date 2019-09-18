@@ -1,17 +1,40 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import math
 import random
 import os
+import string
 from Edge import EDGE
+from Vertex import VERTEX
 
 
 class GRAPH(object):
+    # TODO: number_of_vertices and number_of_edges is kind of obsolete, remove and reconstruct from given lists?!
     def __init__(self, name, list_of_vertices, list_of_edges, number_of_vertices, number_of_edges, is_directed,
                  is_labeled_nodes=False, is_labeled_edges=False, mapping=None):
         self.__name = name
         self.__list_of_vertices = list_of_vertices
         self.__list_of_edges = list_of_edges
-        self.__number_of_vertices = number_of_vertices
-        self.__number_of_edges = number_of_edges
+        # TODO: In or out?! Reconstructs list_of_nodes from list_of_edges, IFF just the latter is not empty
+        if not self.__list_of_vertices and self.__list_of_edges:
+            list_vertices = []
+            for edge in self.__list_of_edges:
+                list_vertices.append(edge.get_start_and_end()[0])
+                list_vertices.append(edge.get_start_and_end()[1])
+            unique_vertices = set(list_vertices)
+            vert_id = 1
+            for vertex in unique_vertices:
+                if is_labeled_nodes:
+                    self.__list_of_vertices.append(VERTEX(vert_id, randomString()))
+                else:
+                    self.__list_of_vertices.append(VERTEX(vert_id, ""))
+                vert_id += 1
+            self.__number_of_vertices = vert_id
+        self.__number_of_vertices = len(self.__list_of_vertices)
+        if is_directed:
+            self.__number_of_edges = len(self.__list_of_edges)
+        else:
+            self.__number_of_edges = int(len(self.__list_of_edges)/2)
         self.__is_directed = is_directed
         self.__is_labeled_nodes = is_labeled_nodes  # has to be transferred while initialising the graph
         self.__is_labeled_edges = is_labeled_edges  # has to be transferred while initialising the graph
@@ -56,19 +79,74 @@ class GRAPH(object):
     def get_is_directed(self):
         return self.__is_directed
 
+    def del_vertex(self, vertex_tbd):
+        '''
+        Deletes a given vertex from self.__list_of_vertices and self.__list_of_edges
+        :param vertex_tbd: vertex to be deleted; Either of Datatype object(VERTEX) or vertex-ID as int or string
+        :return: None
+        '''
+        if isinstance(vertex_tbd, VERTEX):
+            print("isinstance(vertex_tbd, VERTEX): ", isinstance(vertex_tbd, VERTEX), sep="\t")
+            self.__list_of_vertices[:] = [vertex for vertex in self.__list_of_vertices if not vertex_tbd == vertex]
+            for node in self.__list_of_vertices:
+                print(str(node))
+            for edge1 in self.__list_of_edges:
+                print(str(edge1))
+            self.__list_of_edges[:] = [edge for edge in self.__list_of_edges
+                                       if not (vertex_tbd.get_id() in edge.get_start_and_end())]
+            print("\n\n")
+            for edge2 in self.__list_of_edges:
+                print(str(edge2))
+        elif isinstance(vertex_tbd, int):
+            self.__list_of_vertices[:] = [vertex for vertex in self.__list_of_vertices
+                                          if not str(vertex_tbd) == vertex.get_id()]
+            self.__list_of_edges[:] = [edge for edge in self.__list_of_edges
+                                       if not (str(vertex_tbd) in edge.get_start_and_end())]
+        elif isinstance(vertex_tbd, str):
+            self.__list_of_vertices[:] = [vertex for vertex in self.__list_of_vertices
+                                          if not vertex_tbd == vertex.get_id()]
+            self.__list_of_edges[:] = [edge for edge in self.__list_of_edges
+                                       if not (str(vertex_tbd) in edge.get_start_and_end())]
+        else:
+            raise IOError("Wrong input format: Parameter <vertex> has either to be an VERTEX -object or astring "
+                          "describing the vertex id")
+
+    def del_edge(self, edge_tbd):
+        '''
+        Deletes a given edge from self.__list_of_edges
+        :param edge_tbd: vertex to be deleted; Either of Datatype object(EDGE) or edge-ID as int or string
+        :return: None
+        '''
+        if isinstance(edge_tbd, EDGE):
+            self.__list_of_edges[:] = [edge for edge in self.__list_of_edges if not edge_tbd == edge]
+        elif isinstance(edge_tbd, int):
+            self.__list_of_vertices[:] = [vertex for vertex in self.__list_of_vertices
+                                          if not str(edge_tbd) == vertex.get_id()]
+            self.__list_of_edges[:] = [edge for edge in self.__list_of_edges
+                                       if not (str(edge_tbd) in edge.get_start_and_end())]
+        elif isinstance(edge_tbd, str):
+            self.__list_of_edges[:] = [edge for edge in self.__list_of_edges
+                                       if not (str(edge_tbd) in edge.get_start_and_end())]
+        else:
+            raise IOError("Wrong input format: Parameter <edge_tbd> has either to be an EDGE -object or a string "
+                          "describing the vertex id")
+
     def __str__(self):
         '''
         builds a string representation of of vertices and edges the graph
         '''
         res = "number of vertices:\n"
-        res += str(self.__number_of_vertices) + "\n"
+        res += str(len(self.__list_of_vertices)) + "\n"
 
         res += "vertices:\n"
         for vertex in self.__list_of_vertices:
             res += str(vertex) + ",\n"
 
         res += "number of edges:\n"
-        res += str(self.__number_of_edges) + "\n"
+        if self.__is_directed:
+            res += str(len(self.__list_of_edges)) + "\n"
+        else:
+            res += str(int(len(self.__list_of_edges)/2)) + "\n"
 
         res += "edges:\n"
         for edge in self.__list_of_edges:
@@ -189,20 +267,23 @@ class GRAPH(object):
 
         with open(filename, "w") as f:
             f.write("#nodes;" + str(self.__number_of_vertices) + "\n")
-            f.write("#edges;" + str(self.__number_of_edges) + "\n") #streng genommen abhängig von davon, ob directed oder undirected, da bei undirected beide Richtungen als 1 zählen
-            f.write("nodes labeled;" + str(self.__is_labeled_nodes) + "\n")  #HOW DO I FIGURE OUT THE BEST? PROBABLY WHEN ADDING NODES TO GRAPH?! PROBABLY WHEN ADDING NODES TO THE GRAPH
+            f.write("#edges;" + str(self.__number_of_edges) + "\n") #streng genommen abhängig von davon,
+            # ob directed oder undirected, da bei undirected beide Richtungen als 1 zählen
+            f.write("nodes labeled;" + str(self.__is_labeled_nodes) + "\n")  #HOW DO I FIGURE OUT THE BEST?
+            # PROBABLY WHEN ADDING NODES TO GRAPH?! PROBABLY WHEN ADDING NODES TO THE GRAPH
             f.write("edges labeled;" + str(self.__is_labeled_edges) + "\n")
             f.write("directed graph;" + str(self.__is_directed))
             if len(self.__list_of_vertices) > 0:
                 f.write("\n")
                 for vertex in self.__list_of_vertices:
-                    f.write("\n" + str(vertex.get_id()) + ";" + str(vertex.get_label()))    #Wenn nodes ohne Label ";" weglassen?
+                    f.write("\n" + str(vertex.get_id()) + ";" + str(vertex.get_label()))
+                    #Wenn nodes ohne Label ";" weglassen?
 
             if len(self.__list_of_edges) > 0:
                 f.write("\n")
                 for edge in self.__list_of_edges:
-                    f.write("\n" + str(edge.get_start_and_end()[0].get_id()) + ";"
-                            + str(edge.get_start_and_end()[1].get_id()) + ";" + str(edge.get_label()))
+                    f.write("\n" + str(edge.get_start_and_end()[0]) + ";"
+                            + str(edge.get_start_and_end()[1]) + ";" + str(edge.get_label()))
         f.close()
 
     def is_compatible_vertex(self, own_vertex, vertex_other_graph):
@@ -258,7 +339,6 @@ class GRAPH(object):
     def get_mapping(self):
         return self.__mapping
 
-
 def density(graph1, graph2):
     """ function to calculate the density of two graphs and return the difference between """
     vn1 = graph1.get_number_of_vertices()
@@ -299,3 +379,9 @@ def retrieve_graph_from_clique(clique, mapping, orig_graph):
     new_graph = GRAPH("Default_name", clique, loe, len(clique), len(loe), orig_graph.get_is_directed(),
                       mapping=orig_graph.get_mapping())
     return new_graph
+
+
+def randomString(stringLength=3):
+    """ Generate a random string of fixed length """
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(stringLength))

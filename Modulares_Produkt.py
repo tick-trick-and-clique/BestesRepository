@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from Graph import GRAPH
 from Vertex import VERTEX
 from Edge import EDGE

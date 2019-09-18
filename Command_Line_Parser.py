@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from argparse import ArgumentParser
 
 
@@ -21,9 +23,14 @@ parser.add_argument("-ga", "--graph_alignment", nargs="*", metavar="Type of matc
                          "bron-kerbosch was chosen, also provide the number of cliques on which the matching should be "
                          "expanded (e.g. 'bk 5').")
 parser.add_argument("-rg", "--random_graph", nargs=3,
-                    help="Create a random graph. Supply the number of vertices (N, integer), the mean relative "
-                         "connectivity (p, float) and whether it should be directed (either 'True' or 'False') as "
-                         "e.g. '10 0.8 True'.")
+                         help="Create a random graph. Supply the number of vertices (N, integer), the mean relative "
+                              "connectivity (p, float) and whether it should be directed (either 'True' or 'False') as "
+                              "e.g. '10 0.8 True'.")
+parser.add_argument("-rc", "--random_cluster", nargs=4, type=int,
+                         help="Create a random clustered graph. Supply the number of vertices (N, integer), the desired "
+                              "degree at each node (d, integer), how many vertices you want to delete form the cluster"
+                              "(del_vert, integer) and finally how mandy edges you want to delete(del_edges, integer)"
+                              "e.g. '20 3 2 2'.")
 parser.add_argument("-gt", "--guide_tree", nargs='?', metavar="Comparison function", const="density",
                     help="Choose the comparison function/attribute for guide tree building: 'density' for graph "
                          "density")
