@@ -6,6 +6,7 @@ import os
 import string
 from Edge import EDGE
 from Vertex import VERTEX
+from typing import List
 
 
 class GRAPH(object):
@@ -13,11 +14,11 @@ class GRAPH(object):
     def __init__(self, name, list_of_vertices, list_of_edges, number_of_vertices, number_of_edges, is_directed,
                  is_labeled_nodes=False, is_labeled_edges=False):
         self.__name = name
-        self.__list_of_vertices = list_of_vertices
-        self.__list_of_edges = list_of_edges
+        self.__list_of_vertices: List[VERTEX] = list_of_vertices
+        self.__list_of_edges: List[EDGE] = list_of_edges
         # TODO: In or out?! Reconstructs list_of_nodes from list_of_edges, IFF just the latter is not empty
         if not self.__list_of_vertices and self.__list_of_edges:
-            list_vertices = []
+            list_vertices: List[VERTEX] = []
             for edge in self.__list_of_edges:
                 list_vertices.append(edge.get_start_and_end()[0])
                 list_vertices.append(edge.get_start_and_end()[1])
@@ -86,63 +87,84 @@ class GRAPH(object):
         return self.__is_labeled_edges
 
     def get_cardinality_of_vertex(self, vertex):
-        cardinality = len(vertex.get_neighbours())
+        cardinality = len(vertex.get_out_neighbours())
         for v in self.get_list_of_vertices():
-            if vertex in v.get_neighbours():
+            if vertex in v.get_out_neighbours():
                 cardinality += 1
         return cardinality
 
-    def del_vertex(self, vertex_tbd):
+    def del_vertex(self, vertex_tbd: VERTEX):
         '''
         Deletes a given vertex from self.__list_of_vertices and self.__list_of_edges
         :param vertex_tbd: vertex to be deleted; Either of Datatype object(VERTEX) or vertex-ID as int or string
         :return: None
         '''
+        # print("VERTEX-DELETION______________\nBEFORE:\n" + "number_of_vertices, number_of_edges: (%s, %s) " %
+        #       (len(self.__list_of_vertices), len(self.__list_of_edges)))
         if isinstance(vertex_tbd, VERTEX):
-            print("isinstance(vertex_tbd, VERTEX): ", isinstance(vertex_tbd, VERTEX), sep="\t")
+            #print("Vertex to be deleted: %s" % vertex_tbd)
+            #  Update out-neighbours
+            for vertex in self.reversed_edges(self.__list_of_vertices, vertex_tbd):
+                new_neighbours = [v_id for v_id in vertex.get_out_neighbours() if not v_id == vertex_tbd.get_id()]
+                vertex.set_out_neighbours(new_neighbours)
+            #  Delete vertex from list and corresponding edges
             self.__list_of_vertices[:] = [vertex for vertex in self.__list_of_vertices if not vertex_tbd == vertex]
-            for node in self.__list_of_vertices:
-                print(str(node))
-            for edge1 in self.__list_of_edges:
-                print(str(edge1))
             self.__list_of_edges[:] = [edge for edge in self.__list_of_edges
                                        if not (vertex_tbd.get_id() in edge.get_start_and_end())]
-            print("\n\n")
-            for edge2 in self.__list_of_edges:
-                print(str(edge2))
-        elif isinstance(vertex_tbd, int):
-            self.__list_of_vertices[:] = [vertex for vertex in self.__list_of_vertices
-                                          if not str(vertex_tbd) == vertex.get_id()]
-            self.__list_of_edges[:] = [edge for edge in self.__list_of_edges
-                                       if not (str(vertex_tbd) in edge.get_start_and_end())]
-        elif isinstance(vertex_tbd, str):
-            self.__list_of_vertices[:] = [vertex for vertex in self.__list_of_vertices
-                                          if not vertex_tbd == vertex.get_id()]
-            self.__list_of_edges[:] = [edge for edge in self.__list_of_edges
-                                       if not (str(vertex_tbd) in edge.get_start_and_end())]
         else:
-            raise IOError("Wrong input format: Parameter <vertex> has either to be an VERTEX -object or astring "
-                          "describing the vertex id")
+            raise IOError("Wrong input format: Parameter <vertex> has to be an VERTEX -object")
 
-    def del_edge(self, edge_tbd):
+        #  Update number of vertices and edges
+        self.__number_of_vertices = len(self.__list_of_vertices)
+        self.__number_of_edges = len(self.__list_of_edges)
+        # print("AFTER:\n" + "number_of_vertices, number_of_edges: (%s, %s) " %
+        #       (len(self.__list_of_vertices), len(self.__list_of_edges)) + "\n")
+
+    def del_edge(self, edge_tbd: EDGE):
         '''
         Deletes a given edge from self.__list_of_edges
         :param edge_tbd: vertex to be deleted; Either of Datatype object(EDGE) or edge-ID as int or string
         :return: None
         '''
-        if isinstance(edge_tbd, EDGE):
-            self.__list_of_edges[:] = [edge for edge in self.__list_of_edges if not edge_tbd == edge]
-        elif isinstance(edge_tbd, int):
-            self.__list_of_vertices[:] = [vertex for vertex in self.__list_of_vertices
-                                          if not str(edge_tbd) == vertex.get_id()]
-            self.__list_of_edges[:] = [edge for edge in self.__list_of_edges
-                                       if not (str(edge_tbd) in edge.get_start_and_end())]
-        elif isinstance(edge_tbd, str):
-            self.__list_of_edges[:] = [edge for edge in self.__list_of_edges
-                                       if not (str(edge_tbd) in edge.get_start_and_end())]
+        # print("EDGE-DELETION______________\nBEFORE:\n" + "number_of_vertices, number_of_edges: (%s, %s) " %
+        #       (len(self.__list_of_vertices), len(self.__list_of_edges)))
+        #  For directed graphs:
+        if self.__is_directed:
+            if isinstance(edge_tbd, EDGE):
+                #  Update Out-neighbours
+                concerned_vertex = self.get_vertex_by_id(edge_tbd.get_start_and_end()[0])
+                end_id = edge_tbd.get_start_and_end()[1]
+                new_neighbours = [v_id for v_id in concerned_vertex.get_out_neighbours() if not v_id == end_id]
+                concerned_vertex.set_out_neighbours(new_neighbours)
+                #  Delete edge_tbd
+                self.__list_of_edges[:] = [edge for edge in self.__list_of_edges if not edge_tbd == edge]
+            else:
+                raise IOError("Wrong input format: Parameter <edge_tbd> be an EDGE -object")
+
+        #  For undirected graphs (inverted edges have to be deleted too)
         else:
-            raise IOError("Wrong input format: Parameter <edge_tbd> has either to be an EDGE -object or a string "
-                          "describing the vertex id")
+            if isinstance(edge_tbd, EDGE):
+                #  Update Out-neighbours
+                id1 = edge_tbd.get_start_and_end()[0]
+                id2 = edge_tbd.get_start_and_end()[1]
+                concerned_vertex1 = self.get_vertex_by_id(id1)
+                new_neighbours1 = [v_id for v_id in concerned_vertex1.get_out_neighbours() if not v_id == id2]
+                concerned_vertex1.set_out_neighbours(new_neighbours1)
+                concerned_vertex2 = self.get_vertex_by_id(id2)
+                new_neighbours2 = [v_id for v_id in concerned_vertex2.get_out_neighbours() if not v_id == id1]
+                concerned_vertex2.set_out_neighbours(new_neighbours2)
+                #  Delete edge_tbd and inverted correspondent
+                edge_inverted_tbd = self.inverted_edge(edge_tbd)
+                self.__list_of_edges[:] = \
+                    [edge for edge in self.__list_of_edges if not (edge == edge_tbd or edge == edge_inverted_tbd)]
+            else:
+                raise IOError("Wrong input format: Parameter <edge_tbd> has to be an EDGE -object")
+
+        #  Update number of vertices and edges
+        self.__number_of_vertices = len(self.__list_of_vertices)
+        self.__number_of_edges = len(self.__list_of_edges)
+        # print("AFTER:\n" + "number_of_vertices, number_of_edges: (%s, %s) " %
+        #       (len(self.__list_of_vertices), len(self.__list_of_edges)) + "\n")
 
     def __str__(self):
         '''
@@ -166,15 +188,23 @@ class GRAPH(object):
             res += str(edge) + ",\n"
         return res
 
-    def reverse_edges(self, list_of_vertices, current_vertex):
+    def reversed_edges(self, list_of_vertices, current_vertex):
         """
         Checks if neighbours of current vertex has reversed edge to currentvertex
         """
         vertices_with_reverse_edges = []
         for elem in list_of_vertices:
-            if current_vertex in elem.get_neighbours():
+            if current_vertex in elem.get_out_neighbours():
                 vertices_with_reverse_edges.append(elem)
         return vertices_with_reverse_edges
+
+    def inverted_edge(self, edge: EDGE):
+        start_id = edge.get_start_and_end()[0]
+        end_id = edge.get_start_and_end()[1]
+        for edge_obj in self.__list_of_edges:
+            if edge_obj.get_start_and_end()[0] == end_id and \
+                    edge_obj.get_start_and_end()[1] == start_id:
+                return edge_obj
 
     def bron_kerbosch(self, R, P, X, pivot=None):
         """
@@ -196,7 +226,7 @@ class GRAPH(object):
         elif pivot is None:
             for vertex in P[:]:
                 new_R = R + [vertex]
-                rev = self.reverse_edges(vertex.get_neighbours(), vertex)
+                rev = self.reversed_edges(vertex.get_out_neighbours(), vertex)
                 new_P = [val for val in P if val in rev]  # P intersects w/ neighbours of vertex
                 new_X = [val for val in X if val in rev]  # X intersects w/ neighbours of vertex
                 result += self.bron_kerbosch(new_R, new_P, new_X)
@@ -208,7 +238,7 @@ class GRAPH(object):
         for vertex in [elem for elem in P if elem not in pivot_vertex.get_neighbours()]:
             new_R = R + [vertex]
             # p intersects/geschnitten N(vertex
-            rev = self.reverse_edges(vertex.get_neighbours(), vertex)
+            rev = self.reversed_edges(vertex.get_out_neighbours(), vertex)
             new_P = [val for val in P if val in rev]
             # x intersects/geschnitten N(vertex)
             new_X = [val for val in X if val in rev]
@@ -245,7 +275,7 @@ class GRAPH(object):
         check = True
         v_list = self.get_list_of_vertices()
         for vertex in v_list:
-            n_list = vertex.get_neighbours()
+            n_list = vertex.get_out_neighbours()
             n_list.sort(key=lambda v: v.get_id())
             v_list_copy = v_list.copy()
             v_list_copy.remove(vertex)
@@ -299,8 +329,8 @@ class GRAPH(object):
             if len(self.__list_of_edges) > 0:
                 f.write("\n")
                 for edge in self.__list_of_edges:
-                    print(edge.get_start_and_end()[0])
-                    print(edge.get_start_and_end()[1])
+                    #print(edge.get_start_and_end()[0])
+                    #print(edge.get_start_and_end()[1])
 
                     f.write("\n" + str(edge.get_start_and_end()[0]) + ";"
                             + str(edge.get_start_and_end()[1]) + ";" + str(edge.get_label()))
@@ -340,7 +370,7 @@ class GRAPH(object):
 
     def has_edge(self, vertex1, vertex2):
         # Function should return whether there is a directional edge from vertex1 to vertex2
-        if vertex2 in vertex1.get_neighbours():
+        if vertex2 in vertex1.get_out_neighbours():
             return True
         else:
             return False
@@ -355,6 +385,11 @@ class GRAPH(object):
         if edge_result is None:
             print("Function GRAPH.get_edge: No edge could be found between given vertices!")
         return edge_result
+
+    def get_vertex_by_id(self, vertex_id: string) -> VERTEX:
+        for vertex in self.__list_of_vertices:
+            if vertex.get_id() == vertex_id:
+                return vertex
 
     def get_mapping(self):
         return self.__mapping
@@ -373,6 +408,7 @@ class GRAPH(object):
                 loe.append(edge)
         return GRAPH(self.get_name(), lov, loe, len(lov), len(loe), self.get_is_directed(),
                      self.get_is_labelled_nodes(), self.get_is_labelled_edges())
+
 
 def density(graph1, graph2):
     """ function to calculate the density of two graphs and return the difference between """
@@ -395,7 +431,7 @@ def retrieve_graph_from_clique(clique, orig_graph):
         orig_vertex = vertex_mp.get_mapping()[orig_graph.get_name()]
         orig_vertex.combine_mapping(vertex_mp)
         lov.append(orig_vertex)
-        for neighbour in orig_vertex.get_neighbours():
+        for neighbour in orig_vertex.get_out_neighbours():
             for vertex_mp2 in clique:
                 if neighbour == vertex_mp2.get_mapping()[orig_graph.get_name()]:
                     for edge in orig_graph.get_list_of_edges():
@@ -429,6 +465,7 @@ def retrieve_original_subgraphs(matching_graph, input_graphs):
         subgraphs.append(GRAPH(graph.get_name(), lov, loe, len(lov), len(loe), graph.get_is_directed(),
                          graph.get_is_labelled_nodes(), graph.get_is_labelled_edges()))
     return subgraphs
+
 
 def randomString(stringLength=3):
     """ Generate a random string of fixed length """

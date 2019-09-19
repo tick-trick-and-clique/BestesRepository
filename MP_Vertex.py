@@ -76,10 +76,10 @@ def modular_product_MP_VERTEX(g1, g2):
         for v2 in list_cut:
             if not v1.get_vertex_graph1() == v2.get_vertex_graph1() and \
                     not v1.get_vertex_graph2() == v2.get_vertex_graph2():
-                if [v1.get_vertex_graph1() in v2.get_vertex_graph1().get_neighbours(),
-                    v2.get_vertex_graph1() in v1.get_vertex_graph1().get_neighbours()] == \
-                    [v1.get_vertex_graph2() in v2.get_vertex_graph2().get_neighbours(),
-                     v2.get_vertex_graph2() in v1.get_vertex_graph2().get_neighbours()]:
+                if [v1.get_vertex_graph1() in v2.get_vertex_graph1().get_out_neighbours(),
+                    v2.get_vertex_graph1() in v1.get_vertex_graph1().get_out_neighbours()] == \
+                    [v1.get_vertex_graph2() in v2.get_vertex_graph2().get_out_neighbours(),
+                     v2.get_vertex_graph2() in v1.get_vertex_graph2().get_out_neighbours()]:
                     """ INSERT CODE THAT SHOULD INCLUDE MORE CONDITIONALS e.g. SAME LABEL, DIRECTION etc. """
                     # Like this, two vertices in the modular product graph always have two or no edges connecting
                     # them. Once with each vertex being the start vertex.

@@ -3,12 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="51e76ea8-33cc-4581-a5ad-06fe1fd9988d" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Command_Line_Parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/Command_Line_Parser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Edge.py" beforeDir="false" afterPath="$PROJECT_DIR$/Edge.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Graph.py" beforeDir="false" afterPath="$PROJECT_DIR$/Graph.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Graph_Builder.py" beforeDir="false" afterPath="$PROJECT_DIR$/Graph_Builder.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GuideTree.py" beforeDir="false" afterPath="$PROJECT_DIR$/GuideTree.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MB_State.py" beforeDir="false" afterPath="$PROJECT_DIR$/MB_State.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MP_Vertex.py" beforeDir="false" afterPath="$PROJECT_DIR$/MP_Vertex.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Modulares_Produkt.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modulares_Produkt.py" afterDir="false" />
@@ -19,6 +15,9 @@
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FavoritesManager">
+    <favorites_list name="BestesRepository" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -141,5 +140,16 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Graph_Builder.py</url>
+          <line>93</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

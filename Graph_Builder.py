@@ -14,7 +14,7 @@ from Edge import EDGE
 from itertools import combinations
 
 def buildRndGraph(nr_nodes, p_connected, labeled_nodes=False, labeled_edges=False, directed=False,
-                  name_graph="random_Graph"):
+                  name_graph=None):
     """
     Creates random Graphs concerning given parameters and saves the graph to "<name_graph>.graph" format
     p_connected:= probability, that there is a connection (directed or undirected)
@@ -45,31 +45,49 @@ def buildRndGraph(nr_nodes, p_connected, labeled_nodes=False, labeled_edges=Fals
                 edge_id = appendNewEdgeToList(list_edges, edge_id, tmp_dir_edge, directed, labeled_edges)[1]
                 # TODO: Isn't the next line redundant, as by creating the graph, the algorithm will extract
                 #  all neighbours of a node by looking at the list of edges? RECONSIDER!!!!
-                list_vertices[tmp_dir_edge[0]].append_neighbour(list_vertices[tmp_dir_edge[1]])
+                list_vertices[tmp_dir_edge[0]].append_out_neighbour(list_vertices[tmp_dir_edge[1]])
             elif directed_edge_reverse:  # draw edge in "reversed" direction of combination: 1->0
                 # print("1-direct, reverse")
                 tmp_dir_edge = [combination[1], combination[0]]
                 edge_id = appendNewEdgeToList(list_edges, edge_id, tmp_dir_edge, directed, labeled_edges)[1]
                 # TODO: Isn't the next line redundant, as by creating the graph, the algorithm will extract
                 #  all neighbours of a node by looking at the list of edges? RECONSIDER!!!!
-                list_vertices[tmp_dir_edge[1]].append_neighbour(list_vertices[tmp_dir_edge[0]])
+                list_vertices[tmp_dir_edge[1]].append_out_neighbour(list_vertices[tmp_dir_edge[0]])
         elif (directed is False) and (random.random() <= p_connected):
             # print("2-NON-direct")
             tmp_edge = combination
             edge_id = appendNewEdgeToList(list_edges, edge_id, tmp_edge, directed, labeled_edges)[1]
             # TODO: Isn't the next line redundant, as by creating the graph, the algorithm will extract
             #  all neighbours of a node by looking at the list of edges? RECONSIDER!!!!
-            list_vertices[tmp_edge[0] - 1].append_neighbour(list_vertices[tmp_edge[1] - 1])
-            list_vertices[tmp_edge[1] - 1].append_neighbour(list_vertices[tmp_edge[0] - 1])
+            list_vertices[tmp_edge[0] - 1].append_out_neighbour(list_vertices[tmp_edge[1] - 1])
+            list_vertices[tmp_edge[1] - 1].append_out_neighbour(list_vertices[tmp_edge[0] - 1])
 
     # 3 Create Graph
     if not directed:
         # For undirected graphs, the number of edges is half the number of edges entries in the GRAPH object
-        graph = GRAPH(name_graph, list_vertices, list_edges, len(list_vertices),
-                      int(len(list_edges) / 2), directed, labeled_nodes, labeled_edges)
+        if name_graph:
+            graph = GRAPH(name_graph, list_vertices, list_edges, len(list_vertices),
+                          int(len(list_edges) / 2), directed, labeled_nodes, labeled_edges)
+        else:
+            default_name = "random_graph(%s, %s, %s)" % (nr_nodes, p_connected, directed)
+            graph = GRAPH(default_name, list_vertices, list_edges, len(list_vertices),
+                          int(len(list_edges) / 2), directed, labeled_nodes, labeled_edges)
     else:  # TODO: Maybe change else to "elif directed" --> problem: graph might no exist in return statement
-        graph = GRAPH(name_graph, list_vertices, list_edges, len(list_vertices),
-                      len(list_edges), directed, labeled_nodes, labeled_edges)
+        if name_graph:
+            graph = GRAPH(name_graph, list_vertices, list_edges, len(list_vertices),
+                          len(list_edges), directed, labeled_nodes, labeled_edges)
+        else:
+            default_name = "random_graph(%s, %s, %s)" % (nr_nodes, p_connected, directed)
+            graph = GRAPH(default_name, list_vertices, list_edges, len(list_vertices),
+                          int(len(list_edges) / 2), directed, labeled_nodes, labeled_edges)
+
+    # 4 Set neighbours setting
+    for vertex in list_vertices:
+        for edge in list_edges:
+            if edge.get_start_and_end()[0].get_id() == vertex.get_id():
+                neighbour = edge.get_start_and_end()[1]
+                vertex.append_out_neighbour(neighbour)
+
     return graph
 
 
@@ -207,7 +225,18 @@ def buildRndCluster(n, d, del_vert=0, del_edges=0, labeled_nodes=False, labeled_
     graph = GRAPH("random_cluster_graph(%s, %s, %s, %s)" % (d, n, del_vert, del_edges),
                   [], edges, 0, labeled_nodes, labeled_edges, directed)
 
-    # Delete vertices and relative edges according to input
+    # Set neighbours setting
+    #  TODO TILMAN: Might change >appendNewEdgeToSet< and >appendNewEdgeToList< Function,
+    #   so that EDGE.get_start_and_end() contains VERTEX-objects, not vertex-ids
+    for vertex in graph.get_list_of_vertices():
+        for edge in graph.get_list_of_edges():
+            if edge.get_start_and_end()[0] == vertex.get_id():
+                neighbour_id = edge.get_start_and_end()[1]
+                for vertex2 in graph.get_list_of_vertices():
+                    if vertex2.get_id() == neighbour_id:
+                        vertex.append_out_neighbour(vertex2)
+
+    # Delete vertices according to input
     for deletion in range(0, del_vert):
         rand_index = random.randint(0, len(graph.get_list_of_vertices())-1)
         vertex_tbd = graph.get_list_of_vertices()[rand_index]
@@ -215,7 +244,7 @@ def buildRndCluster(n, d, del_vert=0, del_edges=0, labeled_nodes=False, labeled_
         # print(isinstance(vertex_tbd, VERTEX))
         graph.del_vertex(vertex_tbd)
         # graph.del_vertex(rand_index)
-    # Delete vertices and relative edges according to input
+    # Delete edges according to input
     for deletion in range(0, del_edges):
         rand_index = random.randint(0, len(graph.get_list_of_edges())-1)
         edge_tbd = graph.get_list_of_edges()[rand_index]
