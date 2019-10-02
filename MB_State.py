@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 This class implements a so called 'state' like described for the
 matching-based algorithm by Cordella et al.

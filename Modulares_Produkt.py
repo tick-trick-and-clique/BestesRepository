@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from Graph import GRAPH
 from Vertex import VERTEX
 from Edge import EDGE
@@ -43,10 +45,10 @@ def modular_product(g1, g2, anchor_graph_parameters=None):
                     # If, for both graphs, a two-element list is identical, add an edge. The elements in this list
                     # correspond to booleans that are evaluated from ID check of vertex 1 with the IDs of the neighbours
                     # attribute of vertex 2 and vice versa.
-                    if ([v1.get_id() in [vertex.get_id() for vertex in v2.get_neighbours()],
-                         v2.get_id() in [vertex.get_id() for vertex in v1.get_neighbours()]] ==
-                            [v3.get_id() in [vertex.get_id() for vertex in v4.get_neighbours()],
-                             v4.get_id() in [vertex.get_id() for vertex in v3.get_neighbours()]]):
+                    if ([v1.get_id() in [vertex.get_id() for vertex in v2.get_out_neighbours()],
+                         v2.get_id() in [vertex.get_id() for vertex in v1.get_out_neighbours()]] ==
+                            [v3.get_id() in [vertex.get_id() for vertex in v4.get_out_neighbours()],
+                             v4.get_id() in [vertex.get_id() for vertex in v3.get_out_neighbours()]]):
                         """ INSERT CODE THAT SHOULD INCLUDE MORE CONDITIONALS e.g. SAME LABEL, DIRECTION etc. """
                         # Like this, two vertices in the modular product graph always have two or no edges connecting
                         # them. Once with each vertex being the start vertex.
@@ -62,7 +64,7 @@ def modular_product(g1, g2, anchor_graph_parameters=None):
                         new_list_of_edges.append(EDGE(edge_id, [start_vertex, end_vertex], "Default_Label"))
                         new_number_of_edges += 1
                         edge_id += 1
-                        start_vertex.append_neighbour(end_vertex)
+                        start_vertex.append_out_neighbour(end_vertex)
     # The modular product as undirected graph is returned with a default name.
     # Vertex and Edge labels are enabled, yet set to a default value for the moment, same as the edge id.
     return GRAPH("Modular Product of " + g1.get_name() + " and " + g2.get_name(),

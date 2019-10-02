@@ -1,15 +1,18 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 '''
 Created on 07.05.2019
 
 @author: chris
 '''
 import os, string, random, itertools
+from typing import List
 from Graph import GRAPH, density, retrieve_graph_from_clique, retrieve_original_subgraphs
 from Vertex import VERTEX
 from Edge import EDGE
 from Command_Line_Parser import parse_command_line
 from Modulares_Produkt import modular_product
-from Graph_Builder import buildRndGraph
+from Graph_Builder import buildRndGraph, buildRndCluster
 from MB_State import MB_State
 from GuideTree import upgma, guide_tree_to_newick, save_newick, parse_newick_file_into_tree
 from Neo4j import NEO4J
@@ -19,6 +22,7 @@ def parser(file, neo4j):
     """
     Parsing the .graph format to the class Graph
     """
+    # Extract information from file
     with open(file, "r") as f:
         # Read header part
         try:
@@ -34,8 +38,8 @@ def parser(file, neo4j):
             print("Wrong input file format: Mistake in header part.")
 
         if number_vertices == 0 and number_edges == 0:
-            vertices = []
-            edges = []
+            vertices: List[string] = []
+            edges: List[string] = []
         elif number_vertices == 0:
             vertices = []
             # read empty line
@@ -85,18 +89,21 @@ def parser(file, neo4j):
                 edges = []
                 for elem in lastlines:
                     edges.append(elem.rstrip())
+                print("len(edges): %s" % len(edges))
             except IOError:
                 print("Wrong input file format: Mistake in edges part.")
         file_path_name = file
     f.close()
-    vertices_objects = []
+
+    # save vertices as objects
+    vertices_objects: List[VERTEX] = []
     if number_vertices != 0:
-        # save vertices as objects
         for vertex in vertices:
             if vertices_labelled:  # if vertices are labelled
                 vertex_splitted = vertex.split(";")
                 if len(vertex_splitted) == 1:
                     raise Exception("Wrong format: Vertices should be labelled but aren't.")
+                    #  TODO: Wouldn't raise this exception, because it checks for EVERY item
                 try:
                     i = int(vertex_splitted[0])
                 except TypeError:
@@ -113,21 +120,27 @@ def parser(file, neo4j):
                 vertices_objects.append(VERTEX(int(vertex_splitted[0]), ""))
 
     # save edges as objects
-    edges_objects = []
+    edges_objects: List[EDGE] = []
     if number_edges != 0:
         identifier = 1  # each edge gets an id
         for edge in edges:
             edge_splitted = edge.split(";")
+            # print("edge: %s" % edge)
+            # print("edge, (edge_splitted[0], edge_splitted[1], edge_splitted[2]): %s, (%s, %s, %s)" %
+            #       edge, edge_splitted[0], edge_splitted[1], edge_splitted[2])
             # search for start vertex in vertices_objects and for end vertex
-            start_and_end = [item for item in vertices_objects if (item.get_id() == int(edge_splitted[0]))] \
+            start_and_end: List[VERTEX] = [item for item in vertices_objects if (item.get_id() == int(edge_splitted[0]))] \
                             + [item for item in vertices_objects if (item.get_id() == int(edge_splitted[1]))]
+            # print("start_and_end[0].get_id(); start_and_end[1].get_id():\t %s, %s" %
+            #       (start_and_end[0].get_id(), start_and_end[1].get_id()))
+            #  FIXME: Isnt't it obsolete to call >check_start_end_in_vertices(start_and_end, edge)< ? look above!
             check_start_end_in_vertices(start_and_end, edge)  # check if start and end vertex are in vertices list
-            end_and_start = [item for item in vertices_objects if (item.get_id() == int(edge_splitted[1]))] \
-                            + [item for item in vertices_objects if (item.get_id() == int(edge_splitted[0]))]
+            end_and_start = [start_and_end[1], start_and_end[0]]
 
             if edges_labbelled:  # if edges are labelled
                 if len(edge_splitted) == 2:
                     raise Exception("Wrong format: Edges should be labelled but aren't.")
+                    #  FIXME: Wouldn't raise this exception, because it checks for EVERY item
                 if directed:  # if graph is directed
                     edges_objects.append(EDGE(identifier, start_and_end, edge_splitted[2]))
                     identifier += 1
@@ -135,7 +148,7 @@ def parser(file, neo4j):
                     # the format includes unnecessarily all edges
                     if start_and_end not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, start_and_end, edge_splitted[2]))
-                        identifier += 1
+                        identifier += 1 #  TODO: Shouldn't the id of edge (1;2) and (2;1) in an undir-G. be the same?!
                     if end_and_start not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, end_and_start, edge_splitted[2]))
                         identifier += 1
@@ -149,27 +162,32 @@ def parser(file, neo4j):
                     # the format includes unnecessarily all edges
                     if start_and_end not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, start_and_end, ""))
-                        identifier += 1
+                        identifier += 1 # TODO: Shouldn't the id of edge (1;2) and (2;1) in an undir-G. be the same?!
+                        #  TODO: Maybe change the parsing, so that internally the id of two inverted edges
+                        #   in undirected graphs have the same id (like in Graph_Builder)
                     if end_and_start not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, end_and_start, ""))
                         identifier += 1
 
     # Testing header fits actual number of vertices and edges
+    # print("len(vertices_objects) %s \t" % len(vertices_objects) + "number_vertices %s" % number_vertices)
     if not len(vertices_objects) == number_vertices:
         raise Exception("Number of vertices doesn't fit predicted number in header!")
     if not directed:
+        # print("len(edges_objects) %s \t" % len(edges_objects) + "number_edges %s" % number_edges)
         if not len(edges_objects) / 2 == number_edges or len(edges_objects) == number_edges:
             raise Exception("Number of edges doesn't fit predicted number in header!")
     else:
+        # print("len(edges_objects) %s \t" % len(edges_objects) + "number_edges %s" % number_edges)
         if not len(edges_objects) == number_edges:
             raise Exception("Number of edges doesn't fit predicted number in header!")
 
-    # neighbours setting
+    # OUT-neighbours setting
     for vertex in vertices_objects:
         for edge in edges_objects:
             if edge.get_start_and_end()[0].get_id() == vertex.get_id():
                 neighbour = edge.get_start_and_end()[1]
-                vertex.append_neighbour(neighbour)
+                vertex.append_out_neighbour(neighbour) #
 
     # Retrieving graph name from file_path_name
     pos = file_path_name.rfind("/")
@@ -237,11 +255,6 @@ def matching_using_bk(graph_left, graph_right, number_cliques, pivot, anchor_gra
     # Log statement for the console about Bron-Kerbosch
     print("Clique finding via Bron-Kerbosch...")
     clique_findings = mp.bron_kerbosch(anchor, mp.get_list_of_vertices(), [], pivot=pivot)
-    duplicates_removed = []
-    for clique in clique_findings:
-        clique = sorted(clique, key=lambda x: x.get_id())
-        duplicates_removed.append(tuple(clique))
-    clique_findings = list(set(duplicates_removed))  # removes duplicates
     if clique_sort_func:
         clique_findings.sort(key=lambda x: clique_sort_func(x), reverse=True)
     else:
@@ -273,8 +286,8 @@ def matching_using_mb(graph_left, graph_right):
     return result
 
 
-def recursive_matching(cluster, matching_algorithm, pivot, number_cliques, anchor_graph_parameters=None, smaller=0.0,
-                       clique_sort_func=None):
+def recursive_matching(cluster, matching_algorithm, pivot, number_cliques, anchor_graph_parameters=[None, None],
+                       smaller=0.0, clique_sort_func=None):
     """
     Performs graph alignment according to the guide tree in 'cluster' and the given matching algorithm.
     'number_cliques' specifies the maximum number of cliques that will be considered for further graph alignment.
@@ -357,7 +370,7 @@ def mb_mapping_to_graph(result_as_mapping, graph1, graph2):
                             edge.get_start_and_end()[1].get_id() == new_v2.get_id():
                         new_e = EDGE(edge.get_id(), [new_v1, new_v2], edge.get_label())
                         loe.append(new_e)
-                        new_v1.append_neighbour(new_v2)
+                        new_v1.append_out_neighbour(new_v2)
         graph_name = [random.choice(string.ascii_letters) for n in range(8)]
         graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), graph1.get_is_directed(),
                       graph1.get_is_labelled_nodes(), graph1.get_is_labelled_edges())
@@ -393,7 +406,10 @@ if __name__ == '__main__':
     selected_subgraphs = []
     anchor = []
 
-    # Check for random graph option
+    #  Initialising list of graphs
+    graphs = []
+
+    #  Check for random graph option
     if args.random_graph:
         if args.random_graph[2] == "True":
             directed = True
@@ -401,16 +417,29 @@ if __name__ == '__main__':
             directed = False
         try:
             graph = buildRndGraph(int(args.random_graph[0]), float(args.random_graph[1]), directed=directed)
+            graphs.append(graph)
         except IOError:
             print("Invalid number of arguments for random graph building!")
         except ValueError:
             print("invalid type of arguments for random graph building!")
+    elif args.random_cluster:
+        print("random_cluster")
+        print(args.random_cluster)
+        try:
+            graph = buildRndCluster(args.random_cluster[0], args.random_cluster[1],
+                                    args.random_cluster[2], args.random_cluster[3])
+            graphs.append(graph)
+            print(len(graphs))
+        except IOError:
+            print("Invalid number of arguments for random cluster graph building!")
+        except ValueError:
+            print("invalid type of arguments for random cluster graph building!")
 
     # If neither input file(s) not random graph option are given, raise Exception. Else, parse input!
-    elif not args.input and not args.random_graph:
+    elif not args.input and not args.random_graph and not args.random_cluster:
         raise Exception("Please provide input file(s) with preceding '-i' statement!")
     else:
-        if args.random_graph and graph:
+        if (args.random_graph or args.random_cluster) and graph:
             input_graphs.append(graph)
         direction = None
         for i in range(len(args.input)):
@@ -563,8 +592,12 @@ if __name__ == '__main__':
                 cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
         else:
             cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
+        if anchor_graph:
+            anchor_graph_parameters = [anchor_graph, input_graphs[0].get_name()]
+        else:
+            anchor_graph_parameters = None
         matching_graphs = recursive_matching(cluster_tree, args.graph_alignment[0], args.pivot, i,
-                                             anchor_graph_parameters=[anchor_graph, input_graphs[0].get_name()],
+                                             anchor_graph_parameters=anchor_graph_parameters,
                                              smaller=smaller, clique_sort_func=clique_sort_func)
         for matching_graph in matching_graphs:
             if matching_graph:
