@@ -89,6 +89,7 @@ def parser(file, neo4j):
                 edges = []
                 for elem in lastlines:
                     edges.append(elem.rstrip())
+                print("len(edges): %s" % len(edges))
             except IOError:
                 print("Wrong input file format: Mistake in edges part.")
         file_path_name = file
@@ -124,9 +125,14 @@ def parser(file, neo4j):
         identifier = 1  # each edge gets an id
         for edge in edges:
             edge_splitted = edge.split(";")
+            # print("edge: %s" % edge)
+            # print("edge, (edge_splitted[0], edge_splitted[1], edge_splitted[2]): %s, (%s, %s, %s)" %
+            #       edge, edge_splitted[0], edge_splitted[1], edge_splitted[2])
             # search for start vertex in vertices_objects and for end vertex
             start_and_end: List[VERTEX] = [item for item in vertices_objects if (item.get_id() == int(edge_splitted[0]))] \
                             + [item for item in vertices_objects if (item.get_id() == int(edge_splitted[1]))]
+            # print("start_and_end[0].get_id(); start_and_end[1].get_id():\t %s, %s" %
+            #       (start_and_end[0].get_id(), start_and_end[1].get_id()))
             #  FIXME: Isnt't it obsolete to call >check_start_end_in_vertices(start_and_end, edge)< ? look above!
             check_start_end_in_vertices(start_and_end, edge)  # check if start and end vertex are in vertices list
             end_and_start = [start_and_end[1], start_and_end[0]]
@@ -134,7 +140,7 @@ def parser(file, neo4j):
             if edges_labbelled:  # if edges are labelled
                 if len(edge_splitted) == 2:
                     raise Exception("Wrong format: Edges should be labelled but aren't.")
-                    #  TODO: Wouldn't raise this exception, because it checks for EVERY item
+                    #  FIXME: Wouldn't raise this exception, because it checks for EVERY item
                 if directed:  # if graph is directed
                     edges_objects.append(EDGE(identifier, start_and_end, edge_splitted[2]))
                     identifier += 1
@@ -156,7 +162,7 @@ def parser(file, neo4j):
                     # the format includes unnecessarily all edges
                     if start_and_end not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, start_and_end, ""))
-                        identifier += 1 #  TODO: Shouldn't the id of edge (1;2) and (2;1) in an undir-G. be the same?!
+                        identifier += 1 # TODO: Shouldn't the id of edge (1;2) and (2;1) in an undir-G. be the same?!
                         #  TODO: Maybe change the parsing, so that internally the id of two inverted edges
                         #   in undirected graphs have the same id (like in Graph_Builder)
                     if end_and_start not in [edge.get_start_and_end() for edge in edges_objects]:
@@ -164,13 +170,15 @@ def parser(file, neo4j):
                         identifier += 1
 
     # Testing header fits actual number of vertices and edges
-    print("len(vertices_objects) %int" % len(vertices_objects) + "number_vertices %s" % number_vertices)
+    # print("len(vertices_objects) %s \t" % len(vertices_objects) + "number_vertices %s" % number_vertices)
     if not len(vertices_objects) == number_vertices:
         raise Exception("Number of vertices doesn't fit predicted number in header!")
     if not directed:
+        # print("len(edges_objects) %s \t" % len(edges_objects) + "number_edges %s" % number_edges)
         if not len(edges_objects) / 2 == number_edges or len(edges_objects) == number_edges:
             raise Exception("Number of edges doesn't fit predicted number in header!")
     else:
+        # print("len(edges_objects) %s \t" % len(edges_objects) + "number_edges %s" % number_edges)
         if not len(edges_objects) == number_edges:
             raise Exception("Number of edges doesn't fit predicted number in header!")
 

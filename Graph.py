@@ -24,7 +24,7 @@ class GRAPH(object):
                 list_vertices.append(edge.get_start_and_end()[1])
             unique_vertices = set(list_vertices)
             vert_id = 1
-            for vertex in unique_vertices:
+            for _ in unique_vertices:
                 if is_labeled_nodes:
                     self.__list_of_vertices.append(VERTEX(vert_id, randomString()))
                 else:
@@ -314,8 +314,10 @@ class GRAPH(object):
 
         with open(filename, "w") as f:
             f.write("#nodes;" + str(self.__number_of_vertices) + "\n")
-            f.write("#edges;" + str(self.__number_of_edges) + "\n") #streng genommen abhängig von davon,
-            # ob directed oder undirected, da bei undirected beide Richtungen als 1 zählen
+            if self.__is_directed:
+                f.write("#edges;" + str(int(len(self.__list_of_edges))) + "\n")
+            else:
+                f.write("#edges;" + str(int(len(self.__list_of_edges)/2)) + "\n")
             f.write("nodes labeled;" + str(self.__is_labeled_nodes) + "\n")  #HOW DO I FIGURE OUT THE BEST?
             # PROBABLY WHEN ADDING NODES TO GRAPH?! PROBABLY WHEN ADDING NODES TO THE GRAPH
             f.write("edges labeled;" + str(self.__is_labeled_edges) + "\n")

@@ -8,6 +8,7 @@ import random
 import string
 import math
 from collections import defaultdict
+from typing import List
 from Graph import GRAPH
 from Vertex import VERTEX
 from Edge import EDGE
@@ -43,21 +44,21 @@ def buildRndGraph(nr_nodes, p_connected, labeled_nodes=False, labeled_edges=Fals
                 # print("1-direct, normal")
                 tmp_dir_edge = combination
                 edge_id = appendNewEdgeToList(list_edges, edge_id, tmp_dir_edge, directed, labeled_edges)[1]
-                # TODO: Isn't the next line redundant, as by creating the graph, the algorithm will extract
+                # FIXME: Isn't the next line redundant, as by creating the graph, the algorithm will extract
                 #  all neighbours of a node by looking at the list of edges? RECONSIDER!!!!
                 list_vertices[tmp_dir_edge[0]].append_out_neighbour(list_vertices[tmp_dir_edge[1]])
             elif directed_edge_reverse:  # draw edge in "reversed" direction of combination: 1->0
                 # print("1-direct, reverse")
                 tmp_dir_edge = [combination[1], combination[0]]
                 edge_id = appendNewEdgeToList(list_edges, edge_id, tmp_dir_edge, directed, labeled_edges)[1]
-                # TODO: Isn't the next line redundant, as by creating the graph, the algorithm will extract
+                # FIXME: Isn't the next line redundant, as by creating the graph, the algorithm will extract
                 #  all neighbours of a node by looking at the list of edges? RECONSIDER!!!!
                 list_vertices[tmp_dir_edge[1]].append_out_neighbour(list_vertices[tmp_dir_edge[0]])
         elif (directed is False) and (random.random() <= p_connected):
             # print("2-NON-direct")
             tmp_edge = combination
             edge_id = appendNewEdgeToList(list_edges, edge_id, tmp_edge, directed, labeled_edges)[1]
-            # TODO: Isn't the next line redundant, as by creating the graph, the algorithm will extract
+            # FIXME: Isn't the next line redundant, as by creating the graph, the algorithm will extract
             #  all neighbours of a node by looking at the list of edges? RECONSIDER!!!!
             list_vertices[tmp_edge[0] - 1].append_out_neighbour(list_vertices[tmp_edge[1] - 1])
             list_vertices[tmp_edge[1] - 1].append_out_neighbour(list_vertices[tmp_edge[0] - 1])
@@ -72,7 +73,7 @@ def buildRndGraph(nr_nodes, p_connected, labeled_nodes=False, labeled_edges=Fals
             default_name = "random_graph(%s, %s, %s)" % (nr_nodes, p_connected, directed)
             graph = GRAPH(default_name, list_vertices, list_edges, len(list_vertices),
                           int(len(list_edges) / 2), directed, labeled_nodes, labeled_edges)
-    else:  # TODO: Maybe change else to "elif directed" --> problem: graph might no exist in return statement
+    else:
         if name_graph:
             graph = GRAPH(name_graph, list_vertices, list_edges, len(list_vertices),
                           len(list_edges), directed, labeled_nodes, labeled_edges)
@@ -81,12 +82,16 @@ def buildRndGraph(nr_nodes, p_connected, labeled_nodes=False, labeled_edges=Fals
             graph = GRAPH(default_name, list_vertices, list_edges, len(list_vertices),
                           int(len(list_edges) / 2), directed, labeled_nodes, labeled_edges)
 
-    # 4 Set neighbours setting
-    for vertex in list_vertices:
-        for edge in list_edges:
-            if edge.get_start_and_end()[0].get_id() == vertex.get_id():
-                neighbour = edge.get_start_and_end()[1]
-                vertex.append_out_neighbour(neighbour)
+    # 4 Set out-neighbours setting
+    #  TODO TILMAN: Might change >appendNewEdgeToSet< and >appendNewEdgeToList< Function,
+    #   so that EDGE.get_start_and_end() contains VERTEX-objects, not vertex-ids
+    for vertex in graph.get_list_of_vertices():
+        for edge in graph.get_list_of_edges():
+            if edge.get_start_and_end()[0] == vertex.get_id():
+                neighbour_id = edge.get_start_and_end()[1]
+                for vertex2 in graph.get_list_of_vertices():
+                    if vertex2.get_id() == neighbour_id:
+                        vertex.append_out_neighbour(vertex2)
 
     return graph
 
@@ -167,7 +172,7 @@ def buildRndCluster(n, d, del_vert=0, del_edges=0, labeled_nodes=False, labeled_
     if seed is not None:
         random.seed(seed)
 
-    def _suitable(edges, potential_edges):
+    def suitable(edges, potential_edges):
     # Helper subroutine to check if there are suitable edges remaining
     # If False, the generation of the graph has failed
         if not potential_edges:
@@ -186,44 +191,68 @@ def buildRndCluster(n, d, del_vert=0, del_edges=0, labeled_nodes=False, labeled_
                     return True
         return False
 
-    def _try_creation():
+    def try_creation():
         # Attempt to create an edge set
 
         edges = set()
-        edge_id = 1
+        edges_combinations = set()
         stubs = list(range(1, n+1)) * d
-        #print("stubs", type(stubs), stubs, sep="\t")
+        # print("stubs", type(stubs), stubs, sep="\t")
         while stubs:
             potential_edges = defaultdict(lambda: 0)
             random.shuffle(stubs)
             stubiter = iter(stubs)
+            #zippo = zip(stubiter, stubiter)
+            #zip_set =set(zippo)
+            #print("zip_set:\t%s" % zip_set)
             for s1, s2 in zip(stubiter, stubiter):
-                #print("s1", str(s1) + "\n", "s2", s2, sep="\t")
+                # print("TYPE (s1, s2), edges, potential_edges: %s\t%s\t%s" %(type(s1), type(edges), type(potential_edges)))
+                # print("s1, s2: %s, %s" % (s1, s2))
                 if s1 > s2:
                     s1, s2 = s2, s1
-                    #print("s1", str(s1) + "\n", "s2", s2, sep="\t")
+                    # print("s1, s2: %s, %s (SWITCHED)" % (s1, s2))
                     # Bedeutet, dass nur edges in eine Richtung (quasi ungerichtet) entstehen, oder?!
-                if s1 != s2 and ((s1, s2) not in edges):
-                    appendNewEdgeToSet(edges, edge_id, (s1, s2), directed, labeled_edges)
-                    edge_id += 1
+                if s1 != s2 and ((s1, s2) not in edges): #  FIXME: tritt nie ein, da type(s1, s2) nie in edges sein kann!!
+                    edges.add((s1, s2))
                 else:
                     potential_edges[s1] += 1
+                    # print("s1, potential_edges[s1]: %s:{%s}" % (s1, potential_edges[s1]))
                     potential_edges[s2] += 1
+                    # print("s2, potential_edges[s2]: %s:{%s}" % (s1, potential_edges[s2]))
 
-            if not _suitable(edges, potential_edges):
+            if not suitable(edges, potential_edges):
                 return None  # failed to find suitable edge set
 
             stubs = [node for node, potential in potential_edges.items()
                      for _ in range(potential)]
+            # print("stubs after WEIRDO: %s" % stubs)
         return list(edges)
 
     # Even though a suitable edge set exists, the generation of such a set is not guaranteed.
     # Try repeatedly to find one.
-    edges = _try_creation()
+    edges = try_creation()
     while edges is None:
-        edges = _try_creation()
-    graph = GRAPH("random_cluster_graph(%s, %s, %s, %s)" % (d, n, del_vert, del_edges),
-                  [], edges, 0, labeled_nodes, labeled_edges, directed)
+        edges = try_creation()
+    #for edge in edges:
+    #    print("edge: %s" % str(edge))
+    # print("len(edges): %s" % len(edges))
+    # Create EDGE-Objects
+    edges_objects: List[EDGE] = []
+    edge_id = 1
+    for edge in edges:
+        # print(edge)
+        if labeled_edges:
+            # Edges have to be appended in both directions for undirected graphs
+            edges_objects.append(EDGE(edge_id, list(edge), randomString()))
+            edges_objects.append(EDGE(edge_id, [edge[1], edge[0]], randomString()))
+            edge_id += 1
+        else:
+            edges_objects.append(EDGE(edge_id, list(edge), ""))
+            edges_objects.append(EDGE(edge_id, [edge[1], edge[0]], ""))
+            edge_id += 1
+    #  Create GRAPH-Object
+    graph = GRAPH("random_cluster_graph(%s, %s, %s, %s)" % (n, d, del_vert, del_edges),
+                  [], edges_objects, 0, 0, labeled_nodes, labeled_edges, directed)
 
     # Set neighbours setting
     #  TODO TILMAN: Might change >appendNewEdgeToSet< and >appendNewEdgeToList< Function,
@@ -300,7 +329,7 @@ def appendNewEdgeToList(edges, edge_id, start_and_end, directed=False, labeled=F
     return edges, edge_id
 
 
-def appendNewEdgeToSet(edges, edge_id, start_and_end, directed=False, labeled=False):
+def appendNewEdgeToSet(edges: List[EDGE], edge_id, start_and_end, directed=False, labeled=False):
     """Appends a new EDGE with a given EDGE-ID start-and-end-Vertex-ID to a given set of EDGE"""
     if directed:
         if labeled:
@@ -313,6 +342,13 @@ def appendNewEdgeToSet(edges, edge_id, start_and_end, directed=False, labeled=Fa
             edges.add(EDGE(edge_id, start_and_end, randomString()))
             edges.add(EDGE(edge_id, [start_and_end[1], start_and_end[0]], randomString()))
         else:
-            edges.add(EDGE(edge_id, start_and_end, ""))
-            edges.add(EDGE(edge_id, [start_and_end[1], start_and_end[0]], ""))
+            # print("____SET APPEND___")
+            tmp_edge = EDGE(edge_id, start_and_end, "")
+            inv_edge = EDGE(edge_id, [start_and_end[1], start_and_end[0]], "")
+            # print("tmp_edge, id, (start, end): %s\t(%s,%s)" %
+            #       (tmp_edge.get_id(), tmp_edge.get_start_and_end()[0], tmp_edge.get_start_and_end()[1] ))
+            # print("inv_edge, id, (start, end): %s\t(%s,%s)" %
+            #       (inv_edge.get_id(), inv_edge.get_start_and_end()[0], inv_edge.get_start_and_end()[1]))
+            edges.add(tmp_edge)
+            edges.add(inv_edge)
     return edges
