@@ -104,6 +104,8 @@ def parser(file, neo4j):
                 if len(vertex_splitted) == 1:
                     raise Exception("Wrong format: Vertices should be labelled but aren't.")
                     #  TODO: Wouldn't raise this exception, because it checks for EVERY item
+                    #  AJ: "I guess if the headers says that Vertices are labelled, ALL of them should be labelled,
+                    #       not just some. So I think its fine."
                 try:
                     i = int(vertex_splitted[0])
                 except TypeError:
@@ -134,6 +136,8 @@ def parser(file, neo4j):
             # print("start_and_end[0].get_id(); start_and_end[1].get_id():\t %s, %s" %
             #       (start_and_end[0].get_id(), start_and_end[1].get_id()))
             #  FIXME: Isnt't it obsolete to call >check_start_end_in_vertices(start_and_end, edge)< ? look above!
+            #  AJ: "The function checks (1) if <edge> carries two vertex IDs and (2) whether these IDS are in the list
+            #  of vertices. I think its fine.
             check_start_end_in_vertices(start_and_end, edge)  # check if start and end vertex are in vertices list
             end_and_start = [start_and_end[1], start_and_end[0]]
 
@@ -141,6 +145,8 @@ def parser(file, neo4j):
                 if len(edge_splitted) == 2:
                     raise Exception("Wrong format: Edges should be labelled but aren't.")
                     #  FIXME: Wouldn't raise this exception, because it checks for EVERY item
+                    #  AJ: "I guess if the headers says that Edges are labelled, ALL of them should be labelled,
+                    #       not just some. So I think its fine."
                 if directed:  # if graph is directed
                     edges_objects.append(EDGE(identifier, start_and_end, edge_splitted[2]))
                     identifier += 1
@@ -149,6 +155,7 @@ def parser(file, neo4j):
                     if start_and_end not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, start_and_end, edge_splitted[2]))
                         identifier += 1 #  TODO: Shouldn't the id of edge (1;2) and (2;1) in an undir-G. be the same?!
+                                        #  AJ: "See below."
                     if end_and_start not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, end_and_start, edge_splitted[2]))
                         identifier += 1
@@ -165,6 +172,9 @@ def parser(file, neo4j):
                         identifier += 1 # TODO: Shouldn't the id of edge (1;2) and (2;1) in an undir-G. be the same?!
                         #  TODO: Maybe change the parsing, so that internally the id of two inverted edges
                         #   in undirected graphs have the same id (like in Graph_Builder)
+                        #   AJ: " In the end it doesn't matter. The id of an edge will never be save in
+                        #   a .graph file (because we don't allow multi-graphs), so it's just an attribute to access a
+                        #   distinct edge. Only we should handle it consequently in the same style."
                     if end_and_start not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, end_and_start, ""))
                         identifier += 1
