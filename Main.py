@@ -17,6 +17,7 @@ from MB_State import MB_State
 from GuideTree import upgma, guide_tree_to_newick, save_newick, parse_newick_file_into_tree
 from Neo4j import NEO4J
 from runpy import run_path
+from Json_Parser import json_parser
 
 def parser(file, neo4j):
     """
@@ -197,7 +198,7 @@ def parser(file, neo4j):
         for edge in edges_objects:
             if edge.get_start_and_end()[0].get_id() == vertex.get_id():
                 neighbour = edge.get_start_and_end()[1]
-                vertex.append_out_neighbour(neighbour) #
+                vertex.append_out_neighbour(neighbour)
 
     # Retrieving graph name from file_path_name
     pos = file_path_name.rfind("/")
@@ -341,8 +342,9 @@ def recursive_matching(cluster, matching_algorithm, pivot, number_cliques, ancho
                     for c in combinations:
                         new_g = gr.graph_from_vertex_combination(c)
                         new_gs.append(new_g)
-                        for new_gr in new_gs:
-                            new_graphs += matching_using_mb(gl, new_gr)
+                    for new_gr in new_gs:
+                        new_graphs += matching_using_mb(gl, new_gr)
+
     cluster.set_elements(new_graphs)
     cluster.set_children(None, None)
     return new_graphs
@@ -468,7 +470,11 @@ if __name__ == '__main__':
             # Log statement for the console about the input file
             print("Input file path of file " + str(i) + ": " + file_path)
 
-            graph = parser(file_path, args.neo4j)
+            if args.input_format == "graph":
+                graph = parser(file_path, args.neo4j)
+            elif args.input_format == "json":
+                graph = json_parser(file_path, args.neo4j)
+
             if direction is None:
                 direction = graph.get_is_directed()
             if direction != graph.get_is_directed():
@@ -476,18 +482,13 @@ if __name__ == '__main__':
             input_graphs.append(graph)
 
     # Log statement for the console about the Pivot Mode!
-    if args.pivot is None:
-        print("Pivot Mode: None")
-    else:
-        print("Pivot Mode: " + args.pivot)
+    if args.bron_kerbosch or args.graph_alignment and args.graph_alignment[0] == "bk":
+        if args.pivot is None:
+            print("Pivot Mode: None")
+        else:
+            print("Pivot Mode: " + args.pivot)
 
     # Checking for an anchor graph file and checking anchor for clique property. Anchor default is a list.
-    # Log statement for the console about the anchor file!
-    """
-    if isinstance(args.anchor, list):
-        print("Anchor File: --")
-    else:
-    """
     if not args.anchor:
         anchor_graph = None
     else:

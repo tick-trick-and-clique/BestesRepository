@@ -6,6 +6,11 @@ from Edge import EDGE
 
 
 def modular_product(g1, g2, anchor_graph_parameters=None):
+    """
+    NOTE: For this function to work, each VERTEX of the input graphs needs to carry at least his own ID as mapping
+    in the mapping attribute!
+    Return Type: GRAPH
+    """
     # Number of vertices is the product of the number of vertices of both graphs
     new_number_of_vertices = g1.get_number_of_vertices() * g2.get_number_of_vertices()
     # Initialize all vertices of the modular product. For now, a

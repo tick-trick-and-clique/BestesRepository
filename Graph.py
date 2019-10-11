@@ -39,7 +39,6 @@ class GRAPH(object):
         self.__is_directed = is_directed
         self.__is_labeled_nodes = is_labeled_nodes  # has to be transferred while initialising the graph
         self.__is_labeled_edges = is_labeled_edges  # has to be transferred while initialising the graph
-        self.__mapping = None
 
     def get_name(self):
         '''
@@ -235,7 +234,7 @@ class GRAPH(object):
             return result
         else:
             raise ValueError("Given optional pivot argument is illegal!")
-        for vertex in [elem for elem in P if elem not in pivot_vertex.get_neighbours()]:
+        for vertex in [elem for elem in P if elem not in pivot_vertex.get_out_neighbours()]:
             new_R = R + [vertex]
             # p intersects/geschnitten N(vertex
             rev = self.reversed_edges(vertex.get_out_neighbours(), vertex)
@@ -338,22 +337,6 @@ class GRAPH(object):
                             + str(edge.get_start_and_end()[1]) + ";" + str(edge.get_label()))
         f.close()
 
-    def is_compatible_vertex(self, own_vertex, vertex_other_graph):
-        # Function returns whether two vertices of this and another graph are 'compatible'.
-        # Here, this is performed by comparison of vertex labels.
-        if own_vertex.get_label() == vertex_other_graph.get_label():
-            return True
-        else:
-            return False
-
-    def is_compatible_edge(self, own_edge, edge_other_graph):
-        # Function returns whether two edges of this and another graph are 'compatible'.
-        # Here, this is performed by comparison of edge labels.
-        if own_edge.get_label() == edge_other_graph.get_label():
-            return True
-        else:
-            return False
-
     def get_out_edge_list(self, vertex):
         # Function returns a list of directional edges leaving this vertex.
         edge_list = []
@@ -392,9 +375,6 @@ class GRAPH(object):
         for vertex in self.__list_of_vertices:
             if vertex.get_id() == vertex_id:
                 return vertex
-
-    def get_mapping(self):
-        return self.__mapping
 
     def graph_from_vertex_combination(self, list_of_vertices):
         """

@@ -5,7 +5,8 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser(usage="Software for graph analysis")
 parser.add_argument("-a", "--anchor", metavar="", default=[],
-                    help="Supply anchor graph file (path) for an anchor to the first graph in the input graphs.")
+                    help="Supply anchor graph file (path) for an anchor to the first graph in the input graphs."
+                         "NOTE: Anchor option is not available for anchor graphs in json format!")
 parser.add_argument("-bk", "--bron-kerbosch", action="store_true",
                     help="Invokes maximal clique finding on input graph.")
 parser.add_argument("-ga", "--graph_alignment", nargs="*", metavar="",
@@ -26,6 +27,9 @@ parser.add_argument("-gt", "--guide_tree", nargs='*', metavar="",
                          "comparison functions see the manual! Default is construction of a guide tree by graph "
                          "density.")
 parser.add_argument("-i", "--input", metavar="", nargs='*', help="Supply input path(s) of input file(s).")
+parser.add_argument("-if", "--input_format", choices=["graph", "json"], default="graph",
+                    help="Specify type of input files. For .graph files pass 'graph' and for .json files pass 'json'."
+                         "NOTE: Data in json files is supposed to be of the structure of PubChem 2D json files!")
 parser.add_argument("-mp", "--modular_product", action="store_true", help="Forms the modular product of two graphs.")
 parser.add_argument("-n", "--neo4j", action="store_true",
                     help="Visualize output using NEO4J!")
