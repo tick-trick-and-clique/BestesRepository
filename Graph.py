@@ -398,8 +398,14 @@ def density(graph1, graph2):
     en1 = graph1.get_number_of_edges()
     vn2 = graph2.get_number_of_vertices()
     en2 = graph2.get_number_of_edges()
-    dens1 = 2.0 * en1 / (vn1 * (vn1 - 1))
-    dens2 = 2.0 * en2 / (vn2 * (vn2 - 1))
+    if en1 == 0:
+        dens1 = 0
+    else:
+        dens1 = 2.0 * en1 / (vn1 * (vn1 - 1))
+    if en2 == 0:
+        dens2 = 0
+    else:
+        dens2 = 2.0 * en2 / (vn2 * (vn2 - 1))
     return abs(dens1 - dens2)
 
 

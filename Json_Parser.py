@@ -6,7 +6,7 @@ from Edge import EDGE
 from Graph import GRAPH
 
 
-def json_parser(file_path, neo4j):
+def json_parser(file_path, neo4j, no_h_atoms):
     """
     Takes a string and checks if its and existing file path.
     Then parses .json file into a GRAPH object and returns it.
@@ -35,8 +35,14 @@ def json_parser(file_path, neo4j):
     list_of_vertices = []
     for atom in atoms_id:
         atom_id = int(atom)
-        atom_label = atoms_element_number[atom_id - 1]
-        list_of_vertices.append(VERTEX(atom_id, atom_label))
+        atom_label = str(atoms_element_number[atom_id - 1])
+        if no_h_atoms:
+            if atom_label == "1":
+                pass
+            else:
+                list_of_vertices.append(VERTEX(atom_id, atom_label))
+        else:
+            list_of_vertices.append(VERTEX(atom_id, atom_label))
 
     # Instantiate Edges
     list_of_edges = []
@@ -45,19 +51,21 @@ def json_parser(file_path, neo4j):
         atom_2_id = int(bonds_partner2_id[i])
         start_and_end1: List[VERTEX] = [j for j in list_of_vertices if j.get_id() == atom_1_id] + \
                                        [j for j in list_of_vertices if j.get_id() == atom_2_id]
-        print(start_and_end1)
-        start_and_end2 = [start_and_end1[1], start_and_end1[0]]
-        list_of_edges.append(EDGE(i + 1, start_and_end1, order[i]))
-        list_of_edges.append(EDGE(i + len(bonds_partner1_id) + 1, start_and_end2, order[i]))
+        if len(start_and_end1) == 2:
+            start_and_end2 = [start_and_end1[1], start_and_end1[0]]
+            list_of_edges.append(EDGE(i + 1, start_and_end1, str(order[i])))
+            list_of_edges.append(EDGE(i + len(bonds_partner1_id) + 1, start_and_end2, str(order[i])))
+        else:
+            if no_h_atoms:
+                pass
+            else:
+                raise Exception("Error occured reading json file!")
 
     # Set VERTEX.neighbours
-    print(list_of_edges)
     for edge in list_of_edges:
         for vertex in list_of_vertices:
             if edge.get_start_and_end()[0].get_id() == vertex.get_id():
                 vertex.append_out_neighbour(edge.get_start_and_end()[1])
-                print("Start and End")
-                print(edge.get_start_and_end())
 
     # Instantiate GRAPH object
     graph = GRAPH(molecule_name, list_of_vertices, list_of_edges, len(list_of_vertices), int(len(list_of_edges)/2),
@@ -66,9 +74,6 @@ def json_parser(file_path, neo4j):
     # for input graphs, each vertex needs to contain a mapping of itself
     for v in graph.get_list_of_vertices():
         v.add_vertex_to_mapping(v, graph.get_name())
-        print(v.get_out_neighbours())
-        for vi in v.get_out_neighbours():
-            print(vi.get_id())
 
     # create Neo4J View
     if neo4j:

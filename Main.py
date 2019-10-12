@@ -6,7 +6,7 @@ Created on 07.05.2019
 @author: chris
 '''
 import os, string, random, itertools
-from typing import List
+from typing import List, Tuple
 from Graph import GRAPH, density, retrieve_graph_from_clique, retrieve_original_subgraphs
 from Vertex import VERTEX
 from Edge import EDGE
@@ -14,10 +14,12 @@ from Command_Line_Parser import parse_command_line
 from Modulares_Produkt import modular_product
 from Graph_Builder import buildRndGraph, buildRndCluster
 from MB_State import MB_State
-from GuideTree import upgma, guide_tree_to_newick, save_newick, parse_newick_file_into_tree
+from GuideTree import upgma, guide_tree_to_newick, save_newick, parse_newick_file_into_tree, \
+    parse_list_of_scored_graph_pairs_into_newick, parse_newick_string_into_tree
 from Neo4j import NEO4J
 from runpy import run_path
 from Json_Parser import json_parser
+from copy import deepcopy
 
 def parser(file, neo4j):
     """
@@ -245,11 +247,11 @@ def check_start_end_in_vertices(edge_start_end, currentEdge):
     return
 
 
-def matching_using_bk(graph_left, graph_right, number_cliques, pivot, anchor_graph_parameters=None,
+def matching_using_bk(graph_left, graph_right, number_matchings, pivot, anchor_graph_parameters=None,
                       clique_sort_func=None):
     """
     Helper function for graph alignment using bron-kerbosch algorithm. Takes two graphs and other bron-kerbosch
-    matching parameters as input to perform graph alignment. 'number_cliques' specifies the maximum number of cliques
+    matching parameters as input to perform graph alignment. 'number_matchings' specifies the maximum number of cliques
     that will be return as GRAPH object.
     Return type: [GRAPH, ...]
     """
@@ -270,15 +272,15 @@ def matching_using_bk(graph_left, graph_right, number_cliques, pivot, anchor_gra
         clique_findings.sort(key=lambda x: clique_sort_func(x), reverse=True)
     else:
         clique_findings.sort(key=lambda x: len(x), reverse=True)
-    number_cliques = min(len(clique_findings), number_cliques)
-    clique_findings = clique_findings[:number_cliques]
-    for j in range(number_cliques):
+    number_matchings = min(len(clique_findings), number_matchings)
+    clique_findings = clique_findings[:number_matchings]
+    for j in range(number_matchings):
         new_clique_as_graph = retrieve_graph_from_clique(clique_findings[j], graph_left)
         result.append(new_clique_as_graph)
     return result
 
 
-def matching_using_mb(graph_left, graph_right):
+def matching_using_mb(graph_left, graph_right, number_matchings):
     """
     Helper function for graph alignment using matching-based algorithm. Takes two graphs as input.
     Return type: [GRAPH, ...]
@@ -292,59 +294,56 @@ def matching_using_mb(graph_left, graph_right):
         graph2 = graph_left
     mb_state = MB_State(graph1, graph2)
     result_as_mappings = mb_state.mb_algorithm()
-    for mapping in result_as_mappings:
+    selection_int = min(len(result_as_mappings), number_matchings)
+    for mapping in result_as_mappings[:selection_int]:
         result.append(mb_mapping_to_graph(mapping, graph1, graph2))
     return result
 
 
-def recursive_matching(cluster, matching_algorithm, pivot, number_cliques, anchor_graph_parameters=[None, None],
+def recursive_matching(cluster, matching_algorithm, pivot, number_matchings, anchor_graph_parameters=[None, None],
                        smaller=0.0, clique_sort_func=None):
     """
     Performs graph alignment according to the guide tree in 'cluster' and the given matching algorithm.
-    'number_cliques' specifies the maximum number of cliques that will be considered for further graph alignment.
+    'number_matchings' specifies the maximum number of cliques that will be considered for further graph alignment.
     Return type: [GRAPH, ...]
     """
     # If the children are not tree leaves (i.e. grandchildren exist), then call function for these children.
     # Left child.
     if cluster.get_left_child().children_exist():
-        recursive_matching(cluster.get_left_child(), matching_algorithm, pivot, number_cliques,
-                           anchor_graph_parameters=anchor_graph_parameters, clique_sort_func=clique_sort_func)
+        graphs_right = cluster.get_right_child().get_elements()
+        graphs_left = recursive_matching(cluster.get_left_child(), matching_algorithm, pivot, number_matchings,
+                                         anchor_graph_parameters=anchor_graph_parameters,
+                                         clique_sort_func=clique_sort_func,
+                                         smaller=smaller)
     # Right child.
-    if cluster.get_right_child().children_exist():
-        recursive_matching(cluster.get_right_child(), matching_algorithm, pivot, number_cliques,
-                           anchor_graph_parameters=anchor_graph_parameters, clique_sort_func=clique_sort_func)
+    elif cluster.get_right_child().children_exist():
+        graphs_left = cluster.get_left_child().get_elements()
+        graphs_right = recursive_matching(cluster.get_right_child(), matching_algorithm, pivot, number_matchings,
+                                          anchor_graph_parameters=anchor_graph_parameters,
+                                          clique_sort_func=clique_sort_func,
+                                          smaller=smaller)
     # Else, the cluster is the root of two leaves, then:
     # Perform graph matching of the two leaf graphs (use the matching method provided by user)
     # Update the cluster with one new leaf, deleting the previous two
     # Return to the upper recursion level
-    graphs_left = cluster.get_left_child().get_elements()
-    graphs_right = cluster.get_right_child().get_elements()
+    else:
+        graphs_left = cluster.get_left_child().get_elements()
+        graphs_right = cluster.get_right_child().get_elements()
     new_graphs = []
     if matching_algorithm == "bk":
         for gl in graphs_left:
             for gr in graphs_right:
-                new_graphs += matching_using_bk(gl, gr, number_cliques, pivot,
+                new_graphs += matching_using_bk(gl, gr, number_matchings, pivot,
                                                 anchor_graph_parameters=anchor_graph_parameters,
                                                 clique_sort_func=clique_sort_func)
     if matching_algorithm == "mb":
+        counter = 0
         for gl in graphs_left:
             for gr in graphs_right:
-                new_graphs += matching_using_mb(gl, gr)
+                counter += 1
+                new_graphs += matching_using_mb(gl, gr, number_matchings)
                 if smaller:
-                    if gl.get_number_of_vertices() < gr.get_number_of_vertices():
-                        gl, gr = gr, gl
-                    grn = gr.get_number_of_vertices()
-                    margin = int(grn * smaller)
-                    new_gs = []
-                    combinations = []
-                    for i in range(margin):
-                        combinations += itertools.combinations(gr.get_list_of_vertices(), grn - i - 1)
-                    for c in combinations:
-                        new_g = gr.graph_from_vertex_combination(c)
-                        new_gs.append(new_g)
-                    for new_gr in new_gs:
-                        new_graphs += matching_using_mb(gl, new_gr)
-
+                    new_graphs += mb_helper(gl, gr, number_matchings)
     cluster.set_elements(new_graphs)
     cluster.set_children(None, None)
     return new_graphs
@@ -401,6 +400,75 @@ def import_file(filename, function_name):
     return f
 
 
+def pairwise_alignment(input_graphs, matching_method, number_matchings, pivot, anchor_graph_parameters, clique_sort_func):
+    """
+    Function takes a List[GRAPH, ...] and several other parameters necessary for graph matching and constructs a guide
+    tree based on pairwise alignment of the input graphs. The scoring parameter is the greatest subgraph isomorphism
+    between two graphs, i.e. that contains the maximal number of nodes.
+    Return Type: Cluster
+    """
+    combinations_of_graphs = itertools.combinations(input_graphs, 2)
+    scoring: List[Tuple] = []
+    for c in combinations_of_graphs:
+        score = 0
+        graph1 = c[0]
+        graph2 = c[1]
+        graph1_name = graph1.get_name()
+        graph2_name = graph2.get_name()
+        if matching_method == "bk":
+            matching_graphs: List[GRAPH] = matching_using_bk(c[0], c[1], number_matchings, pivot,
+                                                             anchor_graph_parameters=anchor_graph_parameters,
+                                                             clique_sort_func=clique_sort_func)
+        else:
+            matching_graphs: List[GRAPH] = matching_using_mb(c[0], c[1], number_matchings)
+            if smaller:
+                matching_graphs += mb_helper(graph1, graph2, number_matchings)
+        if len(matching_graphs) == 0:
+            raise Exception("No matchings in pairwise alignment, please adjust graph reduction parameter (see help"
+                            "message for '-ga' command line option!")
+        for graph in matching_graphs:
+            if graph.get_number_of_vertices() > score:
+                score = graph.get_number_of_vertices()
+        scoring.append((score, graph1_name, graph2_name))
+    scoring.sort(key=lambda x: x[2])
+    newick_string = parse_list_of_scored_graph_pairs_into_newick(scoring)
+    cluster_tree = parse_newick_string_into_tree(newick_string, input_graphs)
+    return cluster_tree
+
+
+def mb_helper(gl, gr, number_matchings):
+    """
+    Helper function for the matching using pruned input graphs
+    Return Type: [GRAPH, ...]
+    """
+    new_graphs = []
+    if gl.get_number_of_vertices() > gr.get_number_of_vertices():
+        gn = gr.get_number_of_vertices()
+        margin = int(gn * smaller)
+        new_gs = []
+        combinations = []
+        for i in range(margin):
+            combinations += itertools.combinations(gr.get_list_of_vertices(), gn - i - 1)
+        for c in combinations:
+            new_g = gr.graph_from_vertex_combination(c)
+            new_gs.append(new_g)
+        for new_g in new_gs:
+            new_graphs += matching_using_mb(gl, new_g, number_matchings)
+    else:
+        gn = gl.get_number_of_vertices()
+        margin = int(gn * smaller)
+        new_gs = []
+        combinations = []
+        for i in range(margin):
+            combinations += itertools.combinations(gr.get_list_of_vertices(), gn - i - 1)
+        for c in combinations:
+            new_g = gr.graph_from_vertex_combination(c)
+            new_gs.append(new_g)
+        for new_g in new_gs:
+            new_graphs += matching_using_mb(gl, new_g, number_matchings)
+    return new_graphs
+
+
 if __name__ == '__main__':
 
     # Command line parsing
@@ -417,9 +485,13 @@ if __name__ == '__main__':
     input_graphs = []
     selected_subgraphs = []
     anchor = []
+    newick = None
 
     #  Initialising list of graphs
     graphs = []
+
+    # Console output for passed parameters
+    print("Input format: " + args.input_format)
 
     #  Check for random graph option
     if args.random_graph:
@@ -473,7 +545,7 @@ if __name__ == '__main__':
             if args.input_format == "graph":
                 graph = parser(file_path, args.neo4j)
             elif args.input_format == "json":
-                graph = json_parser(file_path, args.neo4j)
+                graph = json_parser(file_path, args.neo4j, args.no_h_atoms)
 
             if direction is None:
                 direction = graph.get_is_directed()
@@ -484,13 +556,14 @@ if __name__ == '__main__':
     # Log statement for the console about the Pivot Mode!
     if args.bron_kerbosch or args.graph_alignment and args.graph_alignment[0] == "bk":
         if args.pivot is None:
-            print("Pivot Mode: None")
+            print("Pivot Mode: --")
         else:
             print("Pivot Mode: " + args.pivot)
 
     # Checking for an anchor graph file and checking anchor for clique property. Anchor default is a list.
     if not args.anchor:
         anchor_graph = None
+        print("Anchor File: --")
     else:
         # If input argument is neither a valid path nor a file in the current working directory. If, raise
         # Exception.
@@ -519,6 +592,7 @@ if __name__ == '__main__':
 
     # Checking for bron-kerbosch option
     if args.bron_kerbosch:
+        print("Matching algorithm: Bron-kerbosch")
         if len(input_graphs) != 1:
             raise Exception("For clique finding via bron-kerbosch, please provide exactly one file path of a graph!")
         else:
@@ -554,8 +628,8 @@ if __name__ == '__main__':
             print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
 
     if isinstance(args.guide_tree, list) and len(args.guide_tree) == 0:
-        raise Exception("For guide tree construction, please pass either a .newick file, a built-in comparison function"
-                        " or 'custom <file.py>' for introducing you own comparison function!")
+        raise Exception("For guide tree construction, please pass either a .newick file, a built-in keyword (see "
+                        "help message) or 'custom <file.py>' for introducing you own comparison function!")
     # Checking for graph alignment option. This option performs graph alignment of a number of graphs given as input
     # files. The matching order is according to the guide tree option (passing a comaprison function or a '.newick' file
     # , using graph density for guide tree construction is default. The graph names in the '.newick' file must be
@@ -570,82 +644,119 @@ if __name__ == '__main__':
         clique_sort_func = None
         if args.graph_alignment[0] not in ["bk", "mb"]:
             raise Exception("Illegal identifier for matching algorithm!")
+        if len(args.graph_alignment) >= 2:
+            try:
+                i = int(args.graph_alignment[1])
+                if i < 1:
+                    raise Exception("Illegal value for the number of cliques to expand search on!")
+            except ValueError("Illegal value for the number of cliques to expand search on!"):
+                pass
         if args.graph_alignment[0] == "bk":
-            if len(args.graph_alignment) >= 2:
+            print("Matching algorithm: Bron-kerbosch")
+            if len(args.graph_alignment) == 4:
                 try:
-                    i = int(args.graph_alignment[1])
-                    if len(args.graph_alignment) == 4:
-                        clique_sort_func = import_file(args.graph_alignment[2], args.graph_alignment[3])
-                    if i < 1:
-                        raise Exception("Illegal value for the number of cliques to expand search on!")
-                except ValueError("Illegal value for the number of cliques to expand search on!"):
-                    pass
+                    clique_sort_func = import_file(args.graph_alignment[2], args.graph_alignment[3])
                 except IndexError("Illegal number of input values for graph alignment using bron-kerbosch!"):
                     pass
         if args.graph_alignment[0] == "mb":
-            if len(args.graph_alignment) == 2:
+            print("Matching algorithm: Matching-based")
+            if len(args.graph_alignment) == 3:
                 try:
-                    smaller = float(args.graph_alignment[1])
+                    smaller = float(args.graph_alignment[2])
                     if smaller <= 0.0 or smaller >= 1.0:
                         raise Exception("Illegal value for the allowed reduction of subgraph size!")
                 except ValueError("Illegal value for the allowed reduction of subgraph size!"):
                     pass
-        if args.guide_tree and input_graphs:
-            if args.guide_tree[0] == "custom":
-                f = import_file(args.guide_tree[1], args.guide_tree[2])
-                cluster_tree = upgma(f, input_graphs, anchor_graph=anchor_graph)
-            elif args.guide_tree[0][-7:] == ".newick":
-                cluster_tree = parse_newick_file_into_tree(args.guide_tree, input_graphs)
-            elif args.guide_tree[0] not in ["density"]:  # Other comparison function/attributes may be added
-                cluster_tree = None
-                raise Exception("Illegal identifier for comparison function!")
-            else:
-                cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
-        else:
-            cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
         if anchor_graph:
             anchor_graph_parameters = [anchor_graph, input_graphs[0].get_name()]
         else:
             anchor_graph_parameters = None
-        matching_graphs = recursive_matching(cluster_tree, args.graph_alignment[0], args.pivot, i,
-                                             anchor_graph_parameters=anchor_graph_parameters,
-                                             smaller=smaller, clique_sort_func=clique_sort_func)
-        for matching_graph in matching_graphs:
-            if matching_graph:
-                original_subgraphs = retrieve_original_subgraphs(matching_graph, input_graphs)
-                selected_subgraphs.append(original_subgraphs)
+        if args.guide_tree and input_graphs:
+            if args.guide_tree[0] == "custom":
+                print("Guide tree construction for graph alignment: Custom function passed")
+                f = import_file(args.guide_tree[1], args.guide_tree[2])
+                cluster_tree = upgma(f, input_graphs, anchor_graph=anchor_graph)
+                copy = deepcopy(cluster_tree)
+                newick = guide_tree_to_newick(copy)
+            elif args.guide_tree[0][-7:] == ".newick":
+                print("Guide tree construction for graph alignment: Newick string fil passed")
+                cluster_tree = parse_newick_file_into_tree(args.guide_tree, input_graphs)
+                newick = args.guide_tree[0]
+            elif args.guide_tree[0] == "pairwise_align":
+                print("Guide tree construction for graph alignment: Pairwise alignment")
+                cluster_tree = pairwise_alignment(input_graphs, args.graph_alignment[0], i, args.pivot,
+                                                  anchor_graph_parameters, clique_sort_func)
+                copy = deepcopy(cluster_tree)
+                newick = guide_tree_to_newick(copy)
+            elif args.guide_tree[0] not in ["density", "pairwise_align"]:
+                cluster_tree = None
+                raise Exception("Illegal identifier for comparison function!")
+            else:
+                print("Guide tree construction for graph alignment: Graph density selected")
+                cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
+                copy = deepcopy(cluster_tree)
+                newick = guide_tree_to_newick(copy)
+        else:
+            print("Guide tree construction for graph alignment: Default (Graph density)")
+            cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
+            copy = deepcopy(cluster_tree)
+            newick = guide_tree_to_newick(copy)
+        if args.guide_tree and len(args.guide_tree) == 2 and args.guide_tree[1] == "only":
+            print("Graph alignment not performed")
+            pass
+        else:
+            matching_graphs = recursive_matching(cluster_tree, args.graph_alignment[0], args.pivot, i,
+                                                 anchor_graph_parameters=anchor_graph_parameters,
+                                                 smaller=smaller, clique_sort_func=clique_sort_func)
+            for matching_graph in matching_graphs:
+                if matching_graph:
+                    original_subgraphs = retrieve_original_subgraphs(matching_graph, input_graphs)
+                    selected_subgraphs.append(original_subgraphs)
 
     # If guide tree option is selected, construct a guide using the passed comparison function.
-    newick = None
     if args.guide_tree:
         if args.guide_tree[0] == "custom":
+            print("Guide tree construction: Custom function passed")
             f = import_file(args.guide_tree[1], args.guide_tree[2])
             cluster_tree = upgma(f, input_graphs, anchor_graph=anchor_graph)
+            newick = guide_tree_to_newick(cluster_tree)
         elif args.guide_tree[0][-7:] == ".newick":
+            print("Guide tree construction: New string file passed")
             newick = args.guide_tree[0]
         elif input_graphs:
-            cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
-            newick = guide_tree_to_newick(cluster_tree)
+            if args.guide_tree[0] == "density":
+                print("Guide tree construction: Graph density")
+                cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
+                newick = guide_tree_to_newick(cluster_tree)
 
     # Checking for output options.
     # Output of newick string.
     if args.newick_output:
+        print("Newick string output: True")
         if newick is None:
-            raise Exception("Select guide tree option to create a newick string to save!")
+            raise Exception("Select guide tree and/or graph alignment option to create a newick string to save!")
         else:
             save_newick(newick, output_file=args.newick_output)
+    else:
+        print("Newick string output: False")
+
     # Output of graph from random graph building or modular product.
     if args.graph_output:
+        print("Graph output: True")
         if graph is None:
             raise Exception("No graph to save in memory!")
         else:
             graph.save_to_txt(output_file=args.graph_output)
             # if args.neo4j:
                 # create Neo4J View
-                # neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name())
-    
+                # neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", graph.get_list_of_vertices(),
+                # graph.get_list_of_edges(), graph.get_name())
+    else:
+        print("Graph output: False")
+
     # Output of subgraphs from graph alignment or bron-kerbosch algorithm on a modular product.
     if args.subgraph_output is not None and input_graphs and selected_subgraphs:
+        print("Subgraph output: True")
         if len(args.subgraph_output) > 2:
             raise Exception("Please provide a maximum of two arguments: First the output file path and second the "
                             "number of subgraphs to be exported!")
@@ -654,7 +765,8 @@ if __name__ == '__main__':
                 subgraph_number = int(args.subgraph_output[1])
                 for i in range(min(len(selected_subgraphs), subgraph_number)):
                     for subgraph in selected_subgraphs[i]:
-                        subgraph.save_to_txt(output_file=args.subgraph_output[0] + subgraph[i].get_name(), sequential_number=i)
+                        subgraph.save_to_txt(output_file=args.subgraph_output[0] + subgraph[i].get_name(),
+                                             sequential_number=i)
                         # create Neo4J View
                         if args.neo4j:
                             neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
@@ -686,19 +798,22 @@ if __name__ == '__main__':
             except ValueError:
                 for i in range(len(selected_subgraphs)):
                     for subgraph in selected_subgraphs[i]:
-                        subgraph.save_to_txt(output_file=args.subgraph_output[0] + subgraph.get_name(), sequential_number=i)
+                        subgraph.save_to_txt(output_file=args.subgraph_output[0] + subgraph.get_name(),
+                                             sequential_number=i)
                         # create Neo4J View
                         if args.neo4j:
                             neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
                                                  subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
                                                  subgraph.get_name())
+    else:
+        print("Subgraph output: False")
 
                     
-# TODO: Consider a vertex dictionary instead of list, with ids as keys, for better performance
 # TODO: Consider different types of multiple alignment strategies concerning comparison of analogue attributes (e.g. a
 # specific vertex/edge label); How should those attributes be handled for graphs resulting from the alignment during
 # multiple alignments (create a mean value?)?
 # TODO: Consider a mapping of edges in multiple alignment as well
+# TODO AJ: Implement selection of "molecule isomorphisms" to rule out matches of e.g. unbound H-Atoms
 
 
 # Notes:

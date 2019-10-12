@@ -50,14 +50,14 @@ class MB_State:
         result_as_mapping_dict = {}
         result_as_mapping_list = []
         if self.all_vertices_of_g2_covered():
-            print("Result:")
-            print("IDs of Vertices")
-            print("Graph 1  Graph2")
+            #print("Result:")
+            #print("IDs of Vertices")
+            #print("Graph 1  Graph2")
             for key, value in self.core_1.items():
                 if value:
-                    print(key, value.get_id(), sep="\t")
+             #       print(key, value.get_id(), sep="\t")
                     result_as_mapping_dict[key] = value.get_id()
-            print("\n")
+            #type(print("\n")
             self.restore_data_structures(previously_added)
             return [result_as_mapping_dict]
         else:

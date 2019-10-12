@@ -38,8 +38,7 @@ class Cluster:
 def upgma(comp_function, graphs, anchor_graph=False):
     """
     Takes a comparison function for graphs and list of graphs as input and calculates a guide
-    tree which is returned as a the top cluster of a binary tree of clusters. List of graphs ordered by minimal
-    distance?????
+    tree which is returned as a the top cluster of a binary tree of clusters.
     Return type: Cluster
     """
     # Initialize n clusters each containing one graph
@@ -57,6 +56,8 @@ def upgma(comp_function, graphs, anchor_graph=False):
         current_smallest_dist = float("inf")
         cluster1 = None
         cluster2 = None
+        # This control structure makes sure that iff an anchor graph is passed, the anchor will be used in the first
+        # pairwise graph alignment.
         if anchor_graph:
             anchor_graph = False
             i = 0
@@ -66,17 +67,19 @@ def upgma(comp_function, graphs, anchor_graph=False):
                     cluster1 = clusters[i]
                     cluster2 = clusters[j]
         else:
-            for i in range(n):
-                for j in range(i - n + 2):
+            for i in range(n - 1):
+                for j in range(i + 1, n):
                     if dist_matrix[i][j] < current_smallest_dist:
                         current_smallest_dist = dist_matrix[i][j]
                         cluster1 = clusters[i]
                         cluster2 = clusters[j]
+                        a = i
+                        b = j
         new_cluster = Cluster(cluster1.get_elements() + cluster2.get_elements())
         new_cluster.set_children(cluster1, cluster2)
 
         # Update the list length and update the distance matrix according to the merge product cluster
-        dist_matrix = update_distance_matrix(comp_function, clusters, dist_matrix, new_cluster, i, j)
+        dist_matrix = update_distance_matrix(comp_function, clusters, dist_matrix, new_cluster, a, b)
         n -= 1
 
     # Return the top cluster (i.e. tree root).
@@ -238,23 +241,67 @@ def parse_newick_string_into_tree(newick_string, graphs):
     # If one of the branches is a leaf (which must always be the left one), then:
     elif newick_string2[0] == "(":
         cluster2 = parse_newick_string_into_tree(newick_string2, graphs)
+        cluster1 = None
         for graph in graphs:
             if graph.get_name() == newick_string1:
-                graph1 = graph
-        cluster1 = Cluster([graph1])
+                cluster1 = Cluster([graph])
+        if not cluster1:
+            raise Exception("Error occurred parsing newick string into guide tree!")
+        top_cluster = Cluster([])
+        top_cluster.set_children(cluster1, cluster2)
+        return top_cluster
+    elif newick_string1[0] == "(":
+        cluster1 = parse_newick_string_into_tree(newick_string1, graphs)
+        cluster2 = None
+        for graph in graphs:
+            if graph.get_name() == newick_string2:
+                cluster2 = Cluster([graph])
+        if not cluster2:
+            raise Exception("Error occurred parsing newick string into guide tree!")
         top_cluster = Cluster([])
         top_cluster.set_children(cluster1, cluster2)
         return top_cluster
     # If both branches are leaves, then:
     else:
+        cluster1 = None
+        cluster2 = None
         for graph in graphs:
             if graph.get_name() == newick_string1:
-                graph1 = graph
+                cluster1 = Cluster([graph])
             if graph.get_name() == newick_string2:
-                graph2 = graph
-        cluster1 = Cluster([graph1])
-        cluster2 = Cluster([graph2])
+                cluster2 = Cluster([graph])
+        if not cluster1 or not cluster2:
+            raise Exception("Error occurred parsing newick string into guide tree!")
         top_cluster = Cluster([])
         top_cluster.set_children(cluster1, cluster2)
         return top_cluster
 
+
+def parse_list_of_scored_graph_pairs_into_newick(scoring):
+    """
+    Function takes a List[(INT, GRAPH, GRAPH),...], which is sorted in descending order by INT, as input and returns the
+    respective newick string representation.
+    Return Type: String
+    """
+    graph_names = []
+    newick_string = ""
+    for i in range(len(scoring)):
+        t = scoring[i]
+        graph1_name = t[1]
+        graph2_name = t[2]
+        if graph1_name not in graph_names and graph2_name not in graph_names:
+            graph_names.append(graph1_name)
+            graph_names.append(graph2_name)
+            if newick_string == "":
+                newick_string = "(" + graph1_name + "," + graph2_name + ")"
+            else:
+                newick_string += "(" + newick_string + "),(" + graph1_name + "," + graph2_name + "))"
+        elif graph1_name in graph_names and graph2_name in graph_names:
+            pass
+        elif graph1_name in graph_names:
+            graph_names.append(graph2_name)
+            newick_string = "(" + newick_string + "," + graph2_name + ")"
+        elif graph2_name in graph_names:
+            graph_names.append(graph1_name)
+            newick_string = "(" + newick_string + "," + graph1_name + ")"
+    return newick_string
