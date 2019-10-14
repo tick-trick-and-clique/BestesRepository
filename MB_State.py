@@ -251,5 +251,3 @@ class MB_State:
         return
 
 # TODO: Maps durch Listen ersetzen wo möglich, um bessere Performance zu erreichen
-# TODO AJ: Der Output ist ziemlich groß, vor allem wenn man Unterkombinationen des kleineren Graphen dazu nimmt.
-# Wahrscheinlich wäre es hilfreich, so viel Redundanz wie möglich loszuwerden

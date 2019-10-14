@@ -44,6 +44,9 @@ parser.add_argument("-no", "--newick_output", metavar="", nargs='?', const=1,
                          "marks!) is provided, it will be saved there. If a .newick file name is provided, it will be "
                          "saved with that name in the current working directory. Else it will be saved in the current "
                          "working directory using a default name.")
+parser.add_argument("-nsi", "--no_stereo_isomers", action="store_true",
+                    help="If selected and if input is a molecule graph, output will be reduced neglecting all "
+                         "stereo isomers, i.e.")
 parser.add_argument("-p", "--pivot", metavar="", choices=["max", "random"],
                     help="Choose pivot mode: Either 'max' or 'random'.")
 parser.add_argument("-rg", "--random_graph", nargs=3, metavar="",

@@ -410,9 +410,13 @@ def density(graph1, graph2):
 
 
 def retrieve_graph_from_clique(clique, orig_graph):
-    # The vertices in the clique will also be the vertices in the new graph so that the mapping does not have to be
-    # updated. The connectivity though needs to be reduced. Therefore it is necessary for each pair of clique vertices
-    # to identify the corresponding pair in one of the original graphs and see whether there is an edge.
+    """
+    Takes a clique, i.e. a list of vertices, and one of the original graphs as input and returns a subgraph of the
+    original graph respective to the clique vertices. The vertices and edges in the new subgraph originate from
+    'orig_graph'. The vertices will carry the mapping to the vertices of the other input graph(s) in their mapping
+    attribute. The newly created subgraph carries a random 8-character name to make it's name a unique identifier.
+    Return Type: GRAPH
+    """
     lov = []
     loe = []
     for vertex_mp in clique:

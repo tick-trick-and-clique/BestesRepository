@@ -280,7 +280,7 @@ def matching_using_bk(graph_left, graph_right, number_matchings, pivot, anchor_g
     return result
 
 
-def matching_using_mb(graph_left, graph_right, number_matchings):
+def matching_using_mb(graph_left, graph_right):
     """
     Helper function for graph alignment using matching-based algorithm. Takes two graphs as input.
     Return type: [GRAPH, ...]
@@ -294,14 +294,13 @@ def matching_using_mb(graph_left, graph_right, number_matchings):
         graph2 = graph_left
     mb_state = MB_State(graph1, graph2)
     result_as_mappings = mb_state.mb_algorithm()
-    selection_int = min(len(result_as_mappings), number_matchings)
-    for mapping in result_as_mappings[:selection_int]:
+    for mapping in result_as_mappings:
         result.append(mb_mapping_to_graph(mapping, graph1, graph2))
     return result
 
 
 def recursive_matching(cluster, matching_algorithm, pivot, number_matchings, anchor_graph_parameters=[None, None],
-                       smaller=0.0, clique_sort_func=None):
+                       smaller=0.0, clique_sort_func=None, no_stereo_isomers=False):
     """
     Performs graph alignment according to the guide tree in 'cluster' and the given matching algorithm.
     'number_matchings' specifies the maximum number of cliques that will be considered for further graph alignment.
@@ -314,14 +313,14 @@ def recursive_matching(cluster, matching_algorithm, pivot, number_matchings, anc
         graphs_left = recursive_matching(cluster.get_left_child(), matching_algorithm, pivot, number_matchings,
                                          anchor_graph_parameters=anchor_graph_parameters,
                                          clique_sort_func=clique_sort_func,
-                                         smaller=smaller)
+                                         smaller=smaller, no_stereo_isomers=no_stereo_isomers)
     # Right child.
     elif cluster.get_right_child().children_exist():
         graphs_left = cluster.get_left_child().get_elements()
         graphs_right = recursive_matching(cluster.get_right_child(), matching_algorithm, pivot, number_matchings,
                                           anchor_graph_parameters=anchor_graph_parameters,
                                           clique_sort_func=clique_sort_func,
-                                          smaller=smaller)
+                                          smaller=smaller, no_stereo_isomers=no_stereo_isomers)
     # Else, the cluster is the root of two leaves, then:
     # Perform graph matching of the two leaf graphs (use the matching method provided by user)
     # Update the cluster with one new leaf, deleting the previous two
@@ -341,12 +340,43 @@ def recursive_matching(cluster, matching_algorithm, pivot, number_matchings, anc
         for gl in graphs_left:
             for gr in graphs_right:
                 counter += 1
-                new_graphs += matching_using_mb(gl, gr, number_matchings)
+                new_graphs += matching_using_mb(gl, gr)
                 if smaller:
                     new_graphs += mb_helper(gl, gr, number_matchings)
-    cluster.set_elements(new_graphs)
+                new_graphs = sorted(new_graphs, key=lambda x: x.get_number_of_vertices(), reverse=True)
+    number_matchings = min(len(new_graphs), number_matchings)
+    print("number_matching", number_matchings)
+    print("len(new_graphs", len(new_graphs))
+    new_graphs = new_graphs[:number_matchings]
+    check_list = []
+    matching_graphs = []
+    # List[Dict{"Graph_name": List[VERTEX, ...]}] # Die Dict müssen verglichen werden
+    if no_stereo_isomers:
+        for matching_graph in new_graphs:
+            original_subgraphs = retrieve_original_subgraphs(matching_graph, input_graphs)
+            d = {}
+            for g in original_subgraphs:
+                lov = g.get_list_of_vertices()
+                lov = sorted(lov, key=lambda x: x.get_id())
+                d[g.get_name()] = lov
+            new = True
+            for already in check_list:
+                true_list = []          # Alternatively insert dictionary comparison here!
+                for key in already.keys():
+                    if already[key] == d[key]:          # Comparison of two lists!
+                        true_list.append(True)
+                    else:
+                        true_list.append(False)
+                if False not in true_list:
+                    new = False
+            if new:
+                check_list.append(d)
+                matching_graphs.append(matching_graph)
+    else:
+        matching_graphs = new_graphs
+    cluster.set_elements(matching_graphs)
     cluster.set_children(None, None)
-    return new_graphs
+    return matching_graphs
 
 
 def mb_mapping_to_graph(result_as_mapping, graph1, graph2):
@@ -420,9 +450,9 @@ def pairwise_alignment(input_graphs, matching_method, number_matchings, pivot, a
                                                              anchor_graph_parameters=anchor_graph_parameters,
                                                              clique_sort_func=clique_sort_func)
         else:
-            matching_graphs: List[GRAPH] = matching_using_mb(c[0], c[1], number_matchings)
+            matching_graphs: List[GRAPH] = matching_using_mb(c[0], c[1])
             if smaller:
-                matching_graphs += mb_helper(graph1, graph2, number_matchings)
+                matching_graphs += mb_helper(graph1, graph2)
         if len(matching_graphs) == 0:
             raise Exception("No matchings in pairwise alignment, please adjust graph reduction parameter (see help"
                             "message for '-ga' command line option!")
@@ -453,7 +483,7 @@ def mb_helper(gl, gr, number_matchings):
             new_g = gr.graph_from_vertex_combination(c)
             new_gs.append(new_g)
         for new_g in new_gs:
-            new_graphs += matching_using_mb(gl, new_g, number_matchings)
+            new_graphs += matching_using_mb(gl, new_g)
     else:
         gn = gl.get_number_of_vertices()
         margin = int(gn * smaller)
@@ -465,7 +495,7 @@ def mb_helper(gl, gr, number_matchings):
             new_g = gr.graph_from_vertex_combination(c)
             new_gs.append(new_g)
         for new_g in new_gs:
-            new_graphs += matching_using_mb(gl, new_g, number_matchings)
+            new_graphs += matching_using_mb(gl, new_g)
     return new_graphs
 
 
@@ -644,18 +674,12 @@ if __name__ == '__main__':
         clique_sort_func = None
         if args.graph_alignment[0] not in ["bk", "mb"]:
             raise Exception("Illegal identifier for matching algorithm!")
-        if len(args.graph_alignment) >= 2:
-            try:
-                i = int(args.graph_alignment[1])
-                if i < 1:
-                    raise Exception("Illegal value for the number of cliques to expand search on!")
-            except ValueError("Illegal value for the number of cliques to expand search on!"):
-                pass
         if args.graph_alignment[0] == "bk":
             print("Matching algorithm: Bron-kerbosch")
             if len(args.graph_alignment) == 4:
                 try:
                     clique_sort_func = import_file(args.graph_alignment[2], args.graph_alignment[3])
+                    print("Passed Function for clique sorting: " + str(args.graph_alignment[3]))
                 except IndexError("Illegal number of input values for graph alignment using bron-kerbosch!"):
                     pass
         if args.graph_alignment[0] == "mb":
@@ -665,25 +689,36 @@ if __name__ == '__main__':
                     smaller = float(args.graph_alignment[2])
                     if smaller <= 0.0 or smaller >= 1.0:
                         raise Exception("Illegal value for the allowed reduction of subgraph size!")
+                    print("Relative size reduction: "+ str(smaller))
                 except ValueError("Illegal value for the allowed reduction of subgraph size!"):
                     pass
+        if len(args.graph_alignment) >= 2:
+            try:
+                i = int(args.graph_alignment[1])
+                if i < 1:
+                    raise Exception("Illegal value for the number of matchings to expand search on!")
+                print("Number of matchings forwarded: " + str(i))
+            except ValueError("Illegal value for the number of matchings to expand search on!"):
+                pass
+
+
         if anchor_graph:
             anchor_graph_parameters = [anchor_graph, input_graphs[0].get_name()]
         else:
             anchor_graph_parameters = None
         if args.guide_tree and input_graphs:
             if args.guide_tree[0] == "custom":
-                print("Guide tree construction for graph alignment: Custom function passed")
+                print("Guide tree construction: Custom function passed")
                 f = import_file(args.guide_tree[1], args.guide_tree[2])
                 cluster_tree = upgma(f, input_graphs, anchor_graph=anchor_graph)
                 copy = deepcopy(cluster_tree)
                 newick = guide_tree_to_newick(copy)
             elif args.guide_tree[0][-7:] == ".newick":
-                print("Guide tree construction for graph alignment: Newick string fil passed")
+                print("Guide tree construction: Newick string fil passed")
                 cluster_tree = parse_newick_file_into_tree(args.guide_tree, input_graphs)
                 newick = args.guide_tree[0]
             elif args.guide_tree[0] == "pairwise_align":
-                print("Guide tree construction for graph alignment: Pairwise alignment")
+                print("Guide tree construction: Pairwise alignment")
                 cluster_tree = pairwise_alignment(input_graphs, args.graph_alignment[0], i, args.pivot,
                                                   anchor_graph_parameters, clique_sort_func)
                 copy = deepcopy(cluster_tree)
@@ -692,12 +727,12 @@ if __name__ == '__main__':
                 cluster_tree = None
                 raise Exception("Illegal identifier for comparison function!")
             else:
-                print("Guide tree construction for graph alignment: Graph density selected")
+                print("Guide tree construction: Graph density selected")
                 cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
                 copy = deepcopy(cluster_tree)
                 newick = guide_tree_to_newick(copy)
         else:
-            print("Guide tree construction for graph alignment: Default (Graph density)")
+            print("Guide tree construction: Graph density (Default)")
             cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
             copy = deepcopy(cluster_tree)
             newick = guide_tree_to_newick(copy)
@@ -707,7 +742,8 @@ if __name__ == '__main__':
         else:
             matching_graphs = recursive_matching(cluster_tree, args.graph_alignment[0], args.pivot, i,
                                                  anchor_graph_parameters=anchor_graph_parameters,
-                                                 smaller=smaller, clique_sort_func=clique_sort_func)
+                                                 smaller=smaller, clique_sort_func=clique_sort_func,
+                                                 no_stereo_isomers=args.no_stereo_isomers)
             for matching_graph in matching_graphs:
                 if matching_graph:
                     original_subgraphs = retrieve_original_subgraphs(matching_graph, input_graphs)
@@ -810,10 +846,12 @@ if __name__ == '__main__':
 
                     
 # TODO: Consider different types of multiple alignment strategies concerning comparison of analogue attributes (e.g. a
-# specific vertex/edge label); How should those attributes be handled for graphs resulting from the alignment during
-# multiple alignments (create a mean value?)?
-# TODO: Consider a mapping of edges in multiple alignment as well
-# TODO AJ: Implement selection of "molecule isomorphisms" to rule out matches of e.g. unbound H-Atoms
+# specific vertex/edge label), i.e. How should those attributes be handled for graphs resulting from the alignment
+# during multiple alignments (create a mean value?)?
+    # - For matching-based this is handled in 'mb_mapping_to_graph' so far, only including labels of one graph
+    # - For bron-kerbosch this is handled in the call of 'retrieve_graph_from_clique in 'matching_using_bk' so far,
+        # also only, including the labels of one graph
+# TODO: Consider a mapping of edge labels as well
 
 
 # Notes:
