@@ -482,18 +482,19 @@ def retrieve_original_subgraphs(matching_graph, input_graphs):
     """
     subgraphs = []
     for graph in input_graphs:
-        lov = []
-        loe = []
-        for v1_mg in matching_graph.get_list_of_vertices():
-            orig_v1 = v1_mg.get_mapping()[graph.get_name()]
-            lov.append(orig_v1)
-        for edge in graph.get_list_of_edges():
-            for v1 in lov:
-                for v2 in lov:
-                    if edge.get_start_and_end()[0] == v1 and edge.get_start_and_end()[1] == v2:
-                        loe.append(edge)
-        subgraphs.append(GRAPH(graph.get_name(), lov, loe, len(lov), len(loe), graph.get_is_directed(),
-                         graph.get_is_labelled_nodes(), graph.get_is_labelled_edges()))
+        if graph.get_name() in matching_graph.get_list_of_vertices()[0].get_mapping():
+            lov = []
+            loe = []
+            for v1_mg in matching_graph.get_list_of_vertices():
+                orig_v1 = v1_mg.get_mapping()[graph.get_name()]
+                lov.append(orig_v1)
+            for edge in graph.get_list_of_edges():
+                for v1 in lov:
+                    for v2 in lov:
+                        if edge.get_start_and_end()[0] == v1 and edge.get_start_and_end()[1] == v2:
+                            loe.append(edge)
+            subgraphs.append(GRAPH(graph.get_name(), lov, loe, len(lov), len(loe), graph.get_is_directed(),
+                             graph.get_is_labelled_nodes(), graph.get_is_labelled_edges()))
     return subgraphs
 
 
