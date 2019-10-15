@@ -9,6 +9,8 @@ parser.add_argument("-a", "--anchor", metavar="", default=[],
                          "NOTE: Anchor option is not available for anchor graphs in json format!")
 parser.add_argument("-bk", "--bron-kerbosch", action="store_true",
                     help="Invokes maximal clique finding on input graph.")
+parser.add_argument("-cc", "--check_connection", action="store_true",
+                    help="If selected, only connected subgraphs will be the output of graph alignment!")
 parser.add_argument("-ga", "--graph_alignment", nargs="*", metavar="",
                     help="Choose matching algorithm: Either 'bk' for bron-kerbosch or 'mb' for matching-based. You may "
                          "also provide the number of matched subgraphs in previous pairwise alignments on which the "
@@ -45,8 +47,9 @@ parser.add_argument("-no", "--newick_output", metavar="", nargs='?', const=1,
                          "saved with that name in the current working directory. Else it will be saved in the current "
                          "working directory using a default name.")
 parser.add_argument("-nsi", "--no_stereo_isomers", action="store_true",
-                    help="If selected and if input is a molecule graph, output will be reduced neglecting all "
-                         "stereo isomers, i.e.")
+                    help="If selected and if input is a molecule graph, output will be reduced neglecting multiple "
+                         "stereo isomers, i.e. matchings where the subset of vertices is the same for each input"
+                         "graph, respectively. Only one stereoisomer will be forwarded!")
 parser.add_argument("-p", "--pivot", metavar="", choices=["max", "random"],
                     help="Choose pivot mode: Either 'max' or 'random'.")
 parser.add_argument("-rg", "--random_graph", nargs=3, metavar="",

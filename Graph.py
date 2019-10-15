@@ -4,6 +4,7 @@ import math
 import random
 import os
 import string
+from queue import Queue
 from Edge import EDGE
 from Vertex import VERTEX
 from typing import List
@@ -391,6 +392,33 @@ class GRAPH(object):
         return GRAPH(self.get_name(), lov, loe, len(lov), len(loe), self.get_is_directed(),
                      self.get_is_labelled_nodes(), self.get_is_labelled_edges())
 
+    def is_connected(self):
+        """
+        Function to examine whether this graph is connected. Here, a breadth first search is applied.
+        Return Type: Boolean
+        """
+        queue = Queue()
+        v_list = self.get_list_of_vertices()
+        start = v_list[0]
+        queue.put(start)
+        already_seen = set()
+        while not queue.empty():
+            vertex = queue.get()
+            already_seen.add(vertex)
+            candidates = set()
+            candidates.union(set(vertex.get_out_neighbours()))
+            for v in v_list:
+                if vertex in v.get_out_neighbours():
+                    candidates.add(v)
+            for v in candidates:
+                if v not in already_seen:
+                    queue.put(v)
+                    already_seen.add(v)
+        if already_seen.__len__() == self.get_number_of_vertices():
+            return True
+        else:
+            return False
+
 
 def density(graph1, graph2):
     """ function to calculate the density of two graphs and return the difference between """
@@ -412,26 +440,36 @@ def density(graph1, graph2):
 def retrieve_graph_from_clique(clique, orig_graph):
     """
     Takes a clique, i.e. a list of vertices, and one of the original graphs as input and returns a subgraph of the
-    original graph respective to the clique vertices. The vertices and edges in the new subgraph originate from
-    'orig_graph'. The vertices will carry the mapping to the vertices of the other input graph(s) in their mapping
+    original graph respective to the clique vertices. 'Original graph' is not to be confused with the graphs of the
+    initial input. Here, 'original graph' refers to the graph from which the modular product was built. This can and
+    will most probably a matching graph. The VERTEX.__id, VERTEX.__label, EDGE_id and EDGE.__label ,
+    __is_directed attribute, __is_labelled_nodes attribute and __is_labelled_edges in the new subgraph originate from
+    'orig_graph'. The vertices will carry the mapping to the vertices of the initial input graph(s) in their mapping
     attribute. The newly created subgraph carries a random 8-character name to make it's name a unique identifier.
+    This function is analogous to 'mb_mapping_to_graph' for matching-based algorithm.
     Return Type: GRAPH
     """
     lov = []
     loe = []
     for vertex_mp in clique:
         orig_vertex = vertex_mp.get_mapping()[orig_graph.get_name()]
-        orig_vertex.combine_mapping(vertex_mp)
-        lov.append(orig_vertex)
-        for neighbour in orig_vertex.get_out_neighbours():
-            for vertex_mp2 in clique:
-                if neighbour == vertex_mp2.get_mapping()[orig_graph.get_name()]:
-                    for edge in orig_graph.get_list_of_edges():
-                        if edge.get_start_and_end()[0] == orig_vertex and edge.get_start_and_end()[1] == neighbour:
-                            loe.append(edge)
+        copy_orig_vertex = VERTEX(orig_vertex.get_id(), orig_vertex.get_label())
+        copy_orig_vertex.combine_mapping(vertex_mp)
+        lov.append(copy_orig_vertex)
+    for edge in orig_graph.get_list_of_edges():
+        for copy_orig_vertex in lov:
+            lov_cut = lov.copy()
+            lov_cut.remove(copy_orig_vertex)
+            for copy_orig_vertex2 in lov_cut:
+                if edge.get_start_and_end()[0].get_id() == copy_orig_vertex.get_id() and \
+                        edge.get_start_and_end()[1].get_id() == copy_orig_vertex2.get_id():
+                    copy_orig_vertex.append_out_neighbour(copy_orig_vertex2)
+                    loe.append(EDGE(edge.get_id(), [copy_orig_vertex, copy_orig_vertex2], edge.get_label()))
     # Now the new graph can be built
     graph_name = "".join([random.choice(string.ascii_letters) for i in range(8)])
-    new_graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), orig_graph.get_is_directed())
+    new_graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), orig_graph.get_is_directed(),
+                      is_labeled_nodes=orig_graph.get_is_labelled_nodes(),
+                      is_labeled_edges=orig_graph.get_is_labelled_edges())
     return new_graph
 
 
