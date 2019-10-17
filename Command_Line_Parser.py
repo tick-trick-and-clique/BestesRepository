@@ -37,7 +37,7 @@ parser.add_argument("-if", "--input_format", choices=["graph", "json"], default=
                     help="Specify type of input files. For .graph files pass 'graph' and for .json files pass 'json'."
                          "NOTE: Data in json files is supposed to be of the structure of PubChem 2D json files!")
 parser.add_argument("-mp", "--modular_product", action="store_true", help="Forms the modular product of two graphs.")
-parser.add_argument("-n", "--neo4j", action="store_true",
+parser.add_argument("-n", "--neo4j", nargs=3, 
                     help="Visualize output using NEO4J!")
 parser.add_argument("-nh", "--no_h_atoms", action="store_true",
                     help="Specifies json format parsing. If selected, all H-atoms will be neglected.")

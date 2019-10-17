@@ -21,6 +21,10 @@ from runpy import run_path
 from Json_Parser import json_parser
 from copy import deepcopy
 
+uri = "http://localhost:7474"
+user_name = "neo4j"
+pwd = "1234"
+
 def parser(file, neo4j):
     """
     Parsing the .graph format to the class Graph
@@ -210,7 +214,7 @@ def parser(file, neo4j):
     
     # create Neo4J View
     if neo4j:
-        neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", vertices_objects, edges_objects, graph_name)
+        neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], vertices_objects, edges_objects, graph_name)
     
     # create graph from class GRAPH
     graph = GRAPH(graph_name, vertices_objects, edges_objects, number_vertices, number_edges, directed,
@@ -676,7 +680,7 @@ if __name__ == '__main__':
             graph2_name = input_graphs[1].get_name()
             graph, anchor = modular_product(input_graphs[0], input_graphs[1])
             # if args.neo4j:
-                # neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234")
+                # neo4jProjekt = NEO4J("http://localhost:11003/db/data/", "neo4j", "1234")
                 # neo4jProjekt.create_graphs(neo4jProjekt.get_graph(), graph.get_list_of_vertices(), graph.get_list_of_edges(),graph.get_name())
             
             # Log statement for the console about the modular product
@@ -811,10 +815,9 @@ if __name__ == '__main__':
             raise Exception("No graph to save in memory!")
         else:
             graph.save_to_txt(output_file=args.graph_output)
-            # if args.neo4j:
+            if args.neo4j:
                 # create Neo4J View
-                # neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", graph.get_list_of_vertices(),
-                # graph.get_list_of_edges(), graph.get_name())
+                neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], graph.get_list_of_vertices(),graph.get_list_of_edges(), args.graph_output)
     else:
         print("Graph output: False")
 
@@ -833,8 +836,7 @@ if __name__ == '__main__':
                                              sequential_number=i)
                         # create Neo4J View
                         if args.neo4j:
-                            neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
-                                                 subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
+                            neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
                                                  subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
             except ValueError("Please provide an integer value for the number of subgraphs to be exported as second "
                               "argument!"):
@@ -845,8 +847,7 @@ if __name__ == '__main__':
                     subgraph.save_to_txt(output_file=subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
                     # create Neo4J View
                     if args.neo4j:
-                        neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
-                                             subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
+                        neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
                                              subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
         elif len(args.subgraph_output) == 1:
             try:
@@ -856,8 +857,7 @@ if __name__ == '__main__':
                         subgraph.save_to_txt(output_file=subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
                         # create Neo4J View
                         if args.neo4j:
-                            neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
-                                                 subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
+                            neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
                                                  subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
             except ValueError:
                 for i in range(len(selected_subgraphs)):
@@ -866,8 +866,7 @@ if __name__ == '__main__':
                                              sequential_number=i)
                         # create Neo4J View
                         if args.neo4j:
-                            neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234",
-                                                 subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
+                            neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
                                                  subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
     else:
         print("Subgraph output: False")

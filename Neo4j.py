@@ -14,18 +14,17 @@ class NEO4J(object):
         '''
         Constructor
         '''
-        #Graph("http://localhost:7474/db/data/", user="neo4j", password="1234")
-        self.__uri= uri 
-        self.__user = user_name
+        self.__uri= uri
+        self.__user =  user_name
         self.__pwd = pwd
         try: 
             self.__graph = Graph(uri, user=user_name, password=pwd)
             self.create_graphs(vertices_objects, edges_objects, graph_id)
         except:
             print("Please connect with Neo4J Server")
-            print("URI: " + uri)
-            print("USER_NAME: " + user_name)
-            print("PASSWORD: " + pwd)
+            print("URI: " + self.uri)
+            print("USER_NAME: " + self.user)
+            print("PASSWORD: " + self.pwd)
     
     def set_uri(self,uri):
         '''
