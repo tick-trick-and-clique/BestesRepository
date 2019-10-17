@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from Edge import EDGE
+from Vertex import VERTEX
 """
 This class implements a so called 'state' like described for the
 matching-based algorithm by Cordella et al.
@@ -48,14 +50,14 @@ class MB_State:
         result_as_mapping_dict = {}
         result_as_mapping_list = []
         if self.all_vertices_of_g2_covered():
-            print("Result:")
-            print("IDs of Vertices")
-            print("Graph 1  Graph2")
+            #print("Result:")
+            #print("IDs of Vertices")
+            #print("Graph 1  Graph2")
             for key, value in self.core_1.items():
                 if value:
-                    print(key, value.get_id(), sep="\t")
+             #       print(key, value.get_id(), sep="\t")
                     result_as_mapping_dict[key] = value.get_id()
-            print("\n")
+            #type(print("\n")
             self.restore_data_structures(previously_added)
             return [result_as_mapping_dict]
         else:
@@ -93,24 +95,21 @@ class MB_State:
             - Vertices are compatible (evaluating the label)
             - Edges from and into the space of already matched vertices correspond and edge are compatible (evaluating
             the label)
-            - The number of vertices from out and in edges where vertices are not in the space of already matched
-            vertices but have edges from or into the space are equal
-            - The number of vertices from out and in edges where vertices are not in the space of already matched
-            vertices and also do not have edges from or into the space are equal
+            - The number of vertices from out and in edges, where vertices are not in the space of already matched
+            vertices but have edges from or into the space, are equal
+            - The number of vertices from out and in edges, where vertices are not in the space of already matched
+            vertices and also do not have edges from or into the space, are equal
         CAUTION: Compatibility checks are ONLY performed from Graph 1 to Graph 2 for non-symmetric compatibility
         reasons!"""
 
         # DEV NOTE: EDGE label is interpreted as the edge compatibility attribute here
 
-
         g1_vertex_index, g2_vertex_index = candidate
         g1_vertex = [v for v in self.graph1.get_list_of_vertices() if g1_vertex_index == v.get_id()][0]
         g2_vertex = [v for v in self.graph2.get_list_of_vertices() if g2_vertex_index == v.get_id()][0]
 
-        """
-        if not self.graph1.is_compatible_vertex(g1_vertex, g2_vertex):
+        if not g1_vertex.is_compatible_vertex(g2_vertex):
             return False
-        """
 
         temp_out1 = 0
         temp_out2 = 0
@@ -125,8 +124,8 @@ class MB_State:
             if self.core_1[other_v_in_g1.get_id()] is not None:
                 other_v_in_g2 = self.core_1[other_v_in_g1.get_id()]
                 if not self.graph2.has_edge(g2_vertex, other_v_in_g2) or \
-                    not self.graph1.is_compatible_edge(edge, self.graph2.get_edge(g2_vertex, other_v_in_g2)):
-                        return False
+                        not edge.is_compatible_edge(self.graph2.get_edge(g2_vertex, other_v_in_g2)):
+                    return False
             else:
                 if self.in_1[other_v_in_g1.get_id()] > 0:
                     temp_in1 += temp_in1
@@ -142,7 +141,7 @@ class MB_State:
             if self.core_1[other_v_in_g1.get_id()] is not None:
                 other_v_in_g2 = self.core_1[other_v_in_g1.get_id()]
                 if not self.graph2.has_edge(other_v_in_g2, g2_vertex) or \
-                        not self.graph1.is_compatible_edge(edge, self.graph2.get_edge(other_v_in_g2, g2_vertex)):
+                        not edge.is_compatible_edge(self.graph2.get_edge(other_v_in_g2, g2_vertex)):
                     return False
             else:
                 if self.in_1[other_v_in_g1.get_id()] > 0:
@@ -158,7 +157,8 @@ class MB_State:
             other_v_in_g2 = edge.get_start_and_end()[1]
             if self.core_2[other_v_in_g2.get_id()] is not None:
                 other_v_in_g1 = self.core_2[other_v_in_g2.get_id()]
-                if not self.graph1.has_edge(g1_vertex, other_v_in_g1):
+                if not self.graph1.has_edge(g1_vertex, other_v_in_g1) or \
+                        not edge.is_compatible_edge(self.graph1.get_edge(g1_vertex, other_v_in_g1)):
                     return False
             else:
                 if self.in_2[other_v_in_g2.get_id()] > 0:
@@ -174,7 +174,8 @@ class MB_State:
             other_v_in_g2 = edge.get_start_and_end()[0]
             if self.core_2[other_v_in_g2.get_id()] is not None:
                 other_v_in_g1 = self.core_2[other_v_in_g2.get_id()]
-                if not self.graph1.has_edge(other_v_in_g1, g1_vertex):       
+                if not self.graph1.has_edge(other_v_in_g1, g1_vertex) or \
+                        not edge.is_compatible_edge(self.graph1.get_edge(other_v_in_g1, g1_vertex)):
                     return False
             else:
                 if self.in_2[other_v_in_g2.get_id()] > 0:

@@ -4,6 +4,7 @@ import math
 import random
 import os
 import string
+from queue import Queue
 from Edge import EDGE
 from Vertex import VERTEX
 from typing import List
@@ -39,7 +40,6 @@ class GRAPH(object):
         self.__is_directed = is_directed
         self.__is_labeled_nodes = is_labeled_nodes  # has to be transferred while initialising the graph
         self.__is_labeled_edges = is_labeled_edges  # has to be transferred while initialising the graph
-        self.__mapping = None
 
     def get_name(self):
         '''
@@ -235,7 +235,7 @@ class GRAPH(object):
             return result
         else:
             raise ValueError("Given optional pivot argument is illegal!")
-        for vertex in [elem for elem in P if elem not in pivot_vertex.get_neighbours()]:
+        for vertex in [elem for elem in P if elem not in pivot_vertex.get_out_neighbours()]:
             new_R = R + [vertex]
             # p intersects/geschnitten N(vertex
             rev = self.reversed_edges(vertex.get_out_neighbours(), vertex)
@@ -338,22 +338,6 @@ class GRAPH(object):
                             + str(edge.get_start_and_end()[1]) + ";" + str(edge.get_label()))
         f.close()
 
-    def is_compatible_vertex(self, own_vertex, vertex_other_graph):
-        # Function returns whether two vertices of this and another graph are 'compatible'.
-        # Here, this is performed by comparison of vertex labels.
-        if own_vertex.get_label() == vertex_other_graph.get_label():
-            return True
-        else:
-            return False
-
-    def is_compatible_edge(self, own_edge, edge_other_graph):
-        # Function returns whether two edges of this and another graph are 'compatible'.
-        # Here, this is performed by comparison of edge labels.
-        if own_edge.get_label() == edge_other_graph.get_label():
-            return True
-        else:
-            return False
-
     def get_out_edge_list(self, vertex):
         # Function returns a list of directional edges leaving this vertex.
         edge_list = []
@@ -393,9 +377,6 @@ class GRAPH(object):
             if vertex.get_id() == vertex_id:
                 return vertex
 
-    def get_mapping(self):
-        return self.__mapping
-
     def graph_from_vertex_combination(self, list_of_vertices):
         """
         Return Type: GRAPH
@@ -411,6 +392,33 @@ class GRAPH(object):
         return GRAPH(self.get_name(), lov, loe, len(lov), len(loe), self.get_is_directed(),
                      self.get_is_labelled_nodes(), self.get_is_labelled_edges())
 
+    def is_connected(self):
+        """
+        Function to examine whether this graph is connected. Here, a breadth first search is applied.
+        Return Type: Boolean
+        """
+        queue = Queue()
+        v_list = self.get_list_of_vertices()
+        start = v_list[0]
+        queue.put(start)
+        already_seen = set()
+        while not queue.empty():
+            vertex = queue.get()
+            already_seen.add(vertex)
+            candidates = set()
+            candidates.union(set(vertex.get_out_neighbours()))
+            for v in v_list:
+                if vertex in v.get_out_neighbours():
+                    candidates.add(v)
+            for v in candidates:
+                if v not in already_seen:
+                    queue.put(v)
+                    already_seen.add(v)
+        if already_seen.__len__() == self.get_number_of_vertices():
+            return True
+        else:
+            return False
+
 
 def density(graph1, graph2):
     """ function to calculate the density of two graphs and return the difference between """
@@ -418,30 +426,50 @@ def density(graph1, graph2):
     en1 = graph1.get_number_of_edges()
     vn2 = graph2.get_number_of_vertices()
     en2 = graph2.get_number_of_edges()
-    dens1 = 2.0 * en1 / (vn1 * (vn1 - 1))
-    dens2 = 2.0 * en2 / (vn2 * (vn2 - 1))
+    if en1 == 0:
+        dens1 = 0
+    else:
+        dens1 = 2.0 * en1 / (vn1 * (vn1 - 1))
+    if en2 == 0:
+        dens2 = 0
+    else:
+        dens2 = 2.0 * en2 / (vn2 * (vn2 - 1))
     return abs(dens1 - dens2)
 
 
 def retrieve_graph_from_clique(clique, orig_graph):
-    # The vertices in the clique will also be the vertices in the new graph so that the mapping does not have to be
-    # updated. The connectivity though needs to be reduced. Therefore it is necessary for each pair of clique vertices
-    # to identify the corresponding pair in one of the original graphs and see whether there is an edge.
+    """
+    Takes a clique, i.e. a list of vertices, and one of the original graphs as input and returns a subgraph of the
+    original graph respective to the clique vertices. 'Original graph' is not to be confused with the graphs of the
+    initial input. Here, 'original graph' refers to the graph from which the modular product was built. This can and
+    will most probably a matching graph. The VERTEX.__id, VERTEX.__label, EDGE_id and EDGE.__label ,
+    __is_directed attribute, __is_labelled_nodes attribute and __is_labelled_edges in the new subgraph originate from
+    'orig_graph'. The vertices will carry the mapping to the vertices of the initial input graph(s) in their mapping
+    attribute. The newly created subgraph carries a random 8-character name to make it's name a unique identifier.
+    This function is analogous to 'mb_mapping_to_graph' for matching-based algorithm.
+    Return Type: GRAPH
+    """
     lov = []
     loe = []
     for vertex_mp in clique:
         orig_vertex = vertex_mp.get_mapping()[orig_graph.get_name()]
-        orig_vertex.combine_mapping(vertex_mp)
-        lov.append(orig_vertex)
-        for neighbour in orig_vertex.get_out_neighbours():
-            for vertex_mp2 in clique:
-                if neighbour == vertex_mp2.get_mapping()[orig_graph.get_name()]:
-                    for edge in orig_graph.get_list_of_edges():
-                        if edge.get_start_and_end()[0] == orig_vertex and edge.get_start_and_end()[1] == neighbour:
-                            loe.append(edge)
+        copy_orig_vertex = VERTEX(orig_vertex.get_id(), orig_vertex.get_label())
+        copy_orig_vertex.combine_mapping(vertex_mp)
+        lov.append(copy_orig_vertex)
+    for edge in orig_graph.get_list_of_edges():
+        for copy_orig_vertex in lov:
+            lov_cut = lov.copy()
+            lov_cut.remove(copy_orig_vertex)
+            for copy_orig_vertex2 in lov_cut:
+                if edge.get_start_and_end()[0].get_id() == copy_orig_vertex.get_id() and \
+                        edge.get_start_and_end()[1].get_id() == copy_orig_vertex2.get_id():
+                    copy_orig_vertex.append_out_neighbour(copy_orig_vertex2)
+                    loe.append(EDGE(edge.get_id(), [copy_orig_vertex, copy_orig_vertex2], edge.get_label()))
     # Now the new graph can be built
     graph_name = "".join([random.choice(string.ascii_letters) for i in range(8)])
-    new_graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), orig_graph.get_is_directed())
+    new_graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), orig_graph.get_is_directed(),
+                      is_labeled_nodes=orig_graph.get_is_labelled_nodes(),
+                      is_labeled_edges=orig_graph.get_is_labelled_edges())
     return new_graph
 
 
@@ -454,18 +482,19 @@ def retrieve_original_subgraphs(matching_graph, input_graphs):
     """
     subgraphs = []
     for graph in input_graphs:
-        lov = []
-        loe = []
-        for v1_mg in matching_graph.get_list_of_vertices():
-            orig_v1 = v1_mg.get_mapping()[graph.get_name()]
-            lov.append(orig_v1)
-        for edge in graph.get_list_of_edges():
-            for v1 in lov:
-                for v2 in lov:
-                    if edge.get_start_and_end()[0] == v1 and edge.get_start_and_end()[1] == v2:
-                        loe.append(edge)
-        subgraphs.append(GRAPH(graph.get_name(), lov, loe, len(lov), len(loe), graph.get_is_directed(),
-                         graph.get_is_labelled_nodes(), graph.get_is_labelled_edges()))
+        if graph.get_name() in matching_graph.get_list_of_vertices()[0].get_mapping():
+            lov = []
+            loe = []
+            for v1_mg in matching_graph.get_list_of_vertices():
+                orig_v1 = v1_mg.get_mapping()[graph.get_name()]
+                lov.append(orig_v1)
+            for edge in graph.get_list_of_edges():
+                for v1 in lov:
+                    for v2 in lov:
+                        if edge.get_start_and_end()[0] == v1 and edge.get_start_and_end()[1] == v2:
+                            loe.append(edge)
+            subgraphs.append(GRAPH(graph.get_name(), lov, loe, len(lov), len(loe), graph.get_is_directed(),
+                             graph.get_is_labelled_nodes(), graph.get_is_labelled_edges()))
     return subgraphs
 
 

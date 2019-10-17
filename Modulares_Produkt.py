@@ -6,6 +6,11 @@ from Edge import EDGE
 
 
 def modular_product(g1, g2, anchor_graph_parameters=None):
+    """
+    NOTE: For this function to work, each VERTEX of the input graphs needs to carry at least his own ID as mapping
+    in the mapping attribute!
+    Return Type: GRAPH
+    """
     # Number of vertices is the product of the number of vertices of both graphs
     new_number_of_vertices = g1.get_number_of_vertices() * g2.get_number_of_vertices()
     # Initialize all vertices of the modular product. For now, a
@@ -57,9 +62,11 @@ def modular_product(g1, g2, anchor_graph_parameters=None):
                         start_vertex = None
                         end_vertex = None
                         for new_v in new_list_of_vertices:
-                            if v1 in new_v.get_mapping().values() and v3 in new_v.get_mapping().values():
+                            if all([va in new_v.get_mapping().values() for va in v1.get_mapping().values()]) and \
+                                    all([va in new_v.get_mapping().values() for va in v3.get_mapping().values()]):
                                 start_vertex = new_v
-                            if v2 in new_v.get_mapping().values() and v4 in new_v.get_mapping().values():
+                            if all([va in new_v.get_mapping().values() for va in v2.get_mapping().values()]) and \
+                                    all([va in new_v.get_mapping().values() for va in v4.get_mapping().values()]):
                                 end_vertex = new_v
                         new_list_of_edges.append(EDGE(edge_id, [start_vertex, end_vertex], "Default_Label"))
                         new_number_of_edges += 1
