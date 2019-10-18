@@ -7,8 +7,9 @@ parser = ArgumentParser(usage="Software for graph analysis")
 parser.add_argument("-a", "--anchor", metavar="", default=[],
                     help="Supply anchor graph file (path) for an anchor to the first graph in the input graphs."
                          "NOTE: Anchor option is not available for anchor graphs in json format!")
-parser.add_argument("-bk", "--bron-kerbosch", action="store_true",
-                    help="Invokes maximal clique finding on input graph.")
+parser.add_argument("-bk", "--bron-kerbosch", nargs="*",
+                    help="Invokes maximal clique finding on input graph. Optionally, you may pass a file name together "
+                         "clique sorting function name in that file.")
 parser.add_argument("-cc", "--check_connection", action="store_true",
                     help="If selected, only connected subgraphs will be the output of graph alignment!")
 parser.add_argument("-ga", "--graph_alignment", nargs="*", metavar="",

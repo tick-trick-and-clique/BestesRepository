@@ -652,20 +652,21 @@ if __name__ == '__main__':
         print("Anchor File: " + args.anchor)
 
     # Checking for bron-kerbosch option
-    if args.bron_kerbosch:
+    if args.bron_kerbosch is not None:
         print("Matching algorithm: Bron-kerbosch")
         if len(input_graphs) != 1:
             raise Exception("For clique finding via bron-kerbosch, please provide exactly one file path of a graph!")
+        elif len(args.bron_kerbosch) > 2 or len(args.bron_kerbosch) == 1:
+            raise Exception("You may optionally pass a file name together with a function name in that file for custom"
+                            "clique sorting!")
         else:
             p = copy(input_graphs[0].get_list_of_vertices())
-            selected_cliques = input_graphs[0].bron_kerbosch(anchor, p, [],
-                                                             pivot=args.pivot)
-            duplicates_removed = []
-            for clique in selected_cliques:
-                clique = sorted(clique, key=lambda x: x.get_id())
-                duplicates_removed.append(tuple(clique))
-            selected_cliques = list(set(duplicates_removed))                # removes duplicates
-            selected_cliques.sort(key=lambda x: len(x), reverse=True)
+            selected_cliques = input_graphs[0].bron_kerbosch(anchor, p, [], pivot=args.pivot)
+            if len(args.bron_kerbosch) == 0:
+                selected_cliques.sort(key=lambda x: len(x), reverse=True)
+            elif len(args.bron_kerbosch) == 2:
+                sorting_func = import_file(args.bron_kerbosch[0], args.bron_kerbosch[1])
+                selected_cliques.sort(key=lambda x: sorting_func(x), reverse=True)
             for i in range(len(selected_cliques)):
                 matching_graph = retrieve_graph_from_clique(selected_cliques[i], input_graphs[0])
                 original_subgraph = retrieve_original_subgraphs(matching_graph, input_graphs)
@@ -747,7 +748,7 @@ if __name__ == '__main__':
                 newick = guide_tree_to_newick(copy)
             elif args.guide_tree[0][-7:] == ".newick":
                 print("Guide tree construction: Newick string fil passed")
-                cluster_tree = parse_newick_file_into_tree(args.guide_tree[0], input_graphs)
+                cluster_tree = parse_newick_file_into_tree(args.guide_tree, input_graphs)
                 newick = args.guide_tree[0]
             elif args.guide_tree[0] == "pairwise_align":
                 print("Guide tree construction: Pairwise alignment")
@@ -825,7 +826,7 @@ if __name__ == '__main__':
         print("Graph output: False")
 
     # Output of subgraphs from graph alignment or bron-kerbosch algorithm on a modular product.
-    if args.subgraph_output is not None and input_graphs and selected_subgraphs:
+    if args.subgraph_output is not None and (input_graphs or graph) and selected_subgraphs:
         print("Subgraph output: True")
         if len(args.subgraph_output) > 2:
             raise Exception("Please provide a maximum of two arguments: First the output file path and second the "
@@ -875,21 +876,21 @@ if __name__ == '__main__':
         print("Subgraph output: False")
 
                     
-# TODO: Consider different types of multiple alignment strategies concerning comparison of analogue attributes (e.g. a
+# TODO AJ: Consider different types of multiple alignment strategies concerning comparison of analogue attributes (e.g. a
 # specific vertex/edge label), i.e. How should those attributes be handled for graphs resulting from the alignment
 # during multiple alignments (create a mean value?)?
     # - For matching-based this is handled in 'mb_mapping_to_graph' so far, only including labels of one graph
     # - For bron-kerbosch this is handled in the call of 'retrieve_graph_from_clique in 'matching_using_bk' so far,
-        # also only, including the labels of one graph
-# TODO: Consider a mapping of edge labels as well
+    # TODO AJ: Diese Info noch an Johann übergeben.
 # TODO: Implement 'get_in_neighbours'? Would make VERTEX.reversed_edges() obsolete in bron_kerbosch and some other cases...
-# TODO AJ: clique sort function wieder rausschmeißen????
-# TODO: Anchor für cordella implementieren
-# TODO AJ: single bron_kerbosch updaten
-# TODO AJ: GRAPH() parses the neighbours attribute of vertices automatically??? Adapt code...
+# TODO AJ: Anchor für cordella implementieren
+# TODO AJ: graph output sollte alle graphen ausgebgen die jemals hier sind
+# TODO AJ: Johann informieren: Clique sortier-Funktion nimmt als Argument eine Clique und gibt eine Fließkommazahl
+# zurück. Sortierung ist absteigend. Außderdem: -bk kann auch clique sortier-funktion nehmen, aber keine number
+# matchings, weil macht keinen Sinn
 
 # Notes:
 # When performing bron-kerbosch on a molecular product as command line input, it is not possible to identify the
 # vertices from the original graphs from which the molecular product was formed because this vertex mapping is not
 # saved. The mapping cannot be save as ID because concatenation of IDs would not be unique (e.g. ID 123 from vertices
-# 12 and 3 or 1 and 23)
+# 12 and 3 or 1 and 23) --> Johann Info
