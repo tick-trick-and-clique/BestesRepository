@@ -603,7 +603,6 @@ if __name__ == '__main__':
 
             if args.input_format == "graph":
                 graph = parser(file_path, args.neo4j)
-                print(graph)
             elif args.input_format == "json":
                 graph = json_parser(file_path, args.neo4j, args.no_h_atoms)
 
@@ -835,7 +834,7 @@ if __name__ == '__main__':
                 subgraph_number = int(args.subgraph_output[1])
                 for i in range(min(len(selected_subgraphs), subgraph_number)):
                     for subgraph in selected_subgraphs[i]:
-                        subgraph.save_to_txt(output_file=args.subgraph_output[0] + subgraph[i].get_name(),
+                        subgraph.save_to_txt(output_file=subgraph.get_name() + "_" + args.subgraph_output[0],
                                              sequential_number=i)
                         # create Neo4J View
                         if args.neo4j:
@@ -885,7 +884,7 @@ if __name__ == '__main__':
 # TODO: Implement 'get_in_neighbours'? Would make VERTEX.reversed_edges() obsolete in bron_kerbosch and some other cases...
 # TODO AJ: clique sort function wieder rausschmeißen????
 # TODO: Anchor für cordella implementieren
-
+# TODO AJ: single bron_kerbosch updaten
 # Notes:
 # When performing bron-kerbosch on a molecular product as command line input, it is not possible to identify the
 # vertices from the original graphs from which the molecular product was formed because this vertex mapping is not

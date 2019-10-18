@@ -304,7 +304,7 @@ class GRAPH(object):
         # If multiple graphs should be saved to the same location, addition of a sequential number is necessary to
         # impede overwriting
         if sequential_number is not None:
-            output_file = output_file[:-6] + "_" + sequential_number + output_file[-6:0]
+            output_file = output_file[:-6] + "_" + str(sequential_number) + output_file[-6:]
 
         # Provided argument is a directory, else it is a filename and the current working directory path is added
         if os.path.isdir(os.path.dirname(output_file)):

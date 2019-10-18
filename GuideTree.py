@@ -190,6 +190,7 @@ def save_newick(newick_string, output_file=1):
     else:
         filename = os.path.abspath(output_file)
     # If the provided argument does not end with '.newick
+    if output_file[-7:] != ".newick":
         raise NameError("Given path of filename must end with '.newick'")
     with open(filename, "w") as f:
         f.write(newick_string)
