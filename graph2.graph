@@ -1,7 +1,7 @@
 #nodes;6
 #edges;10
-nodes labelled;True
-edges labelled;False
+nodes labeled;True
+edges labeled;False
 directed graph;True
 
 1;a
@@ -11,13 +11,13 @@ directed graph;True
 5;e
 6;f
 
-1;2
-2;1
-2;4
-4;2
-4;1
-1;4
-4;3
-3;4
-1;5
-1;6
+1;2;
+2;1;
+2;4;
+4;2;
+4;1;
+1;4;
+4;3;
+3;4;
+1;5;
+1;6;

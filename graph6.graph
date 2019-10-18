@@ -1,7 +1,7 @@
 #nodes;3
 #edges;3
-nodes labelled;True
-edges labelled;True
+nodes labeled;True
+edges labeled;True
 directed graph;True
 
 1;a

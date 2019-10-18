@@ -745,7 +745,7 @@ if __name__ == '__main__':
                 newick = guide_tree_to_newick(copy)
             elif args.guide_tree[0][-7:] == ".newick":
                 print("Guide tree construction: Newick string fil passed")
-                cluster_tree = parse_newick_file_into_tree(args.guide_tree, input_graphs)
+                cluster_tree = parse_newick_file_into_tree(args.guide_tree[0], input_graphs)
                 newick = args.guide_tree[0]
             elif args.guide_tree[0] == "pairwise_align":
                 print("Guide tree construction: Pairwise alignment")
