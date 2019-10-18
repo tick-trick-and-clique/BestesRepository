@@ -21,15 +21,15 @@ def buildRndGraph(nr_nodes, p_connected, labeled_nodes=False, labeled_edges=Fals
     p_connected:= probability, that there is a connection (directed or undirected)
     between two arbitrarily chosen vertices
     """
-    list_vertices = []
-    list_edges = []
+    list_vertices: List[VERTEX] = []
+    list_edges: List[EDGE] = []
 
     # 1 Create Vertices
     for vertex_id in range(1, nr_nodes + 1):
         appendNewVertexToList(list_vertices, vertex_id, labeled_nodes)
 
     # 2 Create Edges if arbitrarily number [0.0, 1.0] <= p_connected
-    list_combinations = combinations(list(range(1, len(list_vertices) + 1)), 2)
+    list_combinations = combinations(list_vertices, 2)
     # list of all possible combinations of length 2 --> lookup list for vertex combinations
     edge_id = 1  # Initialise first edge id
     #print(list_combinations)
@@ -44,24 +44,14 @@ def buildRndGraph(nr_nodes, p_connected, labeled_nodes=False, labeled_edges=Fals
                 # print("1-direct, normal")
                 tmp_dir_edge = combination
                 edge_id = appendNewEdgeToList(list_edges, edge_id, tmp_dir_edge, directed, labeled_edges)[1]
-                # FIXME: Isn't the next line redundant, as by creating the graph, the algorithm will extract
-                #  all neighbours of a node by looking at the list of edges? RECONSIDER!!!!
-                list_vertices[tmp_dir_edge[0]].append_out_neighbour(list_vertices[tmp_dir_edge[1]])
             elif directed_edge_reverse:  # draw edge in "reversed" direction of combination: 1->0
                 # print("1-direct, reverse")
                 tmp_dir_edge = [combination[1], combination[0]]
                 edge_id = appendNewEdgeToList(list_edges, edge_id, tmp_dir_edge, directed, labeled_edges)[1]
-                # FIXME: Isn't the next line redundant, as by creating the graph, the algorithm will extract
-                #  all neighbours of a node by looking at the list of edges? RECONSIDER!!!!
-                list_vertices[tmp_dir_edge[1]].append_out_neighbour(list_vertices[tmp_dir_edge[0]])
         elif (directed is False) and (random.random() <= p_connected):
             # print("2-NON-direct")
             tmp_edge = combination
             edge_id = appendNewEdgeToList(list_edges, edge_id, tmp_edge, directed, labeled_edges)[1]
-            # FIXME: Isn't the next line redundant, as by creating the graph, the algorithm will extract
-            #  all neighbours of a node by looking at the list of edges? RECONSIDER!!!!
-            list_vertices[tmp_edge[0] - 1].append_out_neighbour(list_vertices[tmp_edge[1] - 1])
-            list_vertices[tmp_edge[1] - 1].append_out_neighbour(list_vertices[tmp_edge[0] - 1])
 
     # 3 Create Graph
     if not directed:
@@ -236,19 +226,36 @@ def buildRndCluster(n, d, del_vert=0, del_edges=0, labeled_nodes=False, labeled_
     #for edge in edges:
     #    print("edge: %s" % str(edge))
     # print("len(edges): %s" % len(edges))
+
+    # Create VERTEX-Objects:
+    vertices_objects: List[VERTEX] = []
+    list_vert_ids: List[string] = []
+    for edge in edges:
+        list_vert_ids.extend(edge)
+    list_unique_vert_ids = list(set(list_vert_ids))
+    for vertex_id in list_unique_vert_ids:
+        appendNewVertexToList(vertices_objects, vertex_id, labeled_nodes)
+
     # Create EDGE-Objects
     edges_objects: List[EDGE] = []
     edge_id = 1
+    list_vert_ids: List[string] = []
+
+
+
     for edge in edges:
         # print(edge)
+        edge_with_objects = [getVERTEXwithID(vertices_objects, edge[0]), getVERTEXwithID(vertices_objects, edge[1])]
+        inverted_edge_with_objects = [edge_with_objects[1], edge_with_objects[0]]
+
         if labeled_edges:
             # Edges have to be appended in both directions for undirected graphs
-            edges_objects.append(EDGE(edge_id, list(edge), randomString()))
-            edges_objects.append(EDGE(edge_id, [edge[1], edge[0]], randomString()))
+            edges_objects.append(EDGE(edge_id, edge_with_objects, randomString()))
+            edges_objects.append(EDGE(edge_id, inverted_edge_with_objects, randomString()))
             edge_id += 1
         else:
-            edges_objects.append(EDGE(edge_id, list(edge), ""))
-            edges_objects.append(EDGE(edge_id, [edge[1], edge[0]], ""))
+            edges_objects.append(EDGE(edge_id, edge_with_objects, ""))
+            edges_objects.append(EDGE(edge_id, inverted_edge_with_objects, ""))
             edge_id += 1
     #  Create GRAPH-Object
     graph = GRAPH("random_cluster_graph(%s, %s, %s, %s)" % (n, d, del_vert, del_edges),
@@ -298,7 +305,7 @@ def printListEdges(list):
     print(output)
 
 
-def appendNewVertexToList(vertices, vertex_id, labeled=False):
+def appendNewVertexToList(vertices, vertex_id: int, labeled=False):
     """Appends VERTEX with a given VERTEX-ID to a given list of VERTEX"""
     if labeled:
         vertices.append(VERTEX(vertex_id, randomString()))
@@ -307,7 +314,7 @@ def appendNewVertexToList(vertices, vertex_id, labeled=False):
     return vertices
 
 
-def appendNewEdgeToList(edges, edge_id, start_and_end, directed=False, labeled=False):
+def appendNewEdgeToList(edges, edge_id, start_and_end: List[VERTEX], directed=False, labeled=False):
     """Appends a new EDGE with a given EDGE-ID start-and-end-Vertex-ID to a given list of EDGE"""
     if directed:
         if labeled:
@@ -352,3 +359,8 @@ def appendNewEdgeToSet(edges: List[EDGE], edge_id, start_and_end, directed=False
             edges.add(tmp_edge)
             edges.add(inv_edge)
     return edges
+
+def getVERTEXwithID(list_vertices: List[VERTEX], vertex_id):
+    for vertex_obj in list_vertices:
+        if vertex_obj.get_id() == vertex_id:
+            return vertex_obj
