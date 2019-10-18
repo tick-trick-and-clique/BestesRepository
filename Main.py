@@ -19,7 +19,7 @@ from GuideTree import upgma, guide_tree_to_newick, save_newick, parse_newick_fil
 from Neo4j import NEO4J
 from runpy import run_path
 from Json_Parser import json_parser
-from copy import deepcopy
+from copy import deepcopy, copy
 
 uri = "http://localhost:7474"
 user_name = "neo4j"
@@ -270,7 +270,8 @@ def matching_using_bk(input_graph, graph_left, graph_right, pivot, anchor_graph_
         mp, anchor = modular_product(graph_left, graph_right)
     # Log statement for the console about Bron-Kerbosch
     print("Clique finding via Bron-Kerbosch...")
-    clique_findings = mp.bron_kerbosch(anchor, mp.get_list_of_vertices(), [], pivot=pivot)
+    p = copy(mp.get_list_of_vertices())
+    clique_findings = mp.bron_kerbosch(anchor, p, [], pivot=pivot)
     if clique_sort_func:
         clique_findings.sort(key=lambda x: clique_sort_func(x), reverse=True)
     else:
@@ -602,9 +603,9 @@ if __name__ == '__main__':
 
             if args.input_format == "graph":
                 graph = parser(file_path, args.neo4j)
+                print(graph)
             elif args.input_format == "json":
                 graph = json_parser(file_path, args.neo4j, args.no_h_atoms)
-                print(graph)
 
             if direction is None:
                 direction = graph.get_is_directed()
@@ -655,7 +656,8 @@ if __name__ == '__main__':
         if len(input_graphs) != 1:
             raise Exception("For clique finding via bron-kerbosch, please provide exactly one file path of a graph!")
         else:
-            selected_cliques = input_graphs[0].bron_kerbosch(anchor, input_graphs[0].get_list_of_vertices(), [],
+            p = copy(input_graphs[0].get_list_of_vertices())
+            selected_cliques = input_graphs[0].bron_kerbosch(anchor, p, [],
                                                              pivot=args.pivot)
             duplicates_removed = []
             for clique in selected_cliques:
@@ -810,6 +812,7 @@ if __name__ == '__main__':
 
     # Output of graph from random graph building or modular product.
     if args.graph_output:
+        print(graph)
         print("Graph output: True")
         if graph is None:
             raise Exception("No graph to save in memory!")
@@ -880,7 +883,7 @@ if __name__ == '__main__':
         # also only, including the labels of one graph
 # TODO: Consider a mapping of edge labels as well
 # TODO: Implement 'get_in_neighbours'? Would make VERTEX.reversed_edges() obsolete in bron_kerbosch and some other cases...
-
+# TODO AJ: clique sort function wieder rausschmeißen????
 
 # Notes:
 # When performing bron-kerbosch on a molecular product as command line input, it is not possible to identify the
