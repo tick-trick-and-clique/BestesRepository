@@ -251,7 +251,7 @@ def check_start_end_in_vertices(edge_start_end, currentEdge):
     return
 
 
-def matching_using_bk(input_graph, graph_left, graph_right, pivot, anchor_graph_parameters=None,
+def matching_using_bk(input_graphs, graph_left, graph_right, pivot, anchor_graph_parameters=None,
                       clique_sort_func=None, check_connection=False):
     """
     Helper function for graph alignment using bron-kerbosch algorithm. Takes two graphs and other bron-kerbosch
@@ -270,15 +270,17 @@ def matching_using_bk(input_graph, graph_left, graph_right, pivot, anchor_graph_
         mp, anchor = modular_product(graph_left, graph_right)
     # Log statement for the console about Bron-Kerbosch
     print("Clique finding via Bron-Kerbosch...")
-    p = copy(mp.get_list_of_vertices())
+    p = deepcopy(mp.get_list_of_vertices())
     clique_findings = mp.bron_kerbosch(anchor, p, [], pivot=pivot)
     if clique_sort_func:
         clique_findings.sort(key=lambda x: clique_sort_func(x), reverse=True)
     else:
         clique_findings.sort(key=lambda x: len(x), reverse=True)
     result = []
+    orig_graph_name = [key for key in mp.get_list_of_vertices()[0].get_mapping().keys()][0]
+    orig_graph = [graph for graph in input_graphs if graph.get_name() == orig_graph_name][0]
     for j in range(len(clique_findings)):
-        new_clique_as_graph = retrieve_graph_from_clique(clique_findings[j], input_graph)
+        new_clique_as_graph = retrieve_graph_from_clique(clique_findings[j], orig_graph)
         if check_connection:
             if new_clique_as_graph.is_connected():
                 result.append(new_clique_as_graph)
@@ -311,7 +313,7 @@ def matching_using_mb(graph_left, graph_right, check_connection=False):
     return result
 
 
-def recursive_matching(first_input_graph, cluster, matching_algorithm, pivot, number_matchings,
+def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_matchings,
                        anchor_graph_parameters=[None, None], smaller=0.0, clique_sort_func=None,
                        no_stereo_isomers=False, check_connection=False):
     """
@@ -323,7 +325,7 @@ def recursive_matching(first_input_graph, cluster, matching_algorithm, pivot, nu
     # Left child.
     if cluster.get_left_child().children_exist():
         graphs_right = cluster.get_right_child().get_elements()
-        graphs_left = recursive_matching(first_input_graph, cluster.get_left_child(), matching_algorithm, pivot,
+        graphs_left = recursive_matching(input_graphs, cluster.get_left_child(), matching_algorithm, pivot,
                                          number_matchings, anchor_graph_parameters=anchor_graph_parameters,
                                          clique_sort_func=clique_sort_func,
                                          smaller=smaller, no_stereo_isomers=no_stereo_isomers,
@@ -331,7 +333,7 @@ def recursive_matching(first_input_graph, cluster, matching_algorithm, pivot, nu
     # Right child.
     elif cluster.get_right_child().children_exist():
         graphs_left = cluster.get_left_child().get_elements()
-        graphs_right = recursive_matching(first_input_graph, cluster.get_right_child(), matching_algorithm, pivot,
+        graphs_right = recursive_matching(input_graphs, cluster.get_right_child(), matching_algorithm, pivot,
                                           number_matchings, anchor_graph_parameters=anchor_graph_parameters,
                                           clique_sort_func=clique_sort_func,
                                           smaller=smaller, no_stereo_isomers=no_stereo_isomers,
@@ -347,7 +349,7 @@ def recursive_matching(first_input_graph, cluster, matching_algorithm, pivot, nu
     if matching_algorithm == "bk":
         for gl in graphs_left:
             for gr in graphs_right:
-                new_graphs += matching_using_bk(first_input_graph, gl, gr, pivot,
+                new_graphs += matching_using_bk(input_graphs, gl, gr, pivot,
                                                 anchor_graph_parameters=anchor_graph_parameters,
                                                 clique_sort_func=clique_sort_func,
                                                 check_connection=check_connection)
@@ -443,7 +445,7 @@ def pairwise_alignment(input_graphs, matching_method, number_matchings, pivot, a
         graph1_name = graph1.get_name()
         graph2_name = graph2.get_name()
         if matching_method == "bk":
-            matching_graphs: List[GRAPH] = matching_using_bk(c[0], c[0], c[1], pivot,
+            matching_graphs: List[GRAPH] = matching_using_bk(input_graphs, c[0], c[1], pivot,
                                                              anchor_graph_parameters=anchor_graph_parameters,
                                                              clique_sort_func=clique_sort_func,
                                                              check_connection=check_connection)
@@ -603,7 +605,6 @@ if __name__ == '__main__':
 
             if args.input_format == "graph":
                 graph = parser(file_path, args.neo4j)
-                print(graph)
             elif args.input_format == "json":
                 graph = json_parser(file_path, args.neo4j, args.no_h_atoms)
 
@@ -746,7 +747,7 @@ if __name__ == '__main__':
                 newick = guide_tree_to_newick(copy)
             elif args.guide_tree[0][-7:] == ".newick":
                 print("Guide tree construction: Newick string fil passed")
-                cluster_tree = parse_newick_file_into_tree(args.guide_tree, input_graphs)
+                cluster_tree = parse_newick_file_into_tree(args.guide_tree[0], input_graphs)
                 newick = args.guide_tree[0]
             elif args.guide_tree[0] == "pairwise_align":
                 print("Guide tree construction: Pairwise alignment")
@@ -768,12 +769,11 @@ if __name__ == '__main__':
             cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
             copy = deepcopy(cluster_tree)
             newick = guide_tree_to_newick(copy)
-            print(newick)
         if args.guide_tree and len(args.guide_tree) == 2 and args.guide_tree[1] == "only":
             print("Graph alignment not performed")
             pass
         else:
-            matching_graphs = recursive_matching(input_graphs[0], cluster_tree, args.graph_alignment[0], args.pivot, i,
+            matching_graphs = recursive_matching(input_graphs, cluster_tree, args.graph_alignment[0], args.pivot, i,
                                                  anchor_graph_parameters=anchor_graph_parameters,
                                                  smaller=smaller, clique_sort_func=clique_sort_func,
                                                  no_stereo_isomers=args.no_stereo_isomers,
@@ -835,7 +835,7 @@ if __name__ == '__main__':
                 subgraph_number = int(args.subgraph_output[1])
                 for i in range(min(len(selected_subgraphs), subgraph_number)):
                     for subgraph in selected_subgraphs[i]:
-                        subgraph.save_to_txt(output_file=args.subgraph_output[0] + subgraph[i].get_name(),
+                        subgraph.save_to_txt(output_file=subgraph.get_name() + "_" + args.subgraph_output[0],
                                              sequential_number=i)
                         # create Neo4J View
                         if args.neo4j:
@@ -885,6 +885,8 @@ if __name__ == '__main__':
 # TODO: Implement 'get_in_neighbours'? Would make VERTEX.reversed_edges() obsolete in bron_kerbosch and some other cases...
 # TODO AJ: clique sort function wieder rausschmeißen????
 # TODO: Anchor für cordella implementieren
+# TODO AJ: single bron_kerbosch updaten
+# TODO AJ: GRAPH() parses the neighbours attribute of vertices automatically??? Adapt code...
 
 # Notes:
 # When performing bron-kerbosch on a molecular product as command line input, it is not possible to identify the

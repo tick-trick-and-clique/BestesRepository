@@ -35,7 +35,8 @@ parser.add_argument("-gt", "--guide_tree", nargs='*', metavar="",
 parser.add_argument("-i", "--input", metavar="", nargs='*', help="Supply input path(s) of input file(s).")
 parser.add_argument("-if", "--input_format", choices=["graph", "json"], default="graph",
                     help="Specify type of input files. For .graph files pass 'graph' and for .json files pass 'json'."
-                         "NOTE: Data in json files is supposed to be of the structure of PubChem 2D json files!")
+                         "'graph' is default. NOTE: Data in json files is supposed to be of the structure of PubChem "
+                         "2D json files!")
 parser.add_argument("-mp", "--modular_product", action="store_true", help="Forms the modular product of two graphs.")
 parser.add_argument("-n", "--neo4j", nargs=3, 
                     help="Visualize output using NEO4J!")
