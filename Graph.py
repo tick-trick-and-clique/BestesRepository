@@ -145,14 +145,14 @@ class GRAPH(object):
         else:
             if isinstance(edge_tbd, EDGE):
                 #  Update Out-neighbours
-                id1 = edge_tbd.get_start_and_end()[0]
-                id2 = edge_tbd.get_start_and_end()[1]
-                concerned_vertex1 = self.get_vertex_by_id(id1)
-                new_neighbours1 = [v_id for v_id in concerned_vertex1.get_out_neighbours() if not v_id == id2]
-                concerned_vertex1.set_out_neighbours(new_neighbours1)
-                concerned_vertex2 = self.get_vertex_by_id(id2)
-                new_neighbours2 = [v_id for v_id in concerned_vertex2.get_out_neighbours() if not v_id == id1]
-                concerned_vertex2.set_out_neighbours(new_neighbours2)
+                vertex1 = edge_tbd.get_start_and_end()[0]
+                vertex2 = edge_tbd.get_start_and_end()[1]
+                neighbours1 = vertex1.get_out_neighbours()
+                #concerned_vertex1 = self.get_vertex_by_id(vertex1)
+                new_neighbours1 = [v_id for v_id in vertex1.get_out_neighbours() if not v_id == vertex2]
+                vertex1.set_out_neighbours(new_neighbours1)
+                new_neighbours2 = [v_id for v_id in vertex2.get_out_neighbours() if not v_id == vertex1]
+                vertex2.set_out_neighbours(new_neighbours2)
                 #  Delete edge_tbd and inverted correspondent
                 edge_inverted_tbd = self.inverted_edge(edge_tbd)
                 self.__list_of_edges[:] = \
