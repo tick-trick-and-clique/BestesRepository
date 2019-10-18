@@ -334,8 +334,8 @@ class GRAPH(object):
                     #print(edge.get_start_and_end()[0])
                     #print(edge.get_start_and_end()[1])
 
-                    f.write("\n" + str(edge.get_start_and_end()[0]) + ";"
-                            + str(edge.get_start_and_end()[1]) + ";" + str(edge.get_label()))
+                    f.write("\n" + str(edge.get_start_and_end()[0].get_id()) + ";"
+                            + str(edge.get_start_and_end()[1].get_id()) + ";" + str(edge.get_label()))
         f.close()
 
     def get_out_edge_list(self, vertex):
