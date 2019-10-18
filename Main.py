@@ -884,7 +884,7 @@ if __name__ == '__main__':
         # also only, including the labels of one graph
 # TODO: Consider a mapping of edge labels as well
 # TODO: Implement 'get_in_neighbours'? Would make VERTEX.reversed_edges() obsolete in bron_kerbosch and some other cases...
-
+# TODO AJ: clique sort function wieder rausschmeißen????
 
 # Notes:
 # When performing bron-kerbosch on a molecular product as command line input, it is not possible to identify the
