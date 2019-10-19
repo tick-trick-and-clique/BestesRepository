@@ -442,7 +442,7 @@ def pairwise_alignment(input_graphs, matching_method, pivot, check_connection=Fa
     isomorphism between two graphs relative to the number of vertices of the bigger graph, i.e. that contains the
     maximal number of nodes.
     Return Type: Cluster
-    """
+    """ 
     combinations_of_graphs = itertools.combinations(input_graphs, 2)
     scoring: List[Tuple] = []
     for c in combinations_of_graphs:
@@ -770,7 +770,7 @@ if __name__ == '__main__':
             elif args.guide_tree[0] == "pairwise_align":
                 print("Guide tree construction: Pairwise alignment")
                 cluster_tree = pairwise_alignment(input_graphs, args.graph_alignment[0], args.pivot,
-                                                  anchor_graph_parameters, check_connection=args.check_connection)
+                                                  check_connection=args.check_connection)
                 copy = deepcopy(cluster_tree)
                 newick = guide_tree_to_newick(copy)
             elif args.guide_tree[0] not in ["density", "pairwise_align"]:
