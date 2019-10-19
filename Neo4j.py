@@ -10,7 +10,7 @@ class NEO4J(object):
     classdocs
     '''
 
-    def __init__(self,uri, user_name, pwd, vertices_objects, edges_objects, graph_id):
+    def __init__(self,uri, user_name, pwd, vertices_objects, edges_objects, graph_id, delete):
         '''
         Constructor
         '''
@@ -19,7 +19,10 @@ class NEO4J(object):
         self.__pwd = pwd
         try: 
             self.__graph = Graph(uri, user=user_name, password=pwd)
-            self.create_graphs(vertices_objects, edges_objects, graph_id)
+            if delete == True:
+                self.__graph.delete_all()
+            else:
+                self.create_graphs(vertices_objects, edges_objects, graph_id)
         except:
             print("Please connect with Neo4J Server")
             print("URI: " + self.uri)

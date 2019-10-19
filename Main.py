@@ -214,7 +214,7 @@ def parser(file, neo4j):
     
     # create Neo4J View
     if neo4j:
-        neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], vertices_objects, edges_objects, graph_name)
+        neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], vertices_objects, edges_objects, graph_name,False)
     
     # create graph from class GRAPH
     graph = GRAPH(graph_name, vertices_objects, edges_objects, number_vertices, number_edges, directed,
@@ -547,6 +547,12 @@ if __name__ == '__main__':
     selected_subgraphs = []
     anchor = []
     newick = None
+    
+    #Check if user what to make a new Neo4J Upload 
+    # create Neo4J View
+    if args.neo4j:
+        #Delete old Neo4j database entries 
+        neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], [],  [], "", True)
 
     #  Initialising list of graphs
     graphs = []
@@ -821,7 +827,7 @@ if __name__ == '__main__':
             graph.save_to_txt(output_file=args.graph_output)
             if args.neo4j:
                 # create Neo4J View
-                neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name())
+                neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name(), False)
     else:
         print("Graph output: False")
 
@@ -841,7 +847,7 @@ if __name__ == '__main__':
                         # create Neo4J View
                         if args.neo4j:
                             neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
-                                                 subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
+                                                 subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph", False)
             except ValueError("Please provide an integer value for the number of subgraphs to be exported as second "
                               "argument!"):
                 pass
@@ -852,7 +858,7 @@ if __name__ == '__main__':
                     # create Neo4J View
                     if args.neo4j:
                         neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
-                                             subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
+                                             subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
         elif len(args.subgraph_output) == 1:
             try:
                 subgraph_number = int(args.subgraph_output[0])
@@ -862,7 +868,7 @@ if __name__ == '__main__':
                         # create Neo4J View
                         if args.neo4j:
                             neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
-                                                 subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
+                                                 subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
             except ValueError:
                 for i in range(len(selected_subgraphs)):
                     for subgraph in selected_subgraphs[i]:
@@ -871,7 +877,7 @@ if __name__ == '__main__':
                         # create Neo4J View
                         if args.neo4j:
                             neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
-                                                 subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
+                                                 subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
     else:
         print("Subgraph output: False")
 
