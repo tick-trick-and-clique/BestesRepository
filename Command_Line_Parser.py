@@ -39,6 +39,11 @@ parser.add_argument("-if", "--input_format", choices=["graph", "json"], default=
                          "'graph' is default. NOTE: Data in json files is supposed to be of the structure of PubChem "
                          "2D json files!")
 parser.add_argument("-mp", "--modular_product", action="store_true", help="Forms the modular product of two graphs.")
+parser.add_argument("-ms", "--matching_sort", nargs="*",
+                    help="For custom sorting of matching graphs, pass a file name together with a function in that file"
+                         "that will take a matching-GRAPH object (see manual) and returns a floating point value."
+                         "Matching graphs will then be sorted in descending order. Default is sorting by descending"
+                         "number of vertices!")
 parser.add_argument("-n", "--neo4j", nargs=3, 
                     help="Visualize output using NEO4J!")
 parser.add_argument("-nh", "--no_h_atoms", action="store_true",

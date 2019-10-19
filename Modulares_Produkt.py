@@ -27,12 +27,12 @@ def modular_product(g1, g2, anchor_graph_parameters=None):
             v = VERTEX(i + j*g1_vn, "Default_Label")
             v.combine_mapping(g1_list[i])
             v.combine_mapping(g2_list[j])
-            if anchor_graph_parameters:
-                anchor_vertices = anchor_graph_parameters[0].get_list_of_vertices()
-                for anchor_vertex in anchor_vertices:
-                    if g1_list[i].get_id() == anchor_vertex.get_id():
-                        anchor.append(v)
             new_list_of_vertices.append(v)
+    if anchor_graph_parameters:
+        for v_mp in new_list_of_vertices:
+            for v_anchor in anchor_graph_parameters[0].get_list_of_vertices():
+                if v_mp.get_mapping()[anchor_graph_parameters[1]].get_id() == v_anchor.get_id():
+                    anchor.append(v_mp)
     # Initialize an empty list of edges and an edge counter.
     # Iterate over all pairs of vertices (twice --> both directions) for both graphs.
     # Skip cases where vertices are identical.

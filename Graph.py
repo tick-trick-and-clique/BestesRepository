@@ -502,3 +502,66 @@ def randomString(stringLength=3):
     """ Generate a random string of fixed length """
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(stringLength))
+
+
+def anchor_from_anchor_vertex_list(anchor_graph_list, p):
+    """
+    Function takes two lists of type [VERTEX, ...] as input. The vertices in 'p' corresponding to vertices in
+    'anchor_graph_list' is then returned as list together with the remaining candidate subset of vertices of 'p' as
+    tuple.
+    Return Type: ([VERTEX, ...], [VERTEX, ...])
+    """
+    anchor_subset = []
+    remaining_candidate_subset = []
+    for vertex in p[:]:
+        if vertex.get_id() in [v.get_id() for v in anchor_graph_list]:
+            anchor_subset.append(vertex)
+            p.remove(vertex)
+    for vertex in p:
+        true_list = []
+        for v in anchor_subset:
+            if vertex in v.get_out_neighbours() and v in vertex.get_out_neighbours():
+                true_list.append(True)
+        if len(true_list) == len(anchor_subset) and all(true_list):
+            remaining_candidate_subset.append(vertex)
+    return anchor_subset, remaining_candidate_subset
+
+
+def is_maximal_clique(r, p):
+    """
+    Function determines whether r which is of type [VERTEX, ...] is a maximal clique already, i.e. none of the vertices
+    of p which is of the same type have edges to all vertices in r. Edges must be undirected.
+    Return Type: boolean
+    """
+    result = True
+    for v in p:
+        truelist = []
+        if not v in r:
+            for vertex in r:
+                if vertex in v.get_out_neighbours():
+                    truelist.append(True)
+                else:
+                    truelist.append(False)
+        if all(truelist):
+            result = False
+    return result
+
+
+def remaining_candidates(r, p):
+    """
+    Function takes two lists of type [VERTEX, ...] as input and return the subset of 'p' where each vertex is a
+    candidate for further clique expansion. Edges must be undirected.
+    Return type: [VERTEX, ...]
+    """
+    result = []
+    for v in p:
+        truelist = []
+        if v not in r:
+            for vertex in r:
+                if vertex in v.get_out_neighbours():
+                    truelist.append(True)
+                else:
+                    truelist.append(False)
+        if all(truelist):
+            result.append(v)
+    return result

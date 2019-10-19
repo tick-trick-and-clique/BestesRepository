@@ -66,6 +66,8 @@ def upgma(comp_function, graphs, anchor_graph=False):
                     current_smallest_dist = dist_matrix[i][j]
                     cluster1 = clusters[i]
                     cluster2 = clusters[j]
+                    a = i
+                    b = j
         else:
             for i in range(n - 1):
                 for j in range(i + 1, n):
