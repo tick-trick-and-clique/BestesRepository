@@ -20,6 +20,7 @@ from Neo4j import NEO4J
 from runpy import run_path
 from Json_Parser import json_parser
 from copy import deepcopy, copy
+from lib2to3.fixer_util import Number
 
 uri = "http://localhost:7474"
 user_name = "neo4j"
@@ -819,7 +820,6 @@ if __name__ == '__main__':
 
     # Output of graph from random graph building or modular product.
     if args.graph_output:
-        print(graph)
         print("Graph output: True")
         if graph is None:
             raise Exception("No graph to save in memory!")
@@ -830,6 +830,7 @@ if __name__ == '__main__':
                 neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name(), False)
     else:
         print("Graph output: False")
+
 
     # Output of subgraphs from graph alignment or bron-kerbosch algorithm on a modular product.
     if args.subgraph_output is not None and (input_graphs or graph) and selected_subgraphs:

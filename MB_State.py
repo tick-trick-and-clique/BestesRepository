@@ -47,6 +47,7 @@ class MB_State:
         self.out_2_len = 0
 
     def mb_algorithm(self, previously_added=None):
+        #print("Ebene", self.core_len)
         result_as_mapping_dict = {}
         result_as_mapping_list = []
         if self.all_vertices_of_g2_covered():
@@ -55,13 +56,15 @@ class MB_State:
             #print("Graph 1  Graph2")
             for key, value in self.core_1.items():
                 if value:
-             #       print(key, value.get_id(), sep="\t")
-                    result_as_mapping_dict[key] = value.get_id()
-            #type(print("\n")
+                   #print(key, value.get_id(), sep="\t")
+                   result_as_mapping_dict[key] = value.get_id()
+            #type(print("\n"))
             self.restore_data_structures(previously_added)
             return [result_as_mapping_dict]
         else:
             p = self.compute_candidates()
+            #print("core1", self.core_1)
+            #print("core2", self.core_2)
             for candidate in p:
                 if self.is_feasible(candidate):
                     self.add_pair(candidate)
@@ -74,7 +77,6 @@ class MB_State:
 
     def compute_candidates(self):
         # Functions returns a set of index tuples corresponding to potential vertex matchings between the two graphs
-
         if self.out_1_len and self.out_2_len:
             v2 = min([key for key in self.out_2.keys() if not self.core_2[key]])
             p = {(key, v2) for key in self.out_1.keys() if not self.core_1[key]}
@@ -196,7 +198,7 @@ class MB_State:
         self.core_1[g1_vertex_index] = g2_vertex
         self.core_2[g2_vertex_index] = g1_vertex
         for edge in self.graph1.get_out_edge_list(g1_vertex):
-            other_v = edge.get_start_and_end()[0]
+            other_v = edge.get_start_and_end()[1]
             if not self.out_1[other_v.get_id()]:
                 self.out_1[other_v.get_id()] = self.core_len
                 self.out_1_len += 1
@@ -208,12 +210,12 @@ class MB_State:
                 self.in_1_len += 1
                 self.both_1_len += 1
         for edge in self.graph2.get_out_edge_list(g2_vertex):
-            other_v = edge.get_start_and_end()[0]
+            other_v = edge.get_start_and_end()[1]
             if not self.out_2[other_v.get_id()]:
                 self.out_2[other_v.get_id()] = self.core_len
                 self.out_2_len += 1
                 self.both_2_len += 1
-        for edge in self.graph1.get_in_edge_list(g2_vertex):
+        for edge in self.graph2.get_in_edge_list(g2_vertex):
             other_v = edge.get_start_and_end()[0]
             if not self.in_2[other_v.get_id()]:
                 self.in_2[other_v.get_id()] = self.core_len
