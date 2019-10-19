@@ -8,7 +8,7 @@ Created on 07.05.2019
 import os, string, random, itertools
 from typing import List, Tuple
 from Graph import GRAPH, density, retrieve_graph_from_clique, retrieve_original_subgraphs, \
-    anchor_from_anchor_vertex_list, is_maximal_clique, remaining_candidates
+    anchor_from_anchor_vertex_list, remaining_candidates
 from Vertex import VERTEX
 from Edge import EDGE
 from Command_Line_Parser import parse_command_line
@@ -267,7 +267,7 @@ def matching_using_bk(input_graphs, graph_left, graph_right, pivot, anchor_graph
         mp, anchor = modular_product(graph_left, graph_right)
     # Log statement for the console about Bron-Kerbosch
     print("Clique finding via Bron-Kerbosch...")
-    p = deepcopy(mp.get_list_of_vertices())
+    p = mp.get_list_of_vertices()
     clique_findings = []
     if anchor_graph_parameters:
         pre_findings = mp.bron_kerbosch([], anchor, [], pivot=pivot)
@@ -281,7 +281,7 @@ def matching_using_bk(input_graphs, graph_left, graph_right, pivot, anchor_graph
                 else:
                     clique_findings += mp.bron_kerbosch(pre_finding, p, [], pivot=pivot)
     else:
-        clique_findings = mp.bron_kerbosch(anchor, p, [], pivot=pivot)
+        clique_findings = mp.bron_kerbosch([], p, [], pivot=pivot)
     clique_findings.sort(key=lambda x: len(x), reverse=True)
     result = []
     orig_graph_name = [key for key in mp.get_list_of_vertices()[0].get_mapping().keys()][0]
@@ -293,7 +293,6 @@ def matching_using_bk(input_graphs, graph_left, graph_right, pivot, anchor_graph
                 result.append(new_clique_as_graph)
         else:
             result.append(new_clique_as_graph)
-    print(result)
     return result
 
 

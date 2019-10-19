@@ -8,7 +8,7 @@ from queue import Queue
 from Edge import EDGE
 from Vertex import VERTEX
 from typing import List
-
+from copy import copy
 
 class GRAPH(object):
     # TODO: number_of_vertices and number_of_edges is kind of obsolete, remove and reconstruct from given lists?!
@@ -57,7 +57,7 @@ class GRAPH(object):
         '''
         returns vertices(list) of the graph
         '''
-        return self.__list_of_vertices
+        return copy(self.__list_of_vertices)
 
     def get_list_of_edges(self):
         '''
@@ -525,26 +525,6 @@ def anchor_from_anchor_vertex_list(anchor_graph_list, p):
         if len(true_list) == len(anchor_subset) and all(true_list):
             remaining_candidate_subset.append(vertex)
     return anchor_subset, remaining_candidate_subset
-
-
-def is_maximal_clique(r, p):
-    """
-    Function determines whether r which is of type [VERTEX, ...] is a maximal clique already, i.e. none of the vertices
-    of p which is of the same type have edges to all vertices in r. Edges must be undirected.
-    Return Type: boolean
-    """
-    result = True
-    for v in p:
-        truelist = []
-        if not v in r:
-            for vertex in r:
-                if vertex in v.get_out_neighbours():
-                    truelist.append(True)
-                else:
-                    truelist.append(False)
-        if all(truelist):
-            result = False
-    return result
 
 
 def remaining_candidates(r, p):
