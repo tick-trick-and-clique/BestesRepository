@@ -820,7 +820,7 @@ if __name__ == '__main__':
             graph.save_to_txt(output_file=args.graph_output)
             if args.neo4j:
                 # create Neo4J View
-                neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], graph.get_list_of_vertices(),graph.get_list_of_edges(), args.graph_output)
+                neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name())
     else:
         print("Graph output: False")
 
