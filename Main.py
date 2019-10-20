@@ -328,18 +328,18 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
     'number_matchings' specifies the maximum number of cliques that will be considered for further graph alignment.
     Return type: [GRAPH, ...]
     """
+    graphs_left = cluster.get_left_child().get_elements()
+    graphs_right = cluster.get_right_child().get_elements()
     # If the children are not tree leaves (i.e. grandchildren exist), then call function for these children.
     # Left child.
     if cluster.get_left_child().children_exist():
-        graphs_right = cluster.get_right_child().get_elements()
         graphs_left = recursive_matching(input_graphs, cluster.get_left_child(), matching_algorithm, pivot,
                                          number_matchings, anchor_graph_parameters=anchor_graph_parameters,
                                          matching_sort_func=matching_sort_func,
                                          smaller=smaller, no_stereo_isomers=no_stereo_isomers,
                                          check_connection=check_connection)
     # Right child.
-    elif cluster.get_right_child().children_exist():
-        graphs_left = cluster.get_left_child().get_elements()
+    if cluster.get_right_child().children_exist():
         graphs_right = recursive_matching(input_graphs, cluster.get_right_child(), matching_algorithm, pivot,
                                           number_matchings, anchor_graph_parameters=anchor_graph_parameters,
                                           matching_sort_func=matching_sort_func,
@@ -349,9 +349,6 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
     # Perform graph matching of the two leaf graphs (use the matching method provided by user)
     # Update the cluster with one new leaf, deleting the previous two
     # Return to the upper recursion level
-    else:
-        graphs_left = cluster.get_left_child().get_elements()
-        graphs_right = cluster.get_right_child().get_elements()
     new_graphs = []
     if matching_algorithm == "bk":
         for gl in graphs_left:
@@ -789,6 +786,7 @@ if __name__ == '__main__':
             cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
             copy = deepcopy(cluster_tree)
             newick = guide_tree_to_newick(copy)
+            print(newick)
         if args.guide_tree and len(args.guide_tree) == 2 and args.guide_tree[1] == "only":
             print("Graph alignment not performed")
             pass
@@ -798,6 +796,7 @@ if __name__ == '__main__':
                                                  smaller=smaller, matching_sort_func=matching_sort_func,
                                                  no_stereo_isomers=args.no_stereo_isomers,
                                                  check_connection=args.check_connection)
+            print(len(matching_graphs))
             for matching_graph in matching_graphs:
                 if matching_graph:
                     original_subgraphs = retrieve_original_subgraphs(matching_graph, input_graphs)
@@ -904,7 +903,6 @@ if __name__ == '__main__':
 # TODO: Implement 'get_in_neighbours'? Would make VERTEX.reversed_edges() obsolete in bron_kerbosch and some other cases...
 # TODO AJ: Anchor für cordella implementieren
 # TODO AJ: graph output sollte alle graphen ausgebgen die jemals hier sind
-# TODO AJ: Check whether upgma is really upgma
 # Notiz: Anchor graph kann nicht für pairwise alignment benutzt werden.
 # Notiz: default number matchings is 1.
 # --> Johann sagen:

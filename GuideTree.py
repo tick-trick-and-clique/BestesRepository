@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
-
+from copy import copy
 
 class Cluster:
     def __init__(self, e):
@@ -41,14 +41,19 @@ def upgma(comp_function, graphs, anchor_graph=False):
     tree which is returned as a the top cluster of a binary tree of clusters.
     Return type: Cluster
     """
+    n = len(graphs)
+
+    # Initialize the distance matrix of graphs as dictionary of dictionaries with graph names as keys
+    dist_matrix_graphs = {graphs[j].get_name(): {graphs[i].get_name(): comp_function(graphs[i], graphs[j])
+                                                 for i in range(n)} for j in range(n)}
+
     # Initialize n clusters each containing one graph
     clusters = []
-    n = len(graphs)
     for i in range(n):
         clusters.append(Cluster([graphs[i]]))
 
-    # Initialize the distance matrix
-    dist_matrix = [[comp_function(graphs[i], graphs[j]) for i in range(n)] for j in range(n)]
+    # Initialize the distance matrix of clusters
+    dist_matrix_clusters = [[comp_function(graphs[i], graphs[j]) for i in range(n)] for j in range(n)]
 
     # Until there is only one top cluster left, calculate the pairwise distance of each cluster, select the pair of
     # clusters with smallest distance and merge them.
@@ -62,8 +67,8 @@ def upgma(comp_function, graphs, anchor_graph=False):
             anchor_graph = False
             i = 0
             for j in range(1, n):
-                if dist_matrix[i][j] < current_smallest_dist:
-                    current_smallest_dist = dist_matrix[i][j]
+                if dist_matrix_clusters[i][j] < current_smallest_dist:
+                    current_smallest_dist = dist_matrix_clusters[i][j]
                     cluster1 = clusters[i]
                     cluster2 = clusters[j]
                     a = i
@@ -71,8 +76,8 @@ def upgma(comp_function, graphs, anchor_graph=False):
         else:
             for i in range(n - 1):
                 for j in range(i + 1, n):
-                    if dist_matrix[i][j] < current_smallest_dist:
-                        current_smallest_dist = dist_matrix[i][j]
+                    if dist_matrix_clusters[i][j] < current_smallest_dist:
+                        current_smallest_dist = dist_matrix_clusters[i][j]
                         cluster1 = clusters[i]
                         cluster2 = clusters[j]
                         a = i
@@ -81,30 +86,44 @@ def upgma(comp_function, graphs, anchor_graph=False):
         new_cluster.set_children(cluster1, cluster2)
 
         # Update the list length and update the distance matrix according to the merge product cluster
-        dist_matrix = update_distance_matrix(comp_function, clusters, dist_matrix, new_cluster, a, b)
+        dist_matrix_clusters = update_distance_matrix(comp_function, clusters, dist_matrix_clusters, new_cluster, a, b,
+                                                      dist_matrix_graphs)
         n -= 1
 
     # Return the top cluster (i.e. tree root).
     return clusters[0]
 
 
-def distance_between_clusters(comp_function, cluster1, cluster2):
+def distance_between_clusters(comp_function, cluster1, cluster2, distance_matrix_graphs):
     """
     Takes a comparison function and two clusters of clusters/graphs as input and calculates the distance between the
     two clusters.
     Return type: float
     """
-    distance = 0
-    c1e = cluster1.get_elements()
-    c2e = cluster2.get_elements()
-    for i in range(len(c1e)):
-        for j in range(len(c2e)):
-            distance += comp_function(c1e[i], c2e[j])
-    distance = distance/(len(c1e) * len(c2e))
+    distance = None
+    if cluster1.children_exist():
+        a = len(cluster1.get_left_child().get_elements())
+        b = len(cluster1.get_right_child().get_elements())
+        distance = (distance_between_clusters(comp_function, cluster1.get_left_child(), cluster2,
+                                              distance_matrix_graphs) * a +
+                    distance_between_clusters(comp_function, cluster1.get_right_child(), cluster2,
+                                              distance_matrix_graphs) * b) / (a + b)
+    if cluster2.children_exist():
+        a = len(cluster2.get_left_child().get_elements())
+        b = len(cluster2.get_right_child().get_elements())
+        distance = (distance_between_clusters(comp_function, cluster1, cluster2.get_left_child(),
+                                              distance_matrix_graphs) * a +
+                    distance_between_clusters(comp_function, cluster1, cluster2.get_right_child(),
+                                              distance_matrix_graphs) * b) / (a + b)
+    if not cluster1.children_exist() and not cluster2.children_exist():
+        distance = distance_matrix_graphs[cluster1.get_elements()[0].get_name()][cluster2.get_elements()[0].get_name()]
+    if distance is None:
+        raise Exception("Error occurred in calculation of distance of clusters!")
     return distance
 
 
-def update_distance_matrix(comp_function, clusters, dist_matrix, new_cluster, index_previous1, index_previous2):
+def update_distance_matrix(comp_function, clusters, dist_matrix, new_cluster, index_previous1, index_previous2,
+                           distance_matrix_graphs):
     """
     Takes
         a list of clusters,
@@ -133,8 +152,8 @@ def update_distance_matrix(comp_function, clusters, dist_matrix, new_cluster, in
     # Calculate the distance from the new cluster to all the remaining clusters and append to the matrix both as column
     # and as line
     for i in range(len(dist_matrix)):
-        dist_matrix[i].append(distance_between_clusters(comp_function, clusters[i], new_cluster))
-    dist_matrix.append([distance_between_clusters(comp_function, clusters[i], new_cluster)
+        dist_matrix[i].append(distance_between_clusters(comp_function, clusters[i], new_cluster, distance_matrix_graphs))
+    dist_matrix.append([distance_between_clusters(comp_function, clusters[i], new_cluster, distance_matrix_graphs)
                         for i in range(len(dist_matrix))])
     return dist_matrix
 
