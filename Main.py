@@ -690,7 +690,6 @@ if __name__ == '__main__':
             else:
                 matching_graphs = sorted(matching_graphs, key=lambda x: x.get_number_of_vertices(), reverse=True)
             for matching_graph in matching_graphs:
-                print(len(matching_graph.get_list_of_vertices()))
                 original_subgraph = retrieve_original_subgraphs(matching_graph, input_graphs)
                 selected_subgraphs.append(original_subgraph)
                 
@@ -796,7 +795,6 @@ if __name__ == '__main__':
                                                  smaller=smaller, matching_sort_func=matching_sort_func,
                                                  no_stereo_isomers=args.no_stereo_isomers,
                                                  check_connection=args.check_connection)
-            print(len(matching_graphs))
             for matching_graph in matching_graphs:
                 if matching_graph:
                     original_subgraphs = retrieve_original_subgraphs(matching_graph, input_graphs)
