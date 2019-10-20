@@ -92,7 +92,7 @@ class NEO4J(object):
             if vertex.get_label() != "":
                 currentNode = Node(vertex.get_label(), id=vertex.get_id(), label=vertex.get_label(), graph_id = graph_id)
             else:#if vertices doesnt have labels take id as label
-                currentNode = Node(str(vertex.get_id()), id=vertex.get_id(), label=str(vertex.get_id()), graph_id = graph_id)
+                currentNode = Node(str(vertex.get_id()), id=vertex.get_id(), label=" ", graph_id = graph_id)
             tx.create(currentNode)
             
         tx.commit()#commit transaction
@@ -111,8 +111,8 @@ class NEO4J(object):
                 startNode = matcher.match(start.get_label(), id=start.get_id(),label=start.get_label(), graph_id = graph_id).first()
                 endNode = matcher.match(end.get_label(), id=end.get_id(),label= end.get_label(), graph_id = graph_id).first()
             else:#if edeges doesnt have labels take id as label
-                startNode = matcher.match(str(start.get_id()), id=start.get_id(),label=str(start.get_id()), graph_id = graph_id).first()
-                endNode = matcher.match(str(end.get_id()), id=end.get_id(),label= str(end.get_id()), graph_id = graph_id).first()
+                startNode = matcher.match(str(start.get_id()), id=start.get_id(),label=" ", graph_id = graph_id).first()
+                endNode = matcher.match(str(end.get_id()), id=end.get_id(),label= " ", graph_id = graph_id).first()
             if relationship != "":
                 relation = Relationship(startNode, relationship, endNode)
             else:

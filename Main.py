@@ -635,6 +635,7 @@ if __name__ == '__main__':
             print("Pivot Mode: " + args.pivot)
 
     # Checking for an anchor graph file and checking anchor for clique property. Anchor default is a list.
+    p = input_graphs[0].get_list_of_vertices()
     if not args.anchor:
         anchor_graph = None
         print("Anchor File: --")
@@ -657,7 +658,6 @@ if __name__ == '__main__':
                 raise Exception("For clique finding via bron-kerbosch, "
                                 "please provide exactly one file path of a graph!")
             else:
-                p = copy(input_graphs[0].get_list_of_vertices())
                 anchor, p = anchor_from_anchor_vertex_list(anchor_graph.get_list_of_vertices(), p)
 
     matching_sort_func = None
@@ -693,8 +693,10 @@ if __name__ == '__main__':
             else:
                 matching_graphs = sorted(matching_graphs, key=lambda x: x.get_number_of_vertices(), reverse=True)
             for matching_graph in matching_graphs:
+                print(len(matching_graph.get_list_of_vertices()))
                 original_subgraph = retrieve_original_subgraphs(matching_graph, input_graphs)
                 selected_subgraphs.append(original_subgraph)
+                
             # Log statement for the console about Bron-Kerbosch
             print("Clique finding via Bron-Kerbosch...")
 
@@ -742,7 +744,7 @@ if __name__ == '__main__':
                     print("Relative size reduction: " + str(smaller))
                 except ValueError("Illegal value for the allowed reduction of subgraph size!"):
                     pass
-        if len(args.graph_alignment) >= 2:
+        if len(args.graph_alignment) >= 2: #if e.g. bk 2 
             try:
                 i = int(args.graph_alignment[1])
                 if i < 1:
@@ -750,6 +752,8 @@ if __name__ == '__main__':
                 print("Number of matchings forwarded: " + str(i))
             except ValueError("Illegal value for the number of matchings to expand search on!"):
                 pass
+        else:
+            print("Number of matchings forwarded: 1 (Default)")
 
         if anchor_graph:
             anchor_graph_parameters = [anchor_graph, input_graphs[0].get_name()]
