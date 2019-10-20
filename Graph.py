@@ -536,12 +536,15 @@ def remaining_candidates(r, p):
     result = []
     for v in p:
         truelist = []
+        # print("v mapping", v.get_mapping()["graph2"], v.get_mapping()["graph6"])
         if v not in r:
             for vertex in r:
                 if vertex in v.get_out_neighbours():
                     truelist.append(True)
+                    #print("t")
                 else:
                     truelist.append(False)
-        if all(truelist):
-            result.append(v)
+                    #print("f")
+            if all(truelist):
+                result.append(v)
     return result

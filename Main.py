@@ -267,19 +267,17 @@ def matching_using_bk(input_graphs, graph_left, graph_right, pivot, anchor_graph
         mp, anchor = modular_product(graph_left, graph_right)
     # Log statement for the console about Bron-Kerbosch
     print("Clique finding via Bron-Kerbosch...")
-    p = mp.get_list_of_vertices()
     clique_findings = []
+    p = mp.get_list_of_vertices()
     if anchor_graph_parameters:
         pre_findings = mp.bron_kerbosch([], anchor, [], pivot=pivot)
         pre_findings.sort(key=lambda x: len(x), reverse=True)
         max_pre_findings = len(pre_findings[0])
         for pre_finding in pre_findings:
             if len(pre_finding) == max_pre_findings:
+                p = mp.get_list_of_vertices()
                 p = remaining_candidates(pre_finding, p)
-                if len(p) == 0:
-                    clique_findings.append(pre_finding)
-                else:
-                    clique_findings += mp.bron_kerbosch(pre_finding, p, [], pivot=pivot)
+                clique_findings += mp.bron_kerbosch(pre_finding, p, [], pivot=pivot)
     else:
         clique_findings = mp.bron_kerbosch([], p, [], pivot=pivot)
     clique_findings.sort(key=lambda x: len(x), reverse=True)
@@ -555,7 +553,7 @@ if __name__ == '__main__':
     #Check if user what to make a new Neo4J Upload 
     # create Neo4J View
     if args.neo4j:
-        #Delete old Neo4j database entries 
+        #Delete old Neo4j database entries
         neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], [],  [], "", True)
 
     #  Initialising list of graphs
@@ -594,7 +592,7 @@ if __name__ == '__main__':
     elif not args.input and not args.random_graph and not args.random_cluster:
         raise Exception("Please provide input file(s) with preceding '-i' statement!")
     else:
-        if (args.random_graph or args.random_cluster) and graph:
+        if (args.random_graph or args.random_cluster) and graph:  # FIXME: AJ: What does this line?
             input_graphs.append(graph)
         direction = None
         for i in range(len(args.input)):
@@ -705,6 +703,7 @@ if __name__ == '__main__':
             graph1_name = input_graphs[0].get_name()
             graph2_name = input_graphs[1].get_name()
             graph, anchor = modular_product(input_graphs[0], input_graphs[1])
+            graphs.append(graph)
             # if args.neo4j:
                 # neo4jProjekt = NEO4J("http://localhost:11003/db/data/", "neo4j", "1234")
                 # neo4jProjekt.create_graphs(neo4jProjekt.get_graph(), graph.get_list_of_vertices(), graph.get_list_of_edges(),graph.get_name())
@@ -830,13 +829,17 @@ if __name__ == '__main__':
     # Output of graph from random graph building or modular product.
     if args.graph_output:
         print("Graph output: True")
-        if graph is None:
+        if len(graphs) == 0:
             raise Exception("No graph to save in memory!")
         else:
-            graph.save_to_txt(output_file=args.graph_output)
-            if args.neo4j:
-                # create Neo4J View
-                neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name(), False)
+            for i in range(len(graphs)):
+                if len(graphs) == 1:
+                    graph.save_to_txt(output_file=args.graph_output)
+                else:
+                    graph.save_to_txt(output_file=args.graph_output, sequential_number=i+1)
+                if args.neo4j:
+                    # create Neo4J View
+                    neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name(), False)
     else:
         print("Graph output: False")
 
@@ -900,7 +903,9 @@ if __name__ == '__main__':
     # TODO AJ: Diese Info noch an Johann übergeben.
 # TODO: Implement 'get_in_neighbours'? Would make VERTEX.reversed_edges() obsolete in bron_kerbosch and some other cases...
 # TODO AJ: Anchor für cordella implementieren
-# TODO AJ: graph output sollte alle graphen ausgebgen die jemals hier sind
+# TODO AJ: OUTPUT of pypy3 Main.py -i graph6.graph graph2.graph graph3.graph -a graph6_anchor.graph -ga bk 1000 -sgo
+# 1000 -nsi checken
+
 # Notiz: Anchor graph kann nicht für pairwise alignment benutzt werden.
 # Notiz: default number matchings is 1.
 # --> Johann sagen:
