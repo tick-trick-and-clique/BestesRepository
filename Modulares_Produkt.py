@@ -55,6 +55,7 @@ def modular_product(g1, g2, anchor_graph_parameters=None):
                             [v3.get_id() in [vertex.get_id() for vertex in v4.get_out_neighbours()],
                              v4.get_id() in [vertex.get_id() for vertex in v3.get_out_neighbours()]]):
                         """ INSERT CODE THAT SHOULD INCLUDE MORE CONDITIONALS e.g. SAME LABEL, DIRECTION etc. """
+
                         # Like this, two vertices in the modular product graph always have two or no edges connecting
                         # them. Once with each vertex being the start vertex.
                         # The information about type of connection is not conserved in this modular product!

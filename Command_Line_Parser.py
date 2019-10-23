@@ -38,6 +38,20 @@ parser.add_argument("-if", "--input_format", choices=["graph", "json"], default=
                     help="Specify type of input files. For .graph files pass 'graph' and for .json files pass 'json'."
                          "'graph' is default. NOTE: Data in json files is supposed to be of the structure of PubChem "
                          "2D json files!")
+
+
+parser.add_argument("-vlm", "--vertex_label_matching", nargs="*",
+                    help="For custom matching-conditions of vertex-labels, pass a file name together with a function "
+                         "in that file that will take two strings (see manual) and returns a boolean value."
+                         "If return is TRUE, two two distinct VERTEX-objects with relative strings as labels are "
+                         "possible matches.")
+parser.add_argument("-elm", "--edge_label_matching", nargs="*",
+                    help="For custom matching-conditions of edge-labels, pass a file name together with a function "
+                         "in that file that will take two strings (labels) and returns a boolean value."
+                         "If return is TRUE, two distinct EDGE-objects with relative strings as labels are "
+                         "possible matches.")
+
+
 parser.add_argument("-mp", "--modular_product", action="store_true", help="Forms the modular product of two graphs.")
 parser.add_argument("-ms", "--matching_sort", nargs="*",
                     help="For custom sorting of matching graphs, pass a file name together with a function in that file"

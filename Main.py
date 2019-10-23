@@ -582,7 +582,7 @@ if __name__ == '__main__':
             graph = buildRndCluster(args.random_cluster[0], args.random_cluster[1],
                                     args.random_cluster[2], args.random_cluster[3])
             graphs.append(graph)
-            print(len(graphs))
+            #print(len(graphs))
         except IOError:
             print("Invalid number of arguments for random cluster graph building!")
         except ValueError:
@@ -592,8 +592,6 @@ if __name__ == '__main__':
     elif not args.input and not args.random_graph and not args.random_cluster:
         raise Exception("Please provide input file(s) with preceding '-i' statement!")
     else:
-        if (args.random_graph or args.random_cluster) and graph:  # FIXME: AJ: What does this line?
-            input_graphs.append(graph)
         direction = None
         for i in range(len(args.input)):
 
@@ -621,6 +619,7 @@ if __name__ == '__main__':
             if direction != graph.get_is_directed():
                 raise Exception("Input graphs have to be either all directed or all undirected!")
             input_graphs.append(graph)
+        p = input_graphs[0].get_list_of_vertices()
 
     # Log statement for the console about the Pivot Mode!
     if args.bron_kerbosch or args.graph_alignment and args.graph_alignment[0] == "bk":
@@ -630,7 +629,6 @@ if __name__ == '__main__':
             print("Pivot Mode: " + args.pivot)
 
     # Checking for an anchor graph file and checking anchor for clique property. Anchor default is a list.
-    p = input_graphs[0].get_list_of_vertices()
     if not args.anchor:
         anchor_graph = None
         print("Anchor File: --")
