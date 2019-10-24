@@ -289,13 +289,14 @@ class GRAPH(object):
         saves representation of the GRAPH object to textfile: ["self.__name.graph"]
         """
         # Default value should be self.__name.graph
-        if output_file == 1:
+        if output_file == 1 and output_file.isdigit():
             output_file = self.get_name() + ".graph"        # Couldn't call self.get_name() in the method parameter list
 
         # If provided argument is not a valid directory and also is not a valid file name, raise NotADirectoryError
         if not os.path.isdir(os.path.dirname(output_file)) \
                 and not os.path.isdir(os.path.dirname(os.path.abspath(output_file))):
             raise NotADirectoryError("Given path is not a directory!")
+        
 
         # If the provided argument does not end with '.graph', raise NameError
         if output_file[-6:] != ".graph":

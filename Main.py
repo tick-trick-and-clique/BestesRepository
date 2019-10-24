@@ -583,7 +583,7 @@ if __name__ == '__main__':
         except IOError:
             print("Invalid number of arguments for random cluster graph building!")
         except ValueError:
-            print("invalid type of arguments for random cluster graph building!")
+            print("invalid type of arguments for random clfuster graph building!")
 
     # If neither input file(s) not random graph option are given, raise Exception. Else, parse input!
     elif not args.input and not args.random_graph and not args.random_cluster:
@@ -868,8 +868,8 @@ if __name__ == '__main__':
                         neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
                                              subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
         elif len(args.subgraph_output) == 1:
-            try:
-                subgraph_number = int(args.subgraph_output[0])
+            if args.subgraph_output[0].isdigit():
+                subgraph_number = int(args.subgraph_output[0]) #if subgraph output value is the number of selected subgraphs
                 for i in range(min(len(selected_subgraphs), subgraph_number)):
                     for subgraph in selected_subgraphs[i]:
                         subgraph.save_to_txt(output_file=subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
@@ -877,10 +877,10 @@ if __name__ == '__main__':
                         if args.neo4j:
                             neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
                                                  subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
-            except ValueError:
+            else:#if subgraph output value is only the path or the graph name 
                 for i in range(len(selected_subgraphs)):
                     for subgraph in selected_subgraphs[i]:
-                        subgraph.save_to_txt(output_file=args.subgraph_output[0] + subgraph.get_name(),
+                        subgraph.save_to_txt(output_file= args.subgraph_output[0],
                                              sequential_number=i)
                         # create Neo4J View
                         if args.neo4j:
