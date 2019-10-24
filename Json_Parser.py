@@ -77,6 +77,5 @@ def json_parser(file_path, neo4j, no_h_atoms):
 
     # create Neo4J View
     if neo4j:
-        neo4jProjekt = NEO4J("http://localhost:7474/db/data/", "neo4j", "1234", list_of_vertices, list_of_edges,
-                             molecule_name)
+        neo4jProjekt = NEO4J(neo4j[0], neo4j[1], neo4j[2], list_of_vertices, list_of_edges, molecule_name, False)
     return graph

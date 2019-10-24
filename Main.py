@@ -23,9 +23,6 @@ from Json_Parser import json_parser
 from copy import deepcopy, copy
 from lib2to3.fixer_util import Number
 
-uri = "http://localhost:7474"
-user_name = "neo4j"
-pwd = "1234"
 
 def parser(file, neo4j):
     """
@@ -216,7 +213,7 @@ def parser(file, neo4j):
     
     # create Neo4J View
     if neo4j:
-        neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], vertices_objects, edges_objects, graph_name,False)
+        neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], vertices_objects, edges_objects, graph_name, False)
     
     # create graph from class GRAPH
     graph = GRAPH(graph_name, vertices_objects, edges_objects, number_vertices, number_edges, directed,
