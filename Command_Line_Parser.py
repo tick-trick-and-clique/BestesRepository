@@ -83,7 +83,8 @@ parser.add_argument("-rc", "--random_cluster", nargs=4, type=int,
                               "(del_vert, int) and finally how mandy edges you want to delete(del_edges, int)"
                               "e.g. '20 3 2 2'.")
 parser.add_argument("-sgo", "--subgraph_output", metavar="", nargs='*',
-                    help="Saves found subgraphs as .graph file. If a path (in quotation marks!) is provided, subgraphs "
+                    help="Saves found subgraphs as .graph file. You may specifiy the number of matchings in your output"
+                         "(e.g. -sgo 5), default is all matchings. If a path (in quotation marks!) is provided, subgraphs "
                          "will be saved there with an additional sequential number. If a .graph file name is provided, "
                          "they will be saved with that name in the current working directory. Else they will be saved "
                          "in the current working directory using a default name.")

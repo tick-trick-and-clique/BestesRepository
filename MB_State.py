@@ -248,5 +248,3 @@ class MB_State:
             self.core_1[previously_added[0]] = None
             self.core_2[previously_added[1]] = None
         return
-
-# TODO: Maps durch Listen ersetzen wo möglich, um bessere Performance zu erreichen
