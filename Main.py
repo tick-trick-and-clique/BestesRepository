@@ -408,7 +408,7 @@ def mb_mapping_to_graph(result_as_mapping, graph1, graph2):
                         new_e = EDGE(edge.get_id(), [new_v1, new_v2], edge.get_label())
                         loe.append(new_e)
                         new_v1.append_out_neighbour(new_v2)
-        graph_name = [random.choice(string.ascii_letters) for n in range(8)]
+        graph_name = "".join([random.choice(string.ascii_letters) for n in range(8)])
         graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), graph1.get_is_directed(),
                       graph1.get_is_labelled_nodes(), graph1.get_is_labelled_edges())
     return graph
@@ -779,7 +779,6 @@ if __name__ == '__main__':
             cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
             copy = deepcopy(cluster_tree)
             newick = guide_tree_to_newick(copy)
-            print(newick)
         if args.guide_tree and len(args.guide_tree) == 2 and args.guide_tree[1] == "only":
             print("Graph alignment not performed")
             pass
@@ -897,10 +896,12 @@ if __name__ == '__main__':
     # - For bron-kerbosch this is handled in the call of 'retrieve_graph_from_clique in 'matching_using_bk' so far,
     # TODO AJ: Diese Info noch an Johann übergeben.
 # TODO: Implement 'get_in_neighbours'? Would make VERTEX.reversed_edges() obsolete in bron_kerbosch and some other cases...
-# TODO AJ: Anchor für cordella implementieren
 # TODO AJ: OUTPUT of pypy3 Main.py -i graph6.graph graph2.graph graph3.graph -a graph6_anchor.graph -ga bk 1000 -sgo
 # 1000 -nsi checken
 
+
+
+# TODO: Label berücksichtigung optional machen (vor allem cordella)
 # Notiz: Anchor graph kann nicht für pairwise alignment benutzt werden.
 # Notiz: default number matchings is 1.
 # --> Johann sagen:
