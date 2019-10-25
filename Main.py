@@ -736,7 +736,7 @@ if __name__ == '__main__':
             elif args.edge_label_comparison:
                 print("Modular Product of " + graph1_name + " and " + graph2_name +
                       " was calculated with custom edge-label-comparison-function: " +
-                      vertex_comparison_import_parameters[1] + "!")
+                      edge_comparison_import_parameters[1] + "!")
             else:
                 print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
 
