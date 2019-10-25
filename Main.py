@@ -700,14 +700,40 @@ if __name__ == '__main__':
         else:
             graph1_name = input_graphs[0].get_name()
             graph2_name = input_graphs[1].get_name()
-            graph, anchor = modular_product(input_graphs[0], input_graphs[1])
+            # Save Input Parameter ["path to script", "name of function"] to pass to modular_prduct() for import
+            vertex_comparison_import_parameters = None    # Default: Vertex-Labels are ignored within modular_product()
+            edge_comparison_import_parameters = None      # Default: Edge-Labels are ignored within modular_product()
+            if args.vertex_label_comparison and args.edge_label_comparison:
+                vertex_comparison_import_parameters = args.vertex_label_comparison
+                edge_comparison_import_parameters = args.edge_label_comparison
+            elif args.vertex_label_comparison:
+                vertex_comparison_import_parameters = args.vertex_label_comparison
+            elif args.edge_label_comparison:
+                edge_comparison_import_parameters = args.edge_label_comparison
+
+            graph, anchor = modular_product(input_graphs[0], input_graphs[1],
+                                            vertex_comparison_import_para=vertex_comparison_import_parameters,
+                                            edge_comparison_import_para=edge_comparison_import_parameters)
             graphs.append(graph)
             # if args.neo4j:
                 # neo4jProjekt = NEO4J("http://localhost:11003/db/data/", "neo4j", "1234")
                 # neo4jProjekt.create_graphs(neo4jProjekt.get_graph(), graph.get_list_of_vertices(), graph.get_list_of_edges(),graph.get_name())
             
             # Log statement for the console about the modular product
-            print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
+            if args.vertex_label_comparison and args.edge_label_comparison:
+                print("Modular Product of " + graph1_name + " and " + graph2_name +
+                      " was calculated with custom vertex and edge label-comparison-functions " +
+                      vertex_comparison_import_parameters[1] + " and " + edge_comparison_import_parameters[1] + "!")
+            elif args.vertex_label_comparison:
+                print("Modular Product of " + graph1_name + " and " + graph2_name +
+                      " was calculated with custom vertex-label-comparison-function: " +
+                      vertex_comparison_import_parameters[1] + "!")
+            elif args.edge_label_comparison:
+                print("Modular Product of " + graph1_name + " and " + graph2_name +
+                      " was calculated with custom edge-label-comparison-function: " +
+                      vertex_comparison_import_parameters[1] + "!")
+            else:
+                print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
 
     if isinstance(args.guide_tree, list) and len(args.guide_tree) == 0:
         raise Exception("For guide tree construction, please pass either a .newick file, a built-in keyword (see "

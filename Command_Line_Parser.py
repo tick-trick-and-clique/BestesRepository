@@ -40,12 +40,12 @@ parser.add_argument("-if", "--input_format", choices=["graph", "json"], default=
                          "2D json files!")
 
 
-parser.add_argument("-vlm", "--vertex_label_matching", nargs="*",
+parser.add_argument("-vlc", "--vertex_label_comparison", nargs="*",
                     help="For custom matching-conditions of vertex-labels, pass a file name together with a function "
                          "in that file that will take two strings (see manual) and returns a boolean value."
                          "If return is TRUE, two two distinct VERTEX-objects with relative strings as labels are "
                          "possible matches.")
-parser.add_argument("-elm", "--edge_label_matching", nargs="*",
+parser.add_argument("-elc", "--edge_label_comparison", nargs="*",
                     help="For custom matching-conditions of edge-labels, pass a file name together with a function "
                          "in that file that will take two strings (labels) and returns a boolean value."
                          "If return is TRUE, two distinct EDGE-objects with relative strings as labels are "
