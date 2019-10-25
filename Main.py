@@ -23,9 +23,6 @@ from Json_Parser import json_parser
 from copy import deepcopy, copy
 from lib2to3.fixer_util import Number
 
-uri = "http://localhost:7474"
-user_name = "neo4j"
-pwd = "1234"
 
 def parser(file, neo4j):
     """
@@ -216,7 +213,7 @@ def parser(file, neo4j):
     
     # create Neo4J View
     if neo4j:
-        neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], vertices_objects, edges_objects, graph_name,False)
+        neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], vertices_objects, edges_objects, graph_name, False)
     
     # create graph from class GRAPH
     graph = GRAPH(graph_name, vertices_objects, edges_objects, number_vertices, number_edges, directed,
@@ -307,6 +304,7 @@ def matching_using_mb(graph_left, graph_right, check_connection=False):
         graph1 = graph_right
         graph2 = graph_left
     mb_state = MB_State(graph1, graph2)
+    print("Matching-based algorithm performing...")
     result_as_mappings = mb_state.mb_algorithm()
     for mapping in result_as_mappings:
         matching_graph = mb_mapping_to_graph(mapping, graph1, graph2)
@@ -367,9 +365,9 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
     else:
         matching_graphs = new_graphs
     if matching_sort_func:
-        new_graphs = sorted(new_graphs, key=lambda x: matching_sort_func(x), reverse=True)
+        matching_graphs = sorted(matching_graphs, key=lambda x: matching_sort_func(x), reverse=True)
     else:
-        new_graphs = sorted(new_graphs, key=lambda x: x.get_number_of_vertices(), reverse=True)
+        matching_graphs = sorted(matching_graphs, key=lambda x: x.get_number_of_vertices(), reverse=True)
     number_matchings = min(len(new_graphs), number_matchings)
     matching_graphs = matching_graphs[:number_matchings]
     cluster.set_elements(matching_graphs)
@@ -411,7 +409,7 @@ def mb_mapping_to_graph(result_as_mapping, graph1, graph2):
                         new_e = EDGE(edge.get_id(), [new_v1, new_v2], edge.get_label())
                         loe.append(new_e)
                         new_v1.append_out_neighbour(new_v2)
-        graph_name = [random.choice(string.ascii_letters) for n in range(8)]
+        graph_name = "".join([random.choice(string.ascii_letters) for n in range(8)])
         graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), graph1.get_is_directed(),
                       graph1.get_is_labelled_nodes(), graph1.get_is_labelled_edges())
     return graph
@@ -586,7 +584,7 @@ if __name__ == '__main__':
         except IOError:
             print("Invalid number of arguments for random cluster graph building!")
         except ValueError:
-            print("invalid type of arguments for random cluster graph building!")
+            print("invalid type of arguments for random clfuster graph building!")
 
     # If neither input file(s) not random graph option are given, raise Exception. Else, parse input!
     elif not args.input and not args.random_graph and not args.random_cluster:
@@ -661,7 +659,7 @@ if __name__ == '__main__':
                             "in descending order regarding the return value of that function!")
         else:
             matching_sort_func = import_file(args.matching_sort[0], args.matching_sort[1])
-            print("Passed Function for clique sorting: " + str(args.matching_sort[1]))
+            print("Passed Function for matching sorting: " + str(args.matching_sort[1]))
 
     # Checking for bron-kerbosch option
     if args.bron_kerbosch is not None:
@@ -670,7 +668,7 @@ if __name__ == '__main__':
             raise Exception("For clique finding via bron-kerbosch, please provide exactly one file path of a graph!")
         elif len(args.bron_kerbosch) > 2 or len(args.bron_kerbosch) == 1:
             raise Exception("You may optionally pass a file name together with a function name in that file for custom"
-                            "clique sorting!")
+                            "matching sorting!")
         else:
             selected_cliques = []
             if len(p) == 0:
@@ -786,7 +784,7 @@ if __name__ == '__main__':
                 copy = deepcopy(cluster_tree)
                 newick = guide_tree_to_newick(copy)
             elif args.guide_tree[0][-7:] == ".newick":
-                print("Guide tree construction: Newick string fil passed")
+                print("Guide tree construction: Newick string file passed")
                 cluster_tree = parse_newick_file_into_tree(args.guide_tree, input_graphs)
                 newick = args.guide_tree[0]
             elif args.guide_tree[0] == "pairwise_align":
@@ -804,13 +802,12 @@ if __name__ == '__main__':
                 copy = deepcopy(cluster_tree)
                 newick = guide_tree_to_newick(copy)
         else:
-            print("Guide tree construction: Graph density (Default)")
+            print("Guide tree construction: Graph density [default]")
             cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
             copy = deepcopy(cluster_tree)
             newick = guide_tree_to_newick(copy)
-            print(newick)
         if args.guide_tree and len(args.guide_tree) == 2 and args.guide_tree[1] == "only":
-            print("Graph alignment not performed")
+            print("Graph alignment not performed.")
             pass
         else:
             matching_graphs = recursive_matching(input_graphs, cluster_tree, args.graph_alignment[0], args.pivot, i,
@@ -897,8 +894,8 @@ if __name__ == '__main__':
                         neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
                                              subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
         elif len(args.subgraph_output) == 1:
-            try:
-                subgraph_number = int(args.subgraph_output[0])
+            if args.subgraph_output[0].isdigit():
+                subgraph_number = int(args.subgraph_output[0]) #if subgraph output value is the number of selected subgraphs
                 for i in range(min(len(selected_subgraphs), subgraph_number)):
                     for subgraph in selected_subgraphs[i]:
                         subgraph.save_to_txt(output_file=subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
@@ -906,10 +903,10 @@ if __name__ == '__main__':
                         if args.neo4j:
                             neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
                                                  subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
-            except ValueError:
+            else:#if subgraph output value is only the path or the graph name 
                 for i in range(len(selected_subgraphs)):
                     for subgraph in selected_subgraphs[i]:
-                        subgraph.save_to_txt(output_file=args.subgraph_output[0] + subgraph.get_name(),
+                        subgraph.save_to_txt(output_file= args.subgraph_output[0],
                                              sequential_number=i)
                         # create Neo4J View
                         if args.neo4j:
@@ -919,29 +916,9 @@ if __name__ == '__main__':
         print("Subgraph output: False")
 
                     
-# TODO AJ: Consider different types of multiple alignment strategies concerning comparison of analogue attributes (e.g. a
+# Consider different types of multiple alignment strategies concerning comparison of analogue attributes (e.g. a
 # specific vertex/edge label), i.e. How should those attributes be handled for graphs resulting from the alignment
 # during multiple alignments (create a mean value?)?
     # - For matching-based this is handled in 'mb_mapping_to_graph' so far, only including labels of one graph
     # - For bron-kerbosch this is handled in the call of 'retrieve_graph_from_clique in 'matching_using_bk' so far,
-    # TODO AJ: Diese Info noch an Johann übergeben.
-# TODO: Implement 'get_in_neighbours'? Would make VERTEX.reversed_edges() obsolete in bron_kerbosch and some other cases...
-# TODO AJ: Anchor für cordella implementieren
-# TODO AJ: OUTPUT of pypy3 Main.py -i graph6.graph graph2.graph graph3.graph -a graph6_anchor.graph -ga bk 1000 -sgo
-# 1000 -nsi checken
-
-# Notiz: Anchor graph kann nicht für pairwise alignment benutzt werden.
-# Notiz: default number matchings is 1.
-# --> Johann sagen:
-    # matching_sort_func: that will take a matching graph and return a floating point number. Matching graphs will then
-#                       be sorted in descending order regarding the return value of that function!
-    # Die matching_sort_func hat ein eigenes Flag und kann auch für matching based benutzt werden.
-
-# Notes:
-# When performing bron-kerbosch on a molecular product as command line input, it is not possible to identify the
-# vertices from the original graphs from which the molecular product was formed because this vertex mapping is not
-# saved. The mapping cannot be save as ID because concatenation of IDs would not be unique (e.g. ID 123 from vertices
-# 12 and 3 or 1 and 23) --> Johann Info
-
-
-# Gedankenstütze: Beim einem Anker im Alignment gehe ich davon aus, dass alle Inputgraphen die Ankerstruktur besitzen!!!
+# TODO: Label berücksichtigung optional machen? (vor allem cordella)

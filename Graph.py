@@ -289,13 +289,14 @@ class GRAPH(object):
         saves representation of the GRAPH object to textfile: ["self.__name.graph"]
         """
         # Default value should be self.__name.graph
-        if output_file == 1:
+        if output_file == 1 and output_file.isdigit():
             output_file = self.get_name() + ".graph"        # Couldn't call self.get_name() in the method parameter list
 
         # If provided argument is not a valid directory and also is not a valid file name, raise NotADirectoryError
         if not os.path.isdir(os.path.dirname(output_file)) \
                 and not os.path.isdir(os.path.dirname(os.path.abspath(output_file))):
             raise NotADirectoryError("Given path is not a directory!")
+        
 
         # If the provided argument does not end with '.graph', raise NameError
         if output_file[-6:] != ".graph":
@@ -324,7 +325,8 @@ class GRAPH(object):
             f.write("directed graph;" + str(self.__is_directed))
             if len(self.__list_of_vertices) > 0:
                 f.write("\n")
-                for vertex in self.__list_of_vertices:
+                sorted_vertices = sorted(self.get_list_of_vertices(), key=lambda x: x.get_id())
+                for vertex in sorted_vertices:
                     f.write("\n" + str(vertex.get_id()) + ";" + str(vertex.get_label()))
                     #Wenn nodes ohne Label ";" weglassen?
 

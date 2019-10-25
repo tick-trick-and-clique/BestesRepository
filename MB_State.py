@@ -47,7 +47,6 @@ class MB_State:
         self.out_2_len = 0
 
     def mb_algorithm(self, previously_added=None):
-        #print("Ebene", self.core_len)
         result_as_mapping_dict = {}
         result_as_mapping_list = []
         if self.all_vertices_of_g2_covered():
@@ -63,8 +62,6 @@ class MB_State:
             return [result_as_mapping_dict]
         else:
             p = self.compute_candidates()
-            #print("core1", self.core_1)
-            #print("core2", self.core_2)
             for candidate in p:
                 if self.is_feasible(candidate):
                     self.add_pair(candidate)
@@ -251,5 +248,3 @@ class MB_State:
             self.core_1[previously_added[0]] = None
             self.core_2[previously_added[1]] = None
         return
-
-# TODO: Maps durch Listen ersetzen wo möglich, um bessere Performance zu erreichen
