@@ -38,15 +38,19 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
     g2_vertices = g2.get_list_of_vertices()
     g1_edges = g1.get_list_of_edges()
     g2_edges = g2.get_list_of_edges()
-    g1_vn = g1.get_number_of_vertices()
-    g2_vn = g2.get_number_of_vertices()
 
-    for i in range(g1_vn):
-        for j in range(g2_vn):
-            v = VERTEX(i + j * g1_vn, "Default_Label")
-            v.combine_mapping(g1_vertices[i])
-            v.combine_mapping(g2_vertices[j])
+    for i, vertex_g1 in enumerate(g1_vertices):
+        for j, vertex_g2 in enumerate(g2_vertices):
+            vertex_label_combined = None
+            if vertex_g1.get_label() == vertex_g2.get_label():
+                vertex_label_combined = vertex_g1.get_label()
+            else:
+                vertex_label_combined = vertex_g1.get_label() + "#" + vertex_g2.get_label()
+            v = VERTEX(i + j * g1.get_number_of_vertices(), vertex_label_combined)
+            v.combine_mapping(vertex_g1)
+            v.combine_mapping(vertex_g2)
             new_list_of_vertices.append(v)
+
     if anchor_graph_parameters:
         for v_mp in new_list_of_vertices:
             for v_anchor in anchor_graph_parameters[0].get_list_of_vertices():
@@ -79,10 +83,29 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                                         v2.get_id() in [vertex.get_id() for vertex in v1.get_out_neighbours()]]
                     neighbours_in_g2 = [v3.get_id() in [vertex.get_id() for vertex in v4.get_out_neighbours()],
                                         v4.get_id() in [vertex.get_id() for vertex in v3.get_out_neighbours()]]
+                    # Check vertex-label-compatibility using imported function
                     vertex_label_compatibility = True   # Default
                     if vertex_comparison_import_para:
-                        vertex_label_compatibility = vertex_comparison_function(v1.get_label(), v3.get_label()) and \
-                                                     vertex_comparison_function(v2.get_label(), v4.get_label())
+                        label_list_v1, label_list_v2 = v1.get_label().split("#"), v2.get_label().split("#")
+                        label_list_v3, label_list_v4 = v3.get_label().split("#"), v4.get_label().split("#")
+
+                        for label_v1 in label_list_v1:
+                            for label_v3 in label_list_v3:
+                                if not vertex_comparison_function(label_v1, label_v3):
+                                    vertex_label_compatibility = False
+                                    break
+                            if not vertex_label_compatibility:
+                                break
+
+                        if vertex_label_compatibility:
+                            for label_v2 in label_list_v2:
+                                for label_v4 in label_list_v4:
+                                    if not vertex_comparison_function(label_v2, label_v4):
+                                        vertex_label_compatibility = False
+                                        break
+                                if not vertex_label_compatibility:
+                                    break
+
                     # Conditions for an edge
                     if neighbours_in_g1 == neighbours_in_g2 and vertex_label_compatibility:
                         """ INSERT CODE THAT SHOULD INCLUDE MORE CONDITIONALS e.g. SAME LABEL, DIRECTION etc. """
@@ -103,16 +126,23 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                             edge_g2 = [edge for edge in g2_edges if edge.get_start_and_end()[0] == v3 and \
                                        edge.get_start_and_end()[1] == v4][0]
 
-                        # check EDGE-labels on compatibility using the imported function
+                        # check EDGE-labels on compatibility using the imported function and combine labels if necessary
                         edge_label_compatibility = True     # Default
-                        if edge_g1 and edge_g2 and edge_comparison_import_para:
-                            edge_label_compatibility = edge_comparison_function(edge_g1.get_label(), edge_g2.get_label())
+                        edge_label_combined = "Default Label"
+                        if edge_g1 and edge_g2:
+                            if edge_g1.get_label() == edge_g2.get_label():
+                                edge_label_combined = edge_g1.get_label()
+                            else:
+                                edge_label_combined = edge_g1.get_label() + "#" + edge_g2.get_label()
+                            if edge_comparison_import_para:
+                                edge_label_compatibility = edge_comparison_function(edge_g1.get_label(), edge_g2.get_label())
+
                         if edge_label_compatibility:
                             pass
                         else:
                             continue
 
-                        #
+                        # Pick right vertex from new_list_of_vertices to form edges
                         start_vertex = None
                         end_vertex = None
                         for new_v in new_list_of_vertices:
@@ -122,7 +152,7 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                             if all([va in new_v.get_mapping().values() for va in v2.get_mapping().values()]) and \
                                     all([va in new_v.get_mapping().values() for va in v4.get_mapping().values()]):
                                 end_vertex = new_v
-                        new_list_of_edges.append(EDGE(edge_id, [start_vertex, end_vertex], "Default_Label"))
+                        new_list_of_edges.append(EDGE(edge_id, [start_vertex, end_vertex], edge_label_combined))
                         new_number_of_edges += 1
                         edge_id += 1
                         start_vertex.append_out_neighbour(end_vertex)

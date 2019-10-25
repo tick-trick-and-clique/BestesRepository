@@ -251,7 +251,7 @@ def check_start_end_in_vertices(edge_start_end, currentEdge):
 
 
 def matching_using_bk(input_graphs, graph_left, graph_right, pivot, anchor_graph_parameters=None,
-                      check_connection=False):
+                      check_connection=False, vertex_comparison_import_para=None, edge_comparison_import_para=None):
     """
     Helper function for graph alignment using bron-kerbosch algorithm. Takes two graphs and other bron-kerbosch
     matching parameters as input to perform graph alignment. 'number_matchings' specifies the maximum number of cliques
@@ -259,9 +259,13 @@ def matching_using_bk(input_graphs, graph_left, graph_right, pivot, anchor_graph
     Return type: [GRAPH, ...]
     """
     if anchor_graph_parameters:
-        mp, anchor = modular_product(graph_left, graph_right, anchor_graph_parameters=anchor_graph_parameters)
+        mp, anchor = modular_product(graph_left, graph_right, anchor_graph_parameters=anchor_graph_parameters,
+                                     vertex_comparison_import_para=vertex_comparison_import_para,
+                                     edge_comparison_import_para=edge_comparison_import_para)
     else:
-        mp, anchor = modular_product(graph_left, graph_right)
+        mp, anchor = modular_product(graph_left, graph_right,
+                                     vertex_comparison_import_para=vertex_comparison_import_para,
+                                     edge_comparison_import_para=edge_comparison_import_para)
     # Log statement for the console about Bron-Kerbosch
     print("Clique finding via Bron-Kerbosch...")
     clique_findings = []
@@ -318,7 +322,8 @@ def matching_using_mb(graph_left, graph_right, check_connection=False):
 
 def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_matchings,
                        anchor_graph_parameters=[None, None], smaller=0.0, matching_sort_func=None,
-                       no_stereo_isomers=False, check_connection=False):
+                       no_stereo_isomers=False, check_connection=False, vertex_comparison_import_para=None,
+                       edge_comparison_import_para=None):
     """
     Performs graph alignment according to the guide tree in 'cluster' and the given matching algorithm.
     'number_matchings' specifies the maximum number of cliques that will be considered for further graph alignment.
@@ -351,7 +356,9 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
             for gr in graphs_right:
                 new_graphs += matching_using_bk(input_graphs, gl, gr, pivot,
                                                 anchor_graph_parameters=anchor_graph_parameters,
-                                                check_connection=check_connection)
+                                                check_connection=check_connection,
+                                                vertex_comparison_import_para=vertex_comparison_import_para,
+                                                edge_comparison_import_para=edge_comparison_import_para)
     if matching_algorithm == "mb":
         counter = 0
         for gl in graphs_left:
@@ -810,11 +817,24 @@ if __name__ == '__main__':
             print("Graph alignment not performed.")
             pass
         else:
+            # Default: Labels of edges and vertices are not compared
+            vertex_comparison_import_para = None
+            edge_comparison_import_para = None
+            if args.graph_alignment[0] == "bk" and args.vertex_label_comparison and args.edge_label_comparison:
+                vertex_comparison_import_para = args.vertex_label_comparison
+                edge_comparison_import_para = args.edge_label_comparison
+            elif args.graph_alignment[0] == "bk" and args.vertex_label_comparison:
+                vertex_comparison_import_para = args.vertex_label_comparison
+            elif args.graph_alignment[0] == "bk" and args.edge_label_comparison:
+                edge_comparison_import_para = args.edge_label_comparison
+
             matching_graphs = recursive_matching(input_graphs, cluster_tree, args.graph_alignment[0], args.pivot, i,
                                                  anchor_graph_parameters=anchor_graph_parameters,
                                                  smaller=smaller, matching_sort_func=matching_sort_func,
                                                  no_stereo_isomers=args.no_stereo_isomers,
-                                                 check_connection=args.check_connection)
+                                                 check_connection=args.check_connection,
+                                                 vertex_comparison_import_para=vertex_comparison_import_para,
+                                                 edge_comparison_import_para=edge_comparison_import_para)
             for matching_graph in matching_graphs:
                 if matching_graph:
                     original_subgraphs = retrieve_original_subgraphs(matching_graph, input_graphs)
