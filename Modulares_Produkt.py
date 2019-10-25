@@ -81,8 +81,8 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                                         v4.get_id() in [vertex.get_id() for vertex in v3.get_out_neighbours()]]
                     vertex_label_compatibility = True   # Default
                     if vertex_comparison_import_para:
-                        vertex_label_compatibility = vertex_comparison_function(v1, v3) and \
-                                                     vertex_comparison_function(v2, v4)
+                        vertex_label_compatibility = vertex_comparison_function(v1.get_label(), v3.get_label()) and \
+                                                     vertex_comparison_function(v2.get_label(), v4.get_label())
                     # Conditions for an edge
                     if neighbours_in_g1 == neighbours_in_g2 and vertex_label_compatibility:
                         """ INSERT CODE THAT SHOULD INCLUDE MORE CONDITIONALS e.g. SAME LABEL, DIRECTION etc. """
@@ -106,7 +106,7 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                         # check EDGE-labels on compatibility using the imported function
                         edge_label_compatibility = True     # Default
                         if edge_g1 and edge_g2 and edge_comparison_import_para:
-                            edge_label_compatibility = edge_comparison_function(edge_g1, edge_g2)
+                            edge_label_compatibility = edge_comparison_function(edge_g1.get_label(), edge_g2.get_label())
                         if edge_label_compatibility:
                             pass
                         else:
