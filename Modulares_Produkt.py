@@ -20,6 +20,8 @@ def import_file(filename, function_name):
     return f
 
 
+
+
 def modular_product(g1, g2, anchor_graph_parameters=None,
                     vertex_comparison_import_para=None, edge_comparison_import_para=None):
     """
@@ -45,7 +47,14 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
             if vertex_g1.get_label() == vertex_g2.get_label():
                 vertex_label_combined = vertex_g1.get_label()
             else:
-                vertex_label_combined = vertex_g1.get_label() + "#" + vertex_g2.get_label()
+                label_list_vert_g1 = vertex_g1.get_label().split("#")
+                label_list_vert_g2 = vertex_g2.get_label().split("#")
+                union_label_set = set(label_list_vert_g1).union(set(label_list_vert_g2))
+                vertex_label_combined = ""
+                for label in union_label_set:
+                    vertex_label_combined += label + "#"
+                if vertex_label_combined.endswith("#"):
+                    vertex_label_combined = vertex_label_combined[:-1]
             v = VERTEX(i + j * g1.get_number_of_vertices(), vertex_label_combined)
             v.combine_mapping(vertex_g1)
             v.combine_mapping(vertex_g2)
@@ -108,39 +117,75 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
 
                     # Conditions for an edge
                     if neighbours_in_g1 == neighbours_in_g2 and vertex_label_compatibility:
-                        """ INSERT CODE THAT SHOULD INCLUDE MORE CONDITIONALS e.g. SAME LABEL, DIRECTION etc. """
 
-                        # Like this, two vertices in the modular product graph always have two or no edges connecting
-                        # them. Once with each vertex being the start vertex.
-                        # The information about type of connection is not conserved in this modular product!
-                        # Possibly, this can be done by edge systematic edge labelling (not yet implemented).
-                        ### SEARCH for corresponding edge in g1 and g2 to compare their labels
+                        edge_label_combined = "Default"
+                        # if there is an edge-label-comparison function provided
+                        if edge_comparison_import_para:
+                            # Get Edges
+                            edge_g1_forward = None
+                            edge_g2_forward = None
+                            edge_g1_backward = None
+                            edge_g2_backward = None
 
-                        # Get Edges
-                        edge_g1 = None
-                        edge_g2 = None
-                        if neighbours_in_g1[0] and neighbours_in_g1[1]:
-                            # to check for just g1 is sufficient as neighbours_in_g1 is equal to neighbours_in_g2 (see above)
-                            edge_g1 = [edge for edge in g1_edges if edge.get_start_and_end()[0] == v1 and \
-                                       edge.get_start_and_end()[1] == v2][0]
-                            edge_g2 = [edge for edge in g2_edges if edge.get_start_and_end()[0] == v3 and \
-                                       edge.get_start_and_end()[1] == v4][0]
+                            # Find "Forward" Edges
+                            union_edge_label_set_forward = set()
+                            edge_label_compatibility_forward = True
+                            if neighbours_in_g1[1] and neighbours_in_g2[1]: # Forward Edges
+                                edge_g1_forward = [edge for edge in g1_edges if edge.get_start_and_end()[0] == v1 and \
+                                           edge.get_start_and_end()[1] == v2][0]
+                                edge_g2_forward = [edge for edge in g2_edges if edge.get_start_and_end()[0] == v3 and \
+                                           edge.get_start_and_end()[1] == v4][0]
+                                # Combine "Forward" labels
+                                label_list_edge_g1_forward = edge_g1_forward.get_label().split("#")
+                                label_list_edge_g2_forward = edge_g2_forward.get_label().split("#")
+                                union_edge_label_set_forward = set(label_list_edge_g1_forward).union(
+                                    set(label_list_edge_g2_forward))
 
-                        # check EDGE-labels on compatibility using the imported function and combine labels if necessary
-                        edge_label_compatibility = True     # Default
-                        edge_label_combined = "Default Label"
-                        if edge_g1 and edge_g2:
-                            if edge_g1.get_label() == edge_g2.get_label():
-                                edge_label_combined = edge_g1.get_label()
+                                # Check "Forward" edge-label compatibility
+                                for label_g1 in label_list_edge_g1_forward:
+                                    for label_g2 in label_list_edge_g2_forward:
+                                        if not edge_comparison_function(label_g1, label_g2):
+                                            edge_label_compatibility_forward = False
+                                            continue
+
+                            # Find "Backward" Edges
+                            union_edge_label_set_backward = set()
+                            edge_label_compatibility_backward = True
+                            if neighbours_in_g1[0] and neighbours_in_g2[0]:
+                                edge_g1_backward = [edge for edge in g1_edges if edge.get_start_and_end()[1] == v1 and \
+                                                   edge.get_start_and_end()[0] == v2][0]
+                                edge_g2_backward = [edge for edge in g2_edges if edge.get_start_and_end()[1] == v3 and \
+                                                   edge.get_start_and_end()[0] == v4][0]
+
+                                # Combine "Backward" labels
+                                label_list_edge_g1_backward = edge_g1_backward.get_label().split("#")
+                                label_list_edge_g2_backward = edge_g2_backward.get_label().split("#")
+                                union_edge_label_set_backward = set(label_list_edge_g1_backward).union(
+                                    set(label_list_edge_g2_backward))
+
+                                # Check "Backward" edge-label compatibility
+                                for label_g1 in label_list_edge_g1_backward:
+                                    for label_g2 in label_list_edge_g2_backward:
+                                        if not edge_comparison_function(label_g1, label_g2):
+                                            edge_label_compatibility_backward = False
+                                            continue
+                                        else:
+                                            pass
+                            if edge_label_compatibility_forward and edge_label_compatibility_backward:
+                                pass
                             else:
-                                edge_label_combined = edge_g1.get_label() + "#" + edge_g2.get_label()
-                            if edge_comparison_import_para:
-                                edge_label_compatibility = edge_comparison_function(edge_g1.get_label(), edge_g2.get_label())
+                                continue
 
-                        if edge_label_compatibility:
-                            pass
-                        else:
-                            continue
+                            # Combine edge-labels of forward and backward edges
+                            if union_edge_label_set_forward or union_edge_label_set_backward:
+                                union_edge_label_set = union_edge_label_set_forward.union(
+                                    union_edge_label_set_backward)
+                                edge_label_combined = ""
+                                for label in union_edge_label_set:
+                                    print("label aus union_edge_label_set", label)
+                                    edge_label_combined += label + "#"
+                                if edge_label_combined.endswith("#"):
+                                    edge_label_combined = edge_label_combined[:-1]
 
                         # Pick right vertex from new_list_of_vertices to form edges
                         start_vertex = None
