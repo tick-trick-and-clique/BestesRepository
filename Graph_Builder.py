@@ -73,8 +73,6 @@ def buildRndGraph(nr_nodes, p_connected, labeled_nodes=False, labeled_edges=Fals
                           int(len(list_edges) / 2), directed, labeled_nodes, labeled_edges)
 
     # 4 Set out-neighbours setting
-    #  TODO TILMAN: Might change >appendNewEdgeToSet< and >appendNewEdgeToList< Function,
-    #   so that EDGE.get_start_and_end() contains VERTEX-objects, not vertex-ids
     for vertex in graph.get_list_of_vertices():
         for edge in graph.get_list_of_edges():
             if edge.get_start_and_end()[0] == vertex.get_id():
@@ -262,8 +260,6 @@ def buildRndCluster(n, d, del_vert=0, del_edges=0, labeled_nodes=False, labeled_
                   [], edges_objects, 0, 0, labeled_nodes, labeled_edges, directed)
 
     # Set neighbours setting
-    #  TODO TILMAN: Might change >appendNewEdgeToSet< and >appendNewEdgeToList< Function,
-    #   so that EDGE.get_start_and_end() contains VERTEX-objects, not vertex-ids
     for vertex in graph.get_list_of_vertices():
         for edge in graph.get_list_of_edges():
             if edge.get_start_and_end()[0] == vertex.get_id():

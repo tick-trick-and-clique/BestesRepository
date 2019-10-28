@@ -114,10 +114,10 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                                         break
                                 if not vertex_label_compatibility:
                                     break
-
+                    #print("---------v1 ", v1, "v2 ", v2, "v3 ", v3, "v4 ", v4)
                     # Conditions for an edge
                     if neighbours_in_g1 == neighbours_in_g2 and vertex_label_compatibility:
-
+                        #print("conditions for an Edge are met!")
                         edge_label_combined = "Default"
                         # if there is an edge-label-comparison function provided
                         if edge_comparison_import_para:
@@ -131,6 +131,7 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                             union_edge_label_set_forward = set()
                             edge_label_compatibility_forward = True
                             if neighbours_in_g1[1] and neighbours_in_g2[1]: # Forward Edges
+                                #print("There is an forward edge v1v2 and v3v4")
                                 edge_g1_forward = [edge for edge in g1_edges if edge.get_start_and_end()[0] == v1 and \
                                            edge.get_start_and_end()[1] == v2][0]
                                 edge_g2_forward = [edge for edge in g2_edges if edge.get_start_and_end()[0] == v3 and \
@@ -146,6 +147,8 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                                     for label_g2 in label_list_edge_g2_forward:
                                         if not edge_comparison_function(label_g1, label_g2):
                                             edge_label_compatibility_forward = False
+                                            #print("--->Forward edge-comp changed to FALSE<---")
+                                            #print(label_g1, label_g2)
                                             continue
 
                             # Find "Backward" Edges
@@ -171,7 +174,9 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                                             continue
                                         else:
                                             pass
+
                             if edge_label_compatibility_forward and edge_label_compatibility_backward:
+                                "Edge-label-Comp-MET!!!!!!!!!!!!!!"
                                 pass
                             else:
                                 continue
@@ -182,7 +187,7 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                                     union_edge_label_set_backward)
                                 edge_label_combined = ""
                                 for label in union_edge_label_set:
-                                    print("label aus union_edge_label_set", label)
+                                    #hprint("label aus union_edge_label_set", label)
                                     edge_label_combined += label + "#"
                                 if edge_label_combined.endswith("#"):
                                     edge_label_combined = edge_label_combined[:-1]
@@ -197,6 +202,7 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                             if all([va in new_v.get_mapping().values() for va in v2.get_mapping().values()]) and \
                                     all([va in new_v.get_mapping().values() for va in v4.get_mapping().values()]):
                                 end_vertex = new_v
+
                         new_list_of_edges.append(EDGE(edge_id, [start_vertex, end_vertex], edge_label_combined))
                         new_number_of_edges += 1
                         edge_id += 1
