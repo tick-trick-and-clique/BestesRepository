@@ -18,7 +18,7 @@ parser.add_argument("-ga", "--graph_alignment", nargs="*", metavar="",
                          "the alignment should be expanded (e.g. 'bk 5'). Default is one subgraph only. "
                          "If matching-based was chosen,you may provide a margin in percent to what extend the "
                          "smaller graph may be reduced for subgraph isomorhpism search (e.g. 'mb 5 0.2').")
-parser.add_argument("-go", "--graph_output", metavar="", nargs='?', const=1,
+parser.add_argument("-go", "--graph_output", metavar="", nargs='*',
                     help="Saves graph as .graph file. If a path (in quotation marks!) is provided, graph will be saved "
                          "there. If a .graph file name is provided, it will be saved with that name in the current "
                          "working directory. Else it will be saved in the current working directory using its name "
