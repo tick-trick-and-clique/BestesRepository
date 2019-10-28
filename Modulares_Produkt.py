@@ -4,6 +4,8 @@ import os
 from runpy import run_path
 from Graph import GRAPH
 # from Main import import_file # hat irgendwie nicht geklappt, hab die Funktion jetzt hier reinkopiert
+# AJ: Ja hab ich auch schonmal probiert, hat glaub ich damit zu tun, dass es bei wechselseitigen Imports
+# keine Hierarchie der .py Files mehr gibt oder so.
 from Vertex import VERTEX
 from Edge import EDGE
 
@@ -14,7 +16,7 @@ def import_file(filename, function_name):
     if not os.path.isdir(os.path.dirname(filename)):
         file_path = os.path.abspath(filename)
     # else:
-    #    file_path = args.input # FIXME: DO I need this?!
+    #    file_path = args.input # FIXME: DO I need this?! #AJ: Yes, I think so, in case you pass the absolute path of the file
     settings = run_path(file_path)
     f = settings[function_name]
     return f
@@ -44,9 +46,9 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
     for i, vertex_g1 in enumerate(g1_vertices):
         for j, vertex_g2 in enumerate(g2_vertices):
             vertex_label_combined = None
-            if vertex_g1.get_label() == vertex_g2.get_label():
-                vertex_label_combined = vertex_g1.get_label()
-            else:
+            if vertex_g1.get_label() == vertex_g2.get_label(): # FIXME: Könnte dieser Teil Probleme im multiplen Alignment machen?
+                vertex_label_combined = vertex_g1.get_label()  # FIXME: Weil dann die Anzahl der Labels nicht konstant mit den verglichenen Graphen wächst oder?
+            else:                                              # FIXME: Generelle Überlegung, ob die Label-Union nicht besser für die Vertices der Matching-Graphen wäre
                 label_list_vert_g1 = vertex_g1.get_label().split("#")
                 label_list_vert_g2 = vertex_g2.get_label().split("#")
                 union_label_set = set(label_list_vert_g1).union(set(label_list_vert_g2))
@@ -122,6 +124,7 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                         # if there is an edge-label-comparison function provided
                         if edge_comparison_import_para:
                             # Get Edges
+                            # FIXME: Next 4 lines not needed I think
                             edge_g1_forward = None
                             edge_g2_forward = None
                             edge_g1_backward = None
@@ -149,6 +152,7 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                                             edge_label_compatibility_forward = False
                                             #print("--->Forward edge-comp changed to FALSE<---")
                                             #print(label_g1, label_g2)
+                                            # FIXME: break instead of continue right?
                                             continue
 
                             # Find "Backward" Edges
@@ -171,10 +175,12 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                                     for label_g2 in label_list_edge_g2_backward:
                                         if not edge_comparison_function(label_g1, label_g2):
                                             edge_label_compatibility_backward = False
+                                            # FIXME: break instead of continue right? and without the else case
                                             continue
                                         else:
                                             pass
 
+                            # FIXME: What do these 5 lines? Need to take action on Edge formation or not based on the calculated compatibilities (or not)
                             if edge_label_compatibility_forward and edge_label_compatibility_backward:
                                 "Edge-label-Comp-MET!!!!!!!!!!!!!!"
                                 pass
