@@ -617,6 +617,8 @@ if __name__ == '__main__':
             if direction != graph.get_is_directed():
                 raise Exception("Input graphs have to be either all directed or all undirected!")
             input_graphs.append(graph)
+            if not args.modular_product and not args.random_graph and not args.random_cluster:
+                graphs.append(graph)
         p = input_graphs[0].get_list_of_vertices()
 
     # Log statement for the console about the Pivot Mode!
@@ -822,16 +824,20 @@ if __name__ == '__main__':
         print("Newick string output: False")
 
     # Output of graph from random graph building or modular product.
-    if args.graph_output:
+    if args.graph_output is not None:
         print("Graph output: True")
         if len(graphs) == 0:
             raise Exception("No graph to save in memory!")
         else:
             for i in range(len(graphs)):
-                if len(graphs) == 1:
-                    graph.save_to_txt(output_file=args.graph_output)
+                if len(graphs) != len(args.graph_output) and not len(args.graph_output) == 0:
+                    raise Exception("The number of graphs to save and provided graph output names do not match! NOTE: "
+                                    "Random graph generation, modular product calculation and format conversion can "
+                                    "only be performed in seperate calls!")
+                elif len(args.graph_output) == 0:
+                    graph.save_to_txt(output_file=graphs[i].get_name() + "_output.graph")
                 else:
-                    graph.save_to_txt(output_file=args.graph_output, sequential_number=i+1)
+                    graph.save_to_txt(output_file=args.graph_output[i] + "_output.graph")
                 if args.neo4j:
                     # create Neo4J View
                     neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name(), False)
