@@ -1,19 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from Edge import EDGE
-from Vertex import VERTEX
+from Edge import is_compatible_edge
+from Vertex import is_compatible_vertex
 """
 This class implements a so called 'state' like described for the
 matching-based algorithm by Cordella et al.
 """
+import os
+from runpy import run_path
 
+def import_file(filename, function_name):
+    if not os.path.isdir(os.path.dirname(filename)) and not os.path.exists(filename):
+        raise Exception("No such file with given path or filename!")
+    if not os.path.isdir(os.path.dirname(filename)):
+        file_path = os.path.abspath(filename)
+    else:
+        file_path = filename
+    settings = run_path(file_path)
+    f = settings[function_name]
+    return f
 
 class MB_State:
 
     # DEV NOTE: core_1 and core_2 are supposed to be dictionaries with integers keys and VERTEX type values here
     # while the other four data structures hold integer type values.
 
-    def __init__(self, g1, g2, sortVertices=False):
+    def __init__(self, g1, g2, vertex_comparison_import_para=None, edge_comparison_import_para=None):
         self.graph1 = g1
         self.graph2 = g2
         self.core_1 = {}
@@ -45,6 +57,18 @@ class MB_State:
         self.in_2_len = 0
         self.out_1_len = 0
         self.out_2_len = 0
+        self.vertex_comparison_function = None
+        self.edge_comparison_function = None
+        if isinstance(vertex_comparison_import_para, list):
+            self.vertex_comparison_function = is_compatible_vertex
+        if isinstance(edge_comparison_import_para, list):
+            self.edge_comparison_function = is_compatible_vertex
+        if vertex_comparison_import_para:
+            self.vertex_comparison_function = import_file(vertex_comparison_import_para[0],
+                                                          vertex_comparison_import_para[1])
+        if edge_comparison_import_para:
+            self.edge_comparison_function = import_file(edge_comparison_import_para[0],
+                                                        edge_comparison_import_para[1])
 
     def mb_algorithm(self, previously_added=None):
         result_as_mapping_dict = {}
@@ -107,8 +131,9 @@ class MB_State:
         g1_vertex = [v for v in self.graph1.get_list_of_vertices() if g1_vertex_index == v.get_id()][0]
         g2_vertex = [v for v in self.graph2.get_list_of_vertices() if g2_vertex_index == v.get_id()][0]
 
-        if not g1_vertex.is_compatible_vertex(g2_vertex):
-            return False
+        if self.vertex_comparison_function:
+            if not is_compatible_vertex(g1_vertex, g2_vertex):
+                return False
 
         temp_out1 = 0
         temp_out2 = 0
@@ -122,8 +147,9 @@ class MB_State:
             other_v_in_g1 = edge.get_start_and_end()[1]
             if self.core_1[other_v_in_g1.get_id()] is not None:
                 other_v_in_g2 = self.core_1[other_v_in_g1.get_id()]
-                if not self.graph2.has_edge(g2_vertex, other_v_in_g2) or \
-                        not edge.is_compatible_edge(self.graph2.get_edge(g2_vertex, other_v_in_g2)):
+                if not self.graph2.has_edge(g2_vertex, other_v_in_g2) \
+                        or (self.edge_comparison_function and
+                            not is_compatible_edge(edge, self.graph2.get_edge(g2_vertex, other_v_in_g2))):
                     return False
             else:
                 if self.in_1[other_v_in_g1.get_id()] > 0:
@@ -139,8 +165,9 @@ class MB_State:
             other_v_in_g1 = edge.get_start_and_end()[0]
             if self.core_1[other_v_in_g1.get_id()] is not None:
                 other_v_in_g2 = self.core_1[other_v_in_g1.get_id()]
-                if not self.graph2.has_edge(other_v_in_g2, g2_vertex) or \
-                        not edge.is_compatible_edge(self.graph2.get_edge(other_v_in_g2, g2_vertex)):
+                if not self.graph2.has_edge(other_v_in_g2, g2_vertex) \
+                        or (self.edge_comparison_function and
+                            not is_compatible_edge(edge, self.graph2.get_edge(other_v_in_g2, g2_vertex))):
                     return False
             else:
                 if self.in_1[other_v_in_g1.get_id()] > 0:
@@ -156,8 +183,9 @@ class MB_State:
             other_v_in_g2 = edge.get_start_and_end()[1]
             if self.core_2[other_v_in_g2.get_id()] is not None:
                 other_v_in_g1 = self.core_2[other_v_in_g2.get_id()]
-                if not self.graph1.has_edge(g1_vertex, other_v_in_g1) or \
-                        not edge.is_compatible_edge(self.graph1.get_edge(g1_vertex, other_v_in_g1)):
+                if not self.graph1.has_edge(g1_vertex, other_v_in_g1) \
+                        or (self.edge_comparison_function and
+                            not is_compatible_edge(edge, self.graph1.get_edge(g1_vertex, other_v_in_g1))):
                     return False
             else:
                 if self.in_2[other_v_in_g2.get_id()] > 0:
@@ -173,8 +201,9 @@ class MB_State:
             other_v_in_g2 = edge.get_start_and_end()[0]
             if self.core_2[other_v_in_g2.get_id()] is not None:
                 other_v_in_g1 = self.core_2[other_v_in_g2.get_id()]
-                if not self.graph1.has_edge(other_v_in_g1, g1_vertex) or \
-                        not edge.is_compatible_edge(self.graph1.get_edge(other_v_in_g1, g1_vertex)):
+                if not self.graph1.has_edge(other_v_in_g1, g1_vertex) \
+                        or (self.edge_comparison_function and
+                            not is_compatible_edge(edge, self.graph1.get_edge(other_v_in_g1, g1_vertex))):
                     return False
             else:
                 if self.in_2[other_v_in_g2.get_id()] > 0:

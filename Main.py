@@ -295,7 +295,8 @@ def matching_using_bk(input_graphs, graph_left, graph_right, pivot, anchor_graph
     return result
 
 
-def matching_using_mb(graph_left, graph_right, check_connection=False):
+def matching_using_mb(graph_left, graph_right, check_connection=False, vertex_comparison_import_para=None,
+                      edge_comparison_import_para=None):
     """
     Helper function for graph alignment using matching-based algorithm. Takes two graphs as input.
     Return type: [GRAPH, ...]
@@ -307,7 +308,8 @@ def matching_using_mb(graph_left, graph_right, check_connection=False):
     else:
         graph1 = graph_right
         graph2 = graph_left
-    mb_state = MB_State(graph1, graph2)
+    mb_state = MB_State(graph1, graph2, vertex_comparison_import_para=vertex_comparison_import_para,
+                        edge_comparison_import_para=edge_comparison_import_para)
     print("Matching-based algorithm performing...")
     result_as_mappings = mb_state.mb_algorithm()
     for mapping in result_as_mappings:
@@ -338,14 +340,18 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
                                          number_matchings, anchor_graph_parameters=anchor_graph_parameters,
                                          matching_sort_func=matching_sort_func,
                                          smaller=smaller, no_stereo_isomers=no_stereo_isomers,
-                                         check_connection=check_connection)
+                                         check_connection=check_connection,
+                                         vertex_comparison_import_para=vertex_comparison_import_para,
+                                         edge_comparison_import_para=edge_comparison_import_para)
     # Right child.
     if cluster.get_right_child().children_exist():
         graphs_right = recursive_matching(input_graphs, cluster.get_right_child(), matching_algorithm, pivot,
                                           number_matchings, anchor_graph_parameters=anchor_graph_parameters,
                                           matching_sort_func=matching_sort_func,
                                           smaller=smaller, no_stereo_isomers=no_stereo_isomers,
-                                          check_connection=check_connection)
+                                          check_connection=check_connection,
+                                          vertex_comparison_import_para=vertex_comparison_import_para,
+                                          edge_comparison_import_para=edge_comparison_import_para)
     # Else, the cluster is the root of two leaves, then:
     # Perform graph matching of the two leaf graphs (use the matching method provided by user)
     # Update the cluster with one new leaf, deleting the previous two
@@ -364,9 +370,13 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
         for gl in graphs_left:
             for gr in graphs_right:
                 counter += 1
-                new_graphs += matching_using_mb(gl, gr, check_connection=check_connection)
+                new_graphs += matching_using_mb(gl, gr, check_connection=check_connection,
+                                                vertex_comparison_import_para=vertex_comparison_import_para,
+                                                edge_comparison_import_para=edge_comparison_import_para)
                 if smaller:
-                    new_graphs += mb_helper(gl, gr, check_connection=check_connection)
+                    new_graphs += mb_helper(gl, gr, check_connection=check_connection,
+                                            vertex_comparison_import_para=vertex_comparison_import_para,
+                                            edge_comparison_import_para=edge_comparison_import_para)
     if no_stereo_isomers:           # List[Dict{"Graph_name": List[VERTEX, ...]}] # Die Dict müssen verglichen werden
         matching_graphs = toss_stereoisomers(new_graphs, input_graphs)
     else:
@@ -428,13 +438,15 @@ def import_file(filename, function_name):
     if not os.path.isdir(os.path.dirname(filename)):
         file_path = os.path.abspath(filename)
     else:
-        file_path = args.input
+        file_path = filename
     settings = run_path(file_path)
     f = settings[function_name]
     return f
 
 
-def pairwise_alignment(input_graphs, matching_method, pivot, check_connection=False):
+def pairwise_alignment(input_graphs, matching_method, pivot, check_connection=False,
+                       vertex_comparison_import_para=None,
+                       edge_comparison_import_para=None):
     """
     Function takes a List[GRAPH, ...] and several other parameters necessary for graph matching and constructs a guide
     tree based on pairwise alignment of the input graphs. The scoring parameter is the size the greatest subgraph
@@ -454,11 +466,17 @@ def pairwise_alignment(input_graphs, matching_method, pivot, check_connection=Fa
         graph2_name = graph2.get_name()
         if matching_method == "bk":
             matching_graphs: List[GRAPH] = matching_using_bk(input_graphs, c[0], c[1], pivot,
-                                                             check_connection=check_connection)
+                                                             check_connection=check_connection,
+                                                             vertex_comparison_import_para=vertex_comparison_import_para,
+                                                             edge_comparison_import_para=edge_comparison_import_para)
         else:
-            matching_graphs: List[GRAPH] = matching_using_mb(c[0], c[1], check_connection=check_connection)
+            matching_graphs: List[GRAPH] = matching_using_mb(c[0], c[1], check_connection=check_connection,
+                                                             vertex_comparison_import_para=vertex_comparison_import_para,
+                                                             edge_comparison_import_para=edge_comparison_import_para)
             if smaller:
-                matching_graphs += mb_helper(graph1, graph2, check_connection=check_connection)
+                matching_graphs += mb_helper(graph1, graph2, check_connection=check_connection,
+                                             vertex_comparison_import_para=vertex_comparison_import_para,
+                                             edge_comparison_import_para=edge_comparison_import_para)
         if len(matching_graphs) == 0:
             raise Exception("No matchings in pairwise alignment, please adjust graph reduction parameter (see help"
                             "message for '-ga' command line option!")
@@ -472,7 +490,7 @@ def pairwise_alignment(input_graphs, matching_method, pivot, check_connection=Fa
     return cluster_tree
 
 
-def mb_helper(gl, gr, check_connection=False):
+def mb_helper(gl, gr, check_connection=False, vertex_comparison_import_para=None, edge_comparison_import_para=None):
     """
     Helper function for the matching using pruned input graphs
     Return Type: [GRAPH, ...]
@@ -489,7 +507,9 @@ def mb_helper(gl, gr, check_connection=False):
             new_g = gr.graph_from_vertex_combination(c)
             new_gs.append(new_g)
         for new_g in new_gs:
-            new_graphs += matching_using_mb(gl, new_g, check_connection=check_connection)
+            new_graphs += matching_using_mb(gl, new_g, check_connection=check_connection,
+                                            vertex_comparison_import_para=vertex_comparison_import_para,
+                                            edge_comparison_import_para=edge_comparison_import_para)
     else:
         gn = gl.get_number_of_vertices()
         margin = int(gn * smaller)
@@ -501,7 +521,9 @@ def mb_helper(gl, gr, check_connection=False):
             new_g = gr.graph_from_vertex_combination(c)
             new_gs.append(new_g)
         for new_g in new_gs:
-            new_graphs += matching_using_mb(gl, new_g, check_connection=check_connection)
+            new_graphs += matching_using_mb(gl, new_g, check_connection=check_connection,
+                                            vertex_comparison_import_para=vertex_comparison_import_para,
+                                            edge_comparison_import_para=edge_comparison_import_para)
     return new_graphs
 
 
@@ -707,6 +729,8 @@ if __name__ == '__main__':
         else:
             graph1_name = input_graphs[0].get_name()
             graph2_name = input_graphs[1].get_name()
+            """
+            AJ: I think this not necessary 
             # Save Input Parameter ["path to script", "name of function"] to pass to modular_prduct() for import
             vertex_comparison_import_parameters = None    # Default: Vertex-Labels are ignored within modular_product()
             edge_comparison_import_parameters = None      # Default: Edge-Labels are ignored within modular_product()
@@ -717,10 +741,10 @@ if __name__ == '__main__':
                 vertex_comparison_import_parameters = args.vertex_label_comparison
             elif args.edge_label_comparison:
                 edge_comparison_import_parameters = args.edge_label_comparison
-
+            """
             graph, anchor = modular_product(input_graphs[0], input_graphs[1],
-                                            vertex_comparison_import_para=vertex_comparison_import_parameters,
-                                            edge_comparison_import_para=edge_comparison_import_parameters)
+                                            vertex_comparison_import_para=args.vertex_label_comparison,
+                                            edge_comparison_import_para=args.edge_label_comparison)
             graphs.append(graph)
             # if args.neo4j:
                 # neo4jProjekt = NEO4J("http://localhost:11003/db/data/", "neo4j", "1234")
@@ -730,15 +754,15 @@ if __name__ == '__main__':
             if args.vertex_label_comparison and args.edge_label_comparison:
                 print("Modular Product of " + graph1_name + " and " + graph2_name +
                       " was calculated with custom vertex and edge label-comparison-functions " +
-                      vertex_comparison_import_parameters[1] + " and " + edge_comparison_import_parameters[1] + "!")
+                      args.vertex_label_comparison[1] + " and " + args.edge_label_comparison[1] + "!")
             elif args.vertex_label_comparison:
                 print("Modular Product of " + graph1_name + " and " + graph2_name +
                       " was calculated with custom vertex-label-comparison-function: " +
-                      vertex_comparison_import_parameters[1] + "!")
+                      args.vertex_label_comparison[1] + "!")
             elif args.edge_label_comparison:
                 print("Modular Product of " + graph1_name + " and " + graph2_name +
                       " was calculated with custom edge-label-comparison-function: " +
-                      edge_comparison_import_parameters[1] + "!")
+                      args.edge_label_comparison[1] + "!")
             else:
                 print("Modular Product of " + graph1_name + " and " + graph2_name + " was calculated!")
 
@@ -799,7 +823,9 @@ if __name__ == '__main__':
             elif args.guide_tree[0] == "pairwise_align":
                 print("Guide tree construction: Pairwise alignment")
                 cluster_tree = pairwise_alignment(input_graphs, args.graph_alignment[0], args.pivot,
-                                                  check_connection=args.check_connection)
+                                                  check_connection=args.check_connection,
+                                                  vertex_comparison_import_para=args.vertex_label_comparison,
+                                                  edge_comparison_import_para=args.edge_label_comparison)
                 copy = deepcopy(cluster_tree)
                 newick = guide_tree_to_newick(copy)
             elif args.guide_tree[0] not in ["density", "pairwise_align"]:
@@ -819,6 +845,8 @@ if __name__ == '__main__':
             print("Graph alignment not performed.")
             pass
         else:
+            """
+            AJ: I think this is not needed
             # Default: Labels of edges and vertices are not compared
             vertex_comparison_import_para = None
             edge_comparison_import_para = None
@@ -829,14 +857,14 @@ if __name__ == '__main__':
                 vertex_comparison_import_para = args.vertex_label_comparison
             elif args.graph_alignment[0] == "bk" and args.edge_label_comparison:
                 edge_comparison_import_para = args.edge_label_comparison
-
+            """
             matching_graphs = recursive_matching(input_graphs, cluster_tree, args.graph_alignment[0], args.pivot, i,
                                                  anchor_graph_parameters=anchor_graph_parameters,
                                                  smaller=smaller, matching_sort_func=matching_sort_func,
                                                  no_stereo_isomers=args.no_stereo_isomers,
                                                  check_connection=args.check_connection,
-                                                 vertex_comparison_import_para=vertex_comparison_import_para,
-                                                 edge_comparison_import_para=edge_comparison_import_para)
+                                                 vertex_comparison_import_para=args.vertex_label_comparison,
+                                                 edge_comparison_import_para=args.edge_label_comparison)
             for matching_graph in matching_graphs:
                 if matching_graph:
                     original_subgraphs = retrieve_original_subgraphs(matching_graph, input_graphs)
@@ -947,4 +975,4 @@ if __name__ == '__main__':
 # during multiple alignments (create a mean value?)?
     # - For matching-based this is handled in 'mb_mapping_to_graph' so far, only including labels of one graph
     # - For bron-kerbosch this is handled in the call of 'retrieve_graph_from_clique in 'matching_using_bk' so far,
-# TODO: Label berücksichtigung optional machen? (vor allem cordella)
+# TODO: import file funktionen inzwischen in 3 .py files, vielleicht als getrenntes file machen

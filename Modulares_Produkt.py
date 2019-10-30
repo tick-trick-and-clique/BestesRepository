@@ -6,8 +6,8 @@ from Graph import GRAPH
 # from Main import import_file # hat irgendwie nicht geklappt, hab die Funktion jetzt hier reinkopiert
 # AJ: Ja hab ich auch schonmal probiert, hat glaub ich damit zu tun, dass es bei wechselseitigen Imports
 # keine Hierarchie der .py Files mehr gibt oder so.
-from Vertex import VERTEX
-from Edge import EDGE
+from Vertex import VERTEX, is_compatible_vertex
+from Edge import EDGE, is_compatible_edge
 
 
 def import_file(filename, function_name):
@@ -15,13 +15,15 @@ def import_file(filename, function_name):
         raise Exception("No such file with given path or filename!")
     if not os.path.isdir(os.path.dirname(filename)):
         file_path = os.path.abspath(filename)
-    # else:
-    #    file_path = args.input # FIXME: DO I need this?! #AJ: Yes, I think so, in case you pass the absolute path of the file
+    else:
+        file_path = filename
     settings = run_path(file_path)
     f = settings[function_name]
     return f
 
 
+def is_identical_label(label, other_label):
+    return label == other_label
 
 
 def modular_product(g1, g2, anchor_graph_parameters=None,
@@ -42,21 +44,22 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
     g2_vertices = g2.get_list_of_vertices()
     g1_edges = g1.get_list_of_edges()
     g2_edges = g2.get_list_of_edges()
-
     for i, vertex_g1 in enumerate(g1_vertices):
         for j, vertex_g2 in enumerate(g2_vertices):
-            vertex_label_combined = None
-            if vertex_g1.get_label() == vertex_g2.get_label(): # FIXME: Könnte dieser Teil Probleme im multiplen Alignment machen?
-                vertex_label_combined = vertex_g1.get_label()  # FIXME: Weil dann die Anzahl der Labels nicht konstant mit den verglichenen Graphen wächst oder?
-            else:                                              # FIXME: Generelle Überlegung, ob die Label-Union nicht besser für die Vertices der Matching-Graphen wäre
-                label_list_vert_g1 = vertex_g1.get_label().split("#")
-                label_list_vert_g2 = vertex_g2.get_label().split("#")
-                union_label_set = set(label_list_vert_g1).union(set(label_list_vert_g2))
-                vertex_label_combined = ""
-                for label in union_label_set:
-                    vertex_label_combined += label + "#"
-                if vertex_label_combined.endswith("#"):
-                    vertex_label_combined = vertex_label_combined[:-1]
+            vertex_label_combined = ""
+            if isinstance(vertex_comparison_import_para, list):
+                vertex_label_combined = None
+                if vertex_g1.get_label() == vertex_g2.get_label():
+                    vertex_label_combined = vertex_g1.get_label()
+                else:
+                    label_list_vert_g1 = vertex_g1.get_label().split("#")
+                    label_list_vert_g2 = vertex_g2.get_label().split("#")
+                    union_label_set = set(label_list_vert_g1).union(set(label_list_vert_g2))
+                    vertex_label_combined = ""
+                    for label in union_label_set:
+                        vertex_label_combined += label + "#"
+                    if vertex_label_combined.endswith("#"):
+                        vertex_label_combined = vertex_label_combined[:-1]
             v = VERTEX(i + j * g1.get_number_of_vertices(), vertex_label_combined)
             v.combine_mapping(vertex_g1)
             v.combine_mapping(vertex_g2)
@@ -75,6 +78,12 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
     edge_id = 1
 
     # Import Label-Comparison function
+    vertex_comparison_function = None
+    edge_comparison_function = None
+    if isinstance(vertex_comparison_import_para, list):
+        vertex_comparison_function = is_identical_label
+    if isinstance(edge_comparison_import_para, list):
+        edge_comparison_function = is_identical_label
     if vertex_comparison_import_para:
         vertex_comparison_function = import_file(vertex_comparison_import_para[0], vertex_comparison_import_para[1])
     if edge_comparison_import_para:
@@ -96,7 +105,10 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                                         v4.get_id() in [vertex.get_id() for vertex in v3.get_out_neighbours()]]
                     # Check vertex-label-compatibility using imported function
                     vertex_label_compatibility = True   # Default
-                    if vertex_comparison_import_para:
+                    edge_label_compatibility_forward = True
+                    edge_label_compatibility_backward = True
+                    edge_label_combined = ""
+                    if isinstance(vertex_comparison_import_para, list):
                         label_list_v1, label_list_v2 = v1.get_label().split("#"), v2.get_label().split("#")
                         label_list_v3, label_list_v4 = v3.get_label().split("#"), v4.get_label().split("#")
 
@@ -122,7 +134,7 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                         #print("conditions for an Edge are met!")
                         edge_label_combined = "Default"
                         # if there is an edge-label-comparison function provided
-                        if edge_comparison_import_para:
+                        if isinstance(edge_comparison_import_para, list):
                             # Get Edges
                             # FIXME: Next 4 lines not needed I think
                             edge_g1_forward = None
@@ -198,6 +210,8 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                                 if edge_label_combined.endswith("#"):
                                     edge_label_combined = edge_label_combined[:-1]
 
+                    if neighbours_in_g1 == neighbours_in_g2 and vertex_label_compatibility and \
+                            edge_label_compatibility_forward and edge_label_compatibility_backward:
                         # Pick right vertex from new_list_of_vertices to form edges
                         start_vertex = None
                         end_vertex = None
@@ -217,4 +231,5 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
     # Vertex and Edge labels are enabled, yet set to a default value for the moment, same as the edge id.
     return GRAPH("Modular Product of " + g1.get_name() + " and " + g2.get_name(),
                  new_list_of_vertices, new_list_of_edges, new_number_of_vertices, int(new_number_of_edges / 2),
-                 False, is_labeled_edges=True, is_labeled_nodes=True), anchor
+                 False, is_labeled_edges=bool(isinstance(edge_comparison_import_para, list)),
+                 is_labeled_nodes=bool(isinstance(vertex_comparison_import_para, list))), anchor
