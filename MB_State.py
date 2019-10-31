@@ -153,12 +153,12 @@ class MB_State:
                     return False
             else:
                 if self.in_1[other_v_in_g1.get_id()] > 0:
-                    temp_in1 += temp_in1
+                    temp_in1 += 1
                 if self.out_1[other_v_in_g1.get_id()] > 0:
-                    temp_out1 += temp_out1
+                    temp_out1 += 1
                 if self.in_1[other_v_in_g1.get_id()] == 0 and \
                         self.out_1[other_v_in_g1.get_id()] == 0:
-                    temp_new1 += temp_new1
+                    temp_new1 += 1
 
         # Check 'in' edges of g1_vertex
         for edge in self.graph1.get_in_edge_list(g1_vertex):
@@ -171,12 +171,12 @@ class MB_State:
                     return False
             else:
                 if self.in_1[other_v_in_g1.get_id()] > 0:
-                    temp_in1 += temp_in1
+                    temp_in1 += 1
                 if self.out_1[other_v_in_g1.get_id()] > 0:
-                    temp_out1 += temp_out1
+                    temp_out1 += 1
                 if self.in_1[other_v_in_g1.get_id()] == 0 and \
                         self.out_1[other_v_in_g1.get_id()] == 0:
-                    temp_new1 += temp_new1
+                    temp_new1 += 1
 
         # Check 'out' edges of g2_vertex
         for edge in self.graph2.get_out_edge_list(g2_vertex):
@@ -189,12 +189,12 @@ class MB_State:
                     return False
             else:
                 if self.in_2[other_v_in_g2.get_id()] > 0:
-                    temp_in2 += temp_in2
+                    temp_in2 += 1
                 if self.out_2[other_v_in_g2.get_id()] > 0:
-                    temp_out2 += temp_out2
+                    temp_out2 += 1
                 if self.in_2[other_v_in_g2.get_id()] == 0 and \
                         self.out_2[other_v_in_g2.get_id()] == 0:
-                    temp_new2 += temp_new2
+                    temp_new2 += 1
 
         # Check 'in' edges of g2_vertex
         for edge in self.graph2.get_in_edge_list(g2_vertex):
@@ -207,13 +207,13 @@ class MB_State:
                     return False
             else:
                 if self.in_2[other_v_in_g2.get_id()] > 0:
-                    temp_in2 += temp_in2
+                    temp_in2 += 1
                 if self.out_2[other_v_in_g2.get_id()] > 0:
-                    temp_out2 += temp_out2
+                    temp_out2 += 1
                 if self.in_2[other_v_in_g2.get_id()] == 0 and \
                         self.out_2[other_v_in_g2.get_id()] == 0:
-                    temp_new2 += temp_new2
-        return temp_in1 <= temp_in2 and temp_out1 <= temp_out2 and temp_new1 <= temp_new2
+                    temp_new2 += 1
+        return temp_in1 >= temp_in2 and temp_out1 >= temp_out2 and temp_new1 >= temp_new2
 
     def add_pair(self, candidate):
         # Function updates data structures according to the new pair of vertices to be added to the matching
@@ -255,12 +255,12 @@ class MB_State:
         if previously_added:
             for key, value in self.out_1.items():
                 if value == self.core_len:
-                    self.in_1[key] = 0
+                    self.out_1[key] = 0
                     self.out_1_len -= 1
                     self.both_1_len -= 1
             for key, value in self.in_1.items():
                 if value == self.core_len:
-                    self.out_1[key] = 0
+                    self.in_1[key] = 0
                     self.in_1_len -= 1
                     self.both_1_len -= 1
             for key, value in self.out_2.items():
@@ -277,3 +277,5 @@ class MB_State:
             self.core_1[previously_added[0]] = None
             self.core_2[previously_added[1]] = None
         return
+
+#TODO: Alle matchings kicken, die nur aus einem knoten bestehen!

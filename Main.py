@@ -266,8 +266,6 @@ def matching_using_bk(input_graphs, graph_left, graph_right, pivot, anchor_graph
         mp, anchor = modular_product(graph_left, graph_right,
                                      vertex_comparison_import_para=vertex_comparison_import_para,
                                      edge_comparison_import_para=edge_comparison_import_para)
-    # Log statement for the console about Bron-Kerbosch
-    print("Clique finding via Bron-Kerbosch...")
     clique_findings = []
     p = mp.get_list_of_vertices()
     if anchor_graph_parameters:
@@ -310,7 +308,6 @@ def matching_using_mb(graph_left, graph_right, check_connection=False, vertex_co
         graph2 = graph_left
     mb_state = MB_State(graph1, graph2, vertex_comparison_import_para=vertex_comparison_import_para,
                         edge_comparison_import_para=edge_comparison_import_para)
-    print("Matching-based algorithm performing...")
     result_as_mappings = mb_state.mb_algorithm()
     for mapping in result_as_mappings:
         matching_graph = mb_mapping_to_graph(mapping, graph1, graph2)
@@ -373,7 +370,11 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
                 new_graphs += matching_using_mb(gl, gr, check_connection=check_connection,
                                                 vertex_comparison_import_para=vertex_comparison_import_para,
                                                 edge_comparison_import_para=edge_comparison_import_para)
-                if smaller:
+                if gl.get_number_of_vertices() >= gr.get_number_of_vertices():
+                    little_graph = gr
+                else:
+                    little_graph = gl
+                if smaller and little_graph in input_graphs:
                     new_graphs += mb_helper(gl, gr, check_connection=check_connection,
                                             vertex_comparison_import_para=vertex_comparison_import_para,
                                             edge_comparison_import_para=edge_comparison_import_para)
@@ -481,10 +482,10 @@ def pairwise_alignment(input_graphs, matching_method, pivot, check_connection=Fa
             raise Exception("No matchings in pairwise alignment, please adjust graph reduction parameter (see help"
                             "message for '-ga' command line option!")
         for graph in matching_graphs:
-            if graph.get_number_of_vertices() > score:
+            if graph.get_number_of_vertices()/graph1.get_number_of_vertices() > score:
                 score = graph.get_number_of_vertices()/graph1.get_number_of_vertices()
         scoring.append((score, graph1_name, graph2_name))
-    scoring.sort(key=lambda x: x[2])
+    scoring.sort(key=lambda x: x[2], reverse=True)
     newick_string = parse_list_of_scored_graph_pairs_into_newick(scoring)
     cluster_tree = parse_newick_string_into_tree(newick_string, input_graphs)
     return cluster_tree
@@ -861,6 +862,10 @@ if __name__ == '__main__':
             elif args.graph_alignment[0] == "bk" and args.edge_label_comparison:
                 edge_comparison_import_para = args.edge_label_comparison
             """
+            if args.graph_alignment[0] == "mb":
+                print("Matching-based algorithm performing...")
+            elif args.graph_alignment[0] == "bk":
+                print("Bron-kerbosch algorithm performing...")
             matching_graphs = recursive_matching(input_graphs, cluster_tree, args.graph_alignment[0], args.pivot, i,
                                                  anchor_graph_parameters=anchor_graph_parameters,
                                                  smaller=smaller, matching_sort_func=matching_sort_func,
@@ -894,7 +899,10 @@ if __name__ == '__main__':
     # Checking for output options.
     # Output of newick string.
     if args.newick_output:
-        print("Newick string output: True")
+        if args.newick_output == "1":
+            print("Newick string output: True (Default name)")
+        else:
+            print("Newick string output: True (" + args.newick_output + ")")
         if newick is None:
             raise Exception("Select guide tree and/or graph alignment option to create a newick string to save!")
         else:

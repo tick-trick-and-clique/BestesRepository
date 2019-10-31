@@ -29,7 +29,6 @@ class Cluster:
         if self.left_child_cluster is None and self.right_child_cluster is None:
             return False
         elif self.left_child_cluster is None or self.right_child_cluster is None:
-            print("Has only one child!")
             return True
         else:
             return True
@@ -199,8 +198,8 @@ def save_newick(newick_string, output_file=1):
     Saves a guide tree in newick format in the designated output file as one string in the first line.
     Return type: boolean
     """
-    if output_file == 1:
-        output_file = "Default.newick"
+    if output_file == "1":
+        output_file = "Default_name.newick"
     # If provided argument is not a valid directory and also is not a valid file name, raise NotADirectoryError
     if not os.path.isdir(os.path.dirname(output_file)) \
             and not os.path.isdir(os.path.dirname(os.path.abspath(output_file))):
@@ -217,7 +216,6 @@ def save_newick(newick_string, output_file=1):
         f.write(newick_string)
         f.close()
     # Log Statement
-    print("Guide tree saved as Newick...")
     return True
 
 

@@ -63,7 +63,7 @@ parser.add_argument("-n", "--neo4j", nargs=3,
                     help="Visualize output using NEO4J!")
 parser.add_argument("-nh", "--no_h_atoms", action="store_true",
                     help="Specifies json format parsing. If selected, all H-atoms will be neglected.")
-parser.add_argument("-no", "--newick_output", metavar="", nargs='?', const=1,
+parser.add_argument("-no", "--newick_output", metavar="", nargs='?', const="1",
                     help="Saves guide tree representation as Newick string to .newick file. If a path (in quotation "
                          "marks!) is provided, it will be saved there. If a .newick file name is provided, it will be "
                          "saved with that name in the current working directory. Else it will be saved in the current "
