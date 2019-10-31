@@ -660,7 +660,7 @@ if __name__ == '__main__':
     # Checking for an anchor graph file and checking anchor for clique property. Anchor default is a list.
     if not args.anchor:
         anchor_graph = None
-        if args.graph_alignment[0] == "mb":
+        if args.graph_alignment and args.graph_alignment[0] == "mb":
             pass
         else:
             print("Anchor File: --")

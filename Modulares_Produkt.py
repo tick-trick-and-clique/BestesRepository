@@ -25,6 +25,40 @@ def import_file(filename, function_name):
 def is_identical_label(label, other_label):
     return label == other_label
 
+def create_new_vertex(new_dict_of_vertices, g1_is_bigger, actual_i, actual_k, cut,
+                      vertex_g1, index_vert_g1, label_list_vert_g1, len_g1,
+                      vertex_g2, index_vert_g2, label_list_vert_g2, len_g2):
+    # if (index_vert_g1 >= index_vert_g2) == g1_is_bigger: # like this, all combination of vertices are appended just once!
+    print("got in there!!!")
+    union_label_set = set(label_list_vert_g1).union(set(label_list_vert_g2))
+    vertex_label_combined = ""
+    for label in union_label_set:
+        vertex_label_combined += label + "#"
+    if vertex_label_combined.endswith("#"):
+        vertex_label_combined = vertex_label_combined[:-1]
+
+    if not cut or (cut and index_vert_g1 < actual_i and index_vert_g2 < actual_k):
+        print("case 1")
+        vertex_key = index_vert_g1 + index_vert_g2 * (len_g1)
+    elif cut and index_vert_g1 >= actual_i and index_vert_g2 < actual_k:
+        print("case 2")
+        vertex_key = index_vert_g1 + 1 + index_vert_g2 * (len_g1 )
+    elif cut and index_vert_g1 < actual_i and index_vert_g2 >= actual_k:
+        vertex_key = index_vert_g1 + (index_vert_g2 + 1) * (len_g1)
+        print("case 3")
+    else:
+        vertex_key = index_vert_g1 + 1 + (index_vert_g2 + 1) * (len_g1)
+        print("case 4")
+    print("vertex_key", vertex_key)
+    if not vertex_key in new_dict_of_vertices:
+
+        v = VERTEX(vertex_key, vertex_label_combined)
+        v.combine_mapping(vertex_g1)
+        v.combine_mapping(vertex_g2)
+        print("NEW VERTEX: ", v)
+        new_dict_of_vertices[vertex_key] = v
+
+
 
 def modular_product(g1, g2, anchor_graph_parameters=None,
                     vertex_comparison_import_para=None, edge_comparison_import_para=None):
@@ -33,43 +67,61 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
     in the mapping attribute!
     Return Type: GRAPH
     """
+    # Import Label-Comparison function
+    vertex_comparison_function = None
+    edge_comparison_function = None
+    if isinstance(vertex_comparison_import_para, list):
+        vertex_comparison_function = is_identical_label
+    if vertex_comparison_import_para:
+        vertex_comparison_function = import_file(vertex_comparison_import_para[0], vertex_comparison_import_para[1])
+    if isinstance(edge_comparison_import_para, list):
+        edge_comparison_function = is_identical_label
+    if edge_comparison_import_para:
+        edge_comparison_function = import_file(edge_comparison_import_para[0], edge_comparison_import_para[1])
+
     # Number of vertices is the product of the number of vertices of both graphs
-    new_number_of_vertices = g1.get_number_of_vertices() * g2.get_number_of_vertices()
+    # new_number_of_vertices = g1.get_number_of_vertices() * g2.get_number_of_vertices()
     # Initialize all vertices of the modular product. For now, a
     # default label is passed. A mapping for each vertex is updated, serving as reference to the input vertices
     # including the mapping of those input vertices.
     anchor = []
-    new_list_of_vertices = []
+    new_dict_of_vertices = {}
     g1_vertices = g1.get_list_of_vertices()
     g2_vertices = g2.get_list_of_vertices()
+    g1_len = len(g1_vertices)
+    g2_len = len(g2_vertices)
+    g1_is_bigger = g1_len >= g2_len
     g1_edges = g1.get_list_of_edges()
     g2_edges = g2.get_list_of_edges()
-    for i, vertex_g1 in enumerate(g1_vertices):
-        for j, vertex_g2 in enumerate(g2_vertices):
-            vertex_label_combined = ""
-            if isinstance(vertex_comparison_import_para, list):
-                vertex_label_combined = None
-                if vertex_g1.get_label() == vertex_g2.get_label():
-                    vertex_label_combined = vertex_g1.get_label()
-                else:
-                    label_list_vert_g1 = vertex_g1.get_label().split("#")
-                    label_list_vert_g2 = vertex_g2.get_label().split("#")
-                    union_label_set = set(label_list_vert_g1).union(set(label_list_vert_g2))
-                    vertex_label_combined = ""
-                    for label in union_label_set:
-                        vertex_label_combined += label + "#"
-                    if vertex_label_combined.endswith("#"):
-                        vertex_label_combined = vertex_label_combined[:-1]
-            v = VERTEX(i + j * g1.get_number_of_vertices(), vertex_label_combined)
-            v.combine_mapping(vertex_g1)
-            v.combine_mapping(vertex_g2)
-            new_list_of_vertices.append(v)
+    print("g1_is_bigger", g1_is_bigger)
 
-    if anchor_graph_parameters:
-        for v_mp in new_list_of_vertices:
-            for v_anchor in anchor_graph_parameters[0].get_list_of_vertices():
-                if v_mp.get_mapping()[anchor_graph_parameters[1]].get_id() == v_anchor.get_id():
-                    anchor.append(v_mp)
+    # for i, vertex_g1 in enumerate(g1_vertices):
+    #     for j, vertex_g2 in enumerate(g2_vertices):
+    #         vertex_label_combined = ""
+    #         # if isinstance(vertex_comparison_import_para, list):
+    #         if vertex_comparison_import_para:
+    #             vertex_label_combined = None
+    #             if vertex_g1.get_label() == vertex_g2.get_label():
+    #                 vertex_label_combined = vertex_g1.get_label()
+    #             else:
+    #                 label_list_vert_g1 = vertex_g1.get_label().split("#")
+    #                 label_list_vert_g2 = vertex_g2.get_label().split("#")
+    #                 union_label_set = set(label_list_vert_g1).union(set(label_list_vert_g2))
+    #                 vertex_label_combined = ""
+    #                 for label in union_label_set:
+    #                     vertex_label_combined += label + "#"
+    #                 if vertex_label_combined.endswith("#"):
+    #                     vertex_label_combined = vertex_label_combined[:-1]
+    #         v = VERTEX(i + j * g1.get_number_of_vertices(), vertex_label_combined)
+    #         v.combine_mapping(vertex_g1)
+    #         v.combine_mapping(vertex_g2)
+    #         new_list_of_vertices.append(v)
+
+    # if anchor_graph_parameters:
+    #     for v_mp in new_list_of_vertices:
+    #         for v_anchor in anchor_graph_parameters[0].get_list_of_vertices():
+    #             if v_mp.get_mapping()[anchor_graph_parameters[1]].get_id() == v_anchor.get_id():
+    #                 anchor.append(v_mp)
     # Initialize an empty list of edges and an edge counter.
     # Iterate over all pairs of vertices (twice --> both directions) for both graphs.
     # Skip cases where vertices are identical.
@@ -77,159 +129,167 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
     new_number_of_edges = 0
     edge_id = 1
 
-    # Import Label-Comparison function
-    vertex_comparison_function = None
-    edge_comparison_function = None
-    if isinstance(vertex_comparison_import_para, list):
-        vertex_comparison_function = is_identical_label
-    if isinstance(edge_comparison_import_para, list):
-        edge_comparison_function = is_identical_label
-    if vertex_comparison_import_para:
-        vertex_comparison_function = import_file(vertex_comparison_import_para[0], vertex_comparison_import_para[1])
-    if edge_comparison_import_para:
-        edge_comparison_function = import_file(edge_comparison_import_para[0], edge_comparison_import_para[1])
-    for v1 in g1_vertices:
+
+
+    for i, v1 in enumerate(g1_vertices):
         g1_cut = g1_vertices.copy()
         g1_cut.remove(v1)
-        for v2 in g1_cut:
-            for v3 in g2_vertices:
+        for j, v2 in enumerate(g1_cut):
+            for k, v3 in enumerate(g2_vertices):
                 g2_cut = g2_vertices.copy()
                 g2_cut.remove(v3)
-                for v4 in g2_cut:
+                for l, v4 in enumerate(g2_cut):
                     # If, for both graphs, a two-element list is identical, add an edge. The elements in this list
                     # correspond to booleans that are evaluated from ID check of vertex 1 with the IDs of the neighbours
                     # attribute of vertex 2 and vice versa.
+
+                    print("---------v1 ", i, v1, "v2 ", j, v2, "v3 ", k, v3, "v4 ", l, v4)
                     neighbours_in_g1 = [v1.get_id() in [vertex.get_id() for vertex in v2.get_out_neighbours()],
                                         v2.get_id() in [vertex.get_id() for vertex in v1.get_out_neighbours()]]
                     neighbours_in_g2 = [v3.get_id() in [vertex.get_id() for vertex in v4.get_out_neighbours()],
                                         v4.get_id() in [vertex.get_id() for vertex in v3.get_out_neighbours()]]
-                    # Check vertex-label-compatibility using imported function
-                    vertex_label_compatibility = True   # Default
-                    edge_label_compatibility_forward = True
-                    edge_label_compatibility_backward = True
-                    edge_label_combined = ""
-                    if isinstance(vertex_comparison_import_para, list):
-                        label_list_v1, label_list_v2 = v1.get_label().split("#"), v2.get_label().split("#")
-                        label_list_v3, label_list_v4 = v3.get_label().split("#"), v4.get_label().split("#")
 
+                    # Check vertex-label-compatibility using imported function or Default is_identical
+                    vertex_label_compatibility_v1v3 = True
+                    vertex_label_compatibility_v2v4 = True
+                    label_list_v1, label_list_v2 = v1.get_label().split("#"), v2.get_label().split("#")
+                    label_list_v3, label_list_v4 = v3.get_label().split("#"), v4.get_label().split("#")
+                    if vertex_comparison_function:
+                        # Check vertex-compatibility for pair v1v3
                         for label_v1 in label_list_v1:
                             for label_v3 in label_list_v3:
                                 if not vertex_comparison_function(label_v1, label_v3):
-                                    vertex_label_compatibility = False
+                                    vertex_label_compatibility_v1v3 = False
                                     break
-                            if not vertex_label_compatibility:
+                            if not vertex_label_compatibility_v1v3:
                                 break
+                        print("vertex_label_compatibility_v1v3", vertex_label_compatibility_v1v3)
 
-                        if vertex_label_compatibility:
-                            for label_v2 in label_list_v2:
-                                for label_v4 in label_list_v4:
-                                    if not vertex_comparison_function(label_v2, label_v4):
-                                        vertex_label_compatibility = False
-                                        break
-                                if not vertex_label_compatibility:
+                        # Check vertex-compatibility for pair v2v4
+                        for label_v2 in label_list_v2:
+                            for label_v4 in label_list_v4:
+                                if not vertex_comparison_function(label_v2, label_v4):
+                                    vertex_label_compatibility_v2v4 = False
                                     break
-                    #print("---------v1 ", v1, "v2 ", v2, "v3 ", v3, "v4 ", v4)
+                            if not vertex_label_compatibility_v2v4:
+                                break
+                        print("vertex_label_compatibility_v2v4", vertex_label_compatibility_v2v4)
+
+                    if vertex_label_compatibility_v1v3:
+                        print("Try to create combination v1v3")
+                        create_new_vertex(new_dict_of_vertices, g1_is_bigger, i, k, False,
+                                          v1, i, label_list_v1, g1_len,
+                                          v3, k, label_list_v3, g2_len)
+
+                    if vertex_label_compatibility_v2v4:
+                        print("Try to create combination v2v4")
+                        create_new_vertex(new_dict_of_vertices, g1_is_bigger, i, k, True,
+                                          v2, j, label_list_v2, g1_len,
+                                          v4, l, label_list_v4, g2_len)
+
+                    vertex_label_compatibility = vertex_label_compatibility_v1v3 and vertex_label_compatibility_v2v4
+
                     # Conditions for an edge
                     if neighbours_in_g1 == neighbours_in_g2 and vertex_label_compatibility:
-                        #print("conditions for an Edge are met!")
+                        print("conditions for an Edge are met!")
                         edge_label_combined = "Default"
-                        # if there is an edge-label-comparison function provided
-                        if isinstance(edge_comparison_import_para, list):
-                            # Get Edges
-                            # FIXME: Next 4 lines not needed I think
-                            edge_g1_forward = None
-                            edge_g2_forward = None
-                            edge_g1_backward = None
-                            edge_g2_backward = None
 
-                            # Find "Forward" Edges
-                            union_edge_label_set_forward = set()
-                            edge_label_compatibility_forward = True
-                            if neighbours_in_g1[1] and neighbours_in_g2[1]: # Forward Edges
-                                #print("There is an forward edge v1v2 and v3v4")
-                                edge_g1_forward = [edge for edge in g1_edges if edge.get_start_and_end()[0] == v1 and \
-                                           edge.get_start_and_end()[1] == v2][0]
-                                edge_g2_forward = [edge for edge in g2_edges if edge.get_start_and_end()[0] == v3 and \
-                                           edge.get_start_and_end()[1] == v4][0]
-                                # Combine "Forward" labels
-                                label_list_edge_g1_forward = edge_g1_forward.get_label().split("#")
-                                label_list_edge_g2_forward = edge_g2_forward.get_label().split("#")
-                                union_edge_label_set_forward = set(label_list_edge_g1_forward).union(
-                                    set(label_list_edge_g2_forward))
+                        # Find "Forward" Edges
+                        union_edge_label_set_forward = set()
+                        edge_label_compatibility_forward = True # Default
+                        if neighbours_in_g1[1] and neighbours_in_g2[1]:  # There is a forward Edge ...
 
-                                # Check "Forward" edge-label compatibility
-                                for label_g1 in label_list_edge_g1_forward:
-                                    for label_g2 in label_list_edge_g2_forward:
-                                        if not edge_comparison_function(label_g1, label_g2):
-                                            edge_label_compatibility_forward = False
-                                            #print("--->Forward edge-comp changed to FALSE<---")
-                                            #print(label_g1, label_g2)
-                                            # FIXME: break instead of continue right?
-                                            continue
+                            print("There is an forward edge v1v2 and v3v4")
+                            edge_g1_forward = [edge for edge in g1_edges if edge.get_start_and_end()[0] == v1 and \
+                                               edge.get_start_and_end()[1] == v2][0]
+                            edge_g2_forward = [edge for edge in g2_edges if edge.get_start_and_end()[0] == v3 and \
+                                               edge.get_start_and_end()[1] == v4][0]
+                            # Combine "Forward" labels
+                            label_list_edge_g1_forward = edge_g1_forward.get_label().split("#")
+                            label_list_edge_g2_forward = edge_g2_forward.get_label().split("#")
+                            union_edge_label_set_forward = set(label_list_edge_g1_forward).union(
+                                set(label_list_edge_g2_forward))
 
-                            # Find "Backward" Edges
-                            union_edge_label_set_backward = set()
-                            edge_label_compatibility_backward = True
-                            if neighbours_in_g1[0] and neighbours_in_g2[0]:
-                                edge_g1_backward = [edge for edge in g1_edges if edge.get_start_and_end()[1] == v1 and \
-                                                   edge.get_start_and_end()[0] == v2][0]
-                                edge_g2_backward = [edge for edge in g2_edges if edge.get_start_and_end()[1] == v3 and \
-                                                   edge.get_start_and_end()[0] == v4][0]
+                        # Find "Backward" Edges
+                        union_edge_label_set_backward = set()
+                        edge_label_compatibility_backward = True
+                        if neighbours_in_g1[0] and neighbours_in_g2[0]: # There is a backward Edge ...
+                            edge_g1_backward = [edge for edge in g1_edges if edge.get_start_and_end()[1] == v1 and \
+                                                edge.get_start_and_end()[0] == v2][0]
+                            edge_g2_backward = [edge for edge in g2_edges if edge.get_start_and_end()[1] == v3 and \
+                                                edge.get_start_and_end()[0] == v4][0]
 
-                                # Combine "Backward" labels
-                                label_list_edge_g1_backward = edge_g1_backward.get_label().split("#")
-                                label_list_edge_g2_backward = edge_g2_backward.get_label().split("#")
-                                union_edge_label_set_backward = set(label_list_edge_g1_backward).union(
-                                    set(label_list_edge_g2_backward))
+                            # Combine "Backward" labels
+                            label_list_edge_g1_backward = edge_g1_backward.get_label().split("#")
+                            label_list_edge_g2_backward = edge_g2_backward.get_label().split("#")
+                            union_edge_label_set_backward = set(label_list_edge_g1_backward).union(
+                                set(label_list_edge_g2_backward))
 
-                                # Check "Backward" edge-label compatibility
-                                for label_g1 in label_list_edge_g1_backward:
-                                    for label_g2 in label_list_edge_g2_backward:
-                                        if not edge_comparison_function(label_g1, label_g2):
-                                            edge_label_compatibility_backward = False
-                                            # FIXME: break instead of continue right? and without the else case
-                                            continue
-                                        else:
-                                            pass
+                        # Check "Forward" edge-label compatibility
+                        if edge_comparison_function and neighbours_in_g1[1] and neighbours_in_g2[1]:
+                            for label_g1 in label_list_edge_g1_forward:
+                                for label_g2 in label_list_edge_g2_forward:
+                                    if not edge_comparison_function(label_g1, label_g2):
+                                        edge_label_compatibility_forward = False
+                                        break
+                                if not edge_label_compatibility_forward:
+                                    break
 
-                            # FIXME: What do these 5 lines? Need to take action on Edge formation or not based on the calculated compatibilities (or not)
-                            if edge_label_compatibility_forward and edge_label_compatibility_backward:
-                                "Edge-label-Comp-MET!!!!!!!!!!!!!!"
-                                pass
-                            else:
-                                continue
+                        # Check "Backward" edge-label compatibility
+                        if edge_comparison_function and neighbours_in_g1[0] and neighbours_in_g2[0]:
+                            for label_g1 in label_list_edge_g1_backward:
+                                for label_g2 in label_list_edge_g2_backward:
+                                    if not edge_comparison_function(label_g1, label_g2):
+                                        edge_label_compatibility_backward = False
+                                        break
+                                if not edge_label_compatibility_backward:
+                                    break
 
-                            # Combine edge-labels of forward and backward edges
-                            if union_edge_label_set_forward or union_edge_label_set_backward:
-                                union_edge_label_set = union_edge_label_set_forward.union(
-                                    union_edge_label_set_backward)
-                                edge_label_combined = ""
-                                for label in union_edge_label_set:
-                                    #hprint("label aus union_edge_label_set", label)
-                                    edge_label_combined += label + "#"
-                                if edge_label_combined.endswith("#"):
-                                    edge_label_combined = edge_label_combined[:-1]
+                        # FIXME: What do these 5 lines? Need to take action on Edge formation or not based on the calculated compatibilities (or not)
+                        if edge_label_compatibility_forward and edge_label_compatibility_backward:
+                            pass
+                        else:
+                            continue
 
-                    if neighbours_in_g1 == neighbours_in_g2 and vertex_label_compatibility and \
-                            edge_label_compatibility_forward and edge_label_compatibility_backward:
-                        # Pick right vertex from new_list_of_vertices to form edges
-                        start_vertex = None
-                        end_vertex = None
-                        for new_v in new_list_of_vertices:
-                            if all([va in new_v.get_mapping().values() for va in v1.get_mapping().values()]) and \
-                                    all([va in new_v.get_mapping().values() for va in v3.get_mapping().values()]):
-                                start_vertex = new_v
-                            if all([va in new_v.get_mapping().values() for va in v2.get_mapping().values()]) and \
-                                    all([va in new_v.get_mapping().values() for va in v4.get_mapping().values()]):
-                                end_vertex = new_v
+                        # Combine edge-labels of forward and backward edges
+                        if union_edge_label_set_forward or union_edge_label_set_backward:
+                            union_edge_label_set = union_edge_label_set_forward.union(
+                                union_edge_label_set_backward)
+                            edge_label_combined = ""
+                            for label in union_edge_label_set:
+                                # print("label aus union_edge_label_set", label)
+                                edge_label_combined += label + "#"
+                            if edge_label_combined.endswith("#"):
+                                edge_label_combined = edge_label_combined[:-1]
+                    else:
+                        continue
 
-                        new_list_of_edges.append(EDGE(edge_id, [start_vertex, end_vertex], edge_label_combined))
-                        new_number_of_edges += 1
-                        edge_id += 1
-                        start_vertex.append_out_neighbour(end_vertex)
+                    # Pick right vertex from new_list_of_vertices to form edges
+                    start_vertex = None
+                    end_vertex = None
+                    for new_v in new_dict_of_vertices.values():
+                        if all([va in new_v.get_mapping().values() for va in v1.get_mapping().values()]) and \
+                                all([va in new_v.get_mapping().values() for va in v3.get_mapping().values()]):
+                            start_vertex = new_v
+                        if all([va in new_v.get_mapping().values() for va in v2.get_mapping().values()]) and \
+                                all([va in new_v.get_mapping().values() for va in v4.get_mapping().values()]):
+                            end_vertex = new_v
+
+                    new_list_of_edges.append(EDGE(edge_id, [start_vertex, end_vertex], edge_label_combined))
+                    new_number_of_edges += 1
+                    edge_id += 1
+                    start_vertex.append_out_neighbour(end_vertex)
     # The modular product as undirected graph is returned with a default name.
     # Vertex and Edge labels are enabled, yet set to a default value for the moment, same as the edge id.
+    if anchor_graph_parameters:
+        for v_mp in new_dict_of_vertices.values():
+            for v_anchor in list(anchor_graph_parameters[0].get_list_of_vertices()):
+                if v_mp.get_mapping()[anchor_graph_parameters[1]].get_id() == v_anchor.get_id():
+                    anchor.append(v_mp)
+    new_number_of_vertices = len(new_dict_of_vertices.values())
+    for vertex in new_dict_of_vertices.values():
+        print("vertex and type", vertex, type(vertex))
     return GRAPH("Modular Product of " + g1.get_name() + " and " + g2.get_name(),
-                 new_list_of_vertices, new_list_of_edges, new_number_of_vertices, int(new_number_of_edges / 2),
+                 list(new_dict_of_vertices.values()), new_list_of_edges, new_number_of_vertices, int(new_number_of_edges / 2),
                  False, is_labeled_edges=bool(isinstance(edge_comparison_import_para, list)),
                  is_labeled_nodes=bool(isinstance(vertex_comparison_import_para, list))), anchor
