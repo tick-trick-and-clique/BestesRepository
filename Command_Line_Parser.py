@@ -15,7 +15,8 @@ parser.add_argument("-cc", "--check_connection", action="store_true",
 parser.add_argument("-ga", "--graph_alignment", nargs="*", metavar="",
                     help="Choose matching algorithm: Either 'bk' for bron-kerbosch or 'mb' for matching-based. You may "
                          "also provide the number of matched subgraphs in previous pairwise alignments on which the "
-                         "the alignment should be expanded (e.g. 'bk 5'). Default is one subgraph only. "
+                         "the alignment should be expanded, i.e. the number of matchings that should be forwarded to "
+                         "the next alignment step and/or output (e.g. 'bk 5'). Default is one subgraph only. "
                          "If matching-based was chosen,you may provide a margin in percent to what extend the "
                          "smaller graph may be reduced for subgraph isomorhpism search (e.g. 'mb 5 0.2').")
 parser.add_argument("-go", "--graph_output", metavar="", nargs='*',

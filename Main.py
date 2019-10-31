@@ -95,7 +95,7 @@ def parser(file, neo4j):
                 edges = []
                 for elem in lastlines:
                     edges.append(elem.rstrip())
-                print("len(edges): %s" % len(edges))
+                # print("len(edges): %s" % len(edges)) # AJ: Dieses Statement würde ich löschen, sieht nicht gut aus
             except IOError:
                 print("Wrong input file format: Mistake in edges part.")
         file_path_name = file
@@ -587,7 +587,7 @@ if __name__ == '__main__':
     graphs = []
 
     # Console output for passed parameters
-    print("Input format: " + args.input_format)
+    print("Input format: ." + args.input_format)
 
     #  Check for random graph option
     if args.random_graph:
@@ -660,7 +660,10 @@ if __name__ == '__main__':
     # Checking for an anchor graph file and checking anchor for clique property. Anchor default is a list.
     if not args.anchor:
         anchor_graph = None
-        print("Anchor File: --")
+        if args.graph_alignment[0] == "mb":
+            pass
+        else:
+            print("Anchor File: --")
     else:
         # If input argument is neither a valid path nor a file in the current working directory. If, raise
         # Exception.
@@ -710,6 +713,7 @@ if __name__ == '__main__':
             for i in range(len(selected_cliques)):
                 matching_graph = retrieve_graph_from_clique(selected_cliques[i], input_graphs[0])
                 matching_graphs.append(matching_graph)
+            print("Single Bron-kerbosch: Found " + str(len(matching_graphs)) + " cliques!")
             if matching_sort_func:
                 matching_graphs = sorted(matching_graphs, key=lambda x: matching_sort_func(x), reverse=True)
             else:
@@ -837,7 +841,7 @@ if __name__ == '__main__':
                 copy = deepcopy(cluster_tree)
                 newick = guide_tree_to_newick(copy)
         else:
-            print("Guide tree construction: Graph density [default]")
+            print("Guide tree construction: Graph density (Default)")
             cluster_tree = upgma(density, input_graphs, anchor_graph=anchor_graph)
             copy = deepcopy(cluster_tree)
             newick = guide_tree_to_newick(copy)
@@ -865,6 +869,8 @@ if __name__ == '__main__':
                                                  check_connection=args.check_connection,
                                                  vertex_comparison_import_para=args.vertex_label_comparison,
                                                  edge_comparison_import_para=args.edge_label_comparison)
+            print("Graph Alignment: Found " + str(len(matching_graphs)) + " matching(s)! Maximum of " + str(i) + " "
+                  "matching(s) have been forwarded...")
             for matching_graph in matching_graphs:
                 if matching_graph:
                     original_subgraphs = retrieve_original_subgraphs(matching_graph, input_graphs)

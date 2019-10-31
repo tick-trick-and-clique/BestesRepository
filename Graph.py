@@ -324,8 +324,8 @@ class GRAPH(object):
             f.write("directed graph;" + str(self.__is_directed))
             if len(self.__list_of_vertices) > 0:
                 f.write("\n")
-                sorted_vertices = sorted(self.get_list_of_vertices(), key=lambda x: x.get_id())
-                for vertex in sorted_vertices:
+                # sorted_vertices = sorted(self.get_list_of_vertices(), key=lambda x: x.get_id())
+                for vertex in self.get_list_of_vertices():
                     f.write("\n" + str(vertex.get_id()) + ";" + str(vertex.get_label()))
                     #Wenn nodes ohne Label ";" weglassen?
 
