@@ -922,12 +922,13 @@ if __name__ == '__main__':
                                     "Random graph generation, modular product calculation and format conversion can "
                                     "only be performed in seperate calls!")
                 elif len(args.graph_output) == 0:
-                    graph.save_to_txt(output_file=graphs[i].get_name() + "_output.graph")
+                    graphs[i].save_to_txt(output_file=graphs[i].get_name() + "_output.graph")
                 else:
-                    graph.save_to_txt(output_file=args.graph_output[i] + "_output.graph")
+                    graphs[i].save_to_txt(output_file=args.graph_output[i] + "_output.graph")
                 if args.neo4j:
                     # create Neo4J View
-                    neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name(), False)
+                    neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], graphs[i].get_list_of_vertices(),
+                                         graphs[i].get_list_of_edges(), graphs[i].get_name(), False)
     else:
         print("Graph output: False")
 
