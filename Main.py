@@ -927,7 +927,20 @@ if __name__ == '__main__':
 
     # Output of subgraphs from graph alignment or bron-kerbosch algorithm on a modular product.
     if args.subgraph_output is not None and (input_graphs or graph):
-        print("Subgraph output: True")
+        number_output = len(selected_subgraphs)
+        default_num_sgo = False
+        try:
+            number_output = int(args.subgraph_output[0])
+        except:
+            try:
+                number_output = int(args.subgraph_output[1])
+            except:
+                default_num_sgo = True
+        if default_num_sgo:
+            print("Subgraph output: Maximal number of matchings to be exported is " + str(number_output) + " "
+                  ", i.e. every matching that has been forwarded to output (default).")
+        else:
+            print("Subgraph output: Maximal number of matchings to be exported is " + str(number_output) + ".")
         if len(args.subgraph_output) > 2:
             raise Exception("Please provide a maximum of two arguments: First the output file path and second the "
                             "number of subgraphs to be exported!")
@@ -963,10 +976,10 @@ if __name__ == '__main__':
                         if args.neo4j:
                             neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
                                                  subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
-            else:#if subgraph output value is only the path or the graph name 
+            else:#if subgraph output value is only the path or the graph name
                 for i in range(len(selected_subgraphs)):
                     for subgraph in selected_subgraphs[i]:
-                        subgraph.save_to_txt(output_file= args.subgraph_output[0],
+                        subgraph.save_to_txt(output_file= subgraph.get_name() + "_" + args.subgraph_output[0],
                                              sequential_number=i)
                         # create Neo4J View
                         if args.neo4j:
