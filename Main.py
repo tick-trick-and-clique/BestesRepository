@@ -660,9 +660,8 @@ if __name__ == '__main__':
     # Checking for an anchor graph file and checking anchor for clique property. Anchor default is a list.
     if not args.anchor:
         anchor_graph = None
-        if args.graph_alignment and args.graph_alignment[0] == "mb":
-            pass
-        else:
+        if (isinstance(args.graph_alignment, list) and args.graph_alignment[0] == "bk") or \
+                isinstance(args.bron_kerbosch, list):
             print("Anchor File: --")
     else:
         # If input argument is neither a valid path nor a file in the current working directory. If, raise
@@ -702,9 +701,10 @@ if __name__ == '__main__':
             raise Exception("For clique finding via bron-kerbosch, please provide exactly one file path of a graph!")
         elif len(args.bron_kerbosch) > 2 or len(args.bron_kerbosch) == 1:
             raise Exception("You may optionally pass a file name together with a function name in that file for custom"
-                            "matching sorting!")
+                            "clique sorting!")
         else:
             selected_cliques = []
+            print("Clique finding via Bron-Kerbosch...")
             if len(p) == 0:
                 selected_cliques.append(anchor)
             else:
@@ -723,7 +723,6 @@ if __name__ == '__main__':
                 selected_subgraphs.append(original_subgraph)
                 
             # Log statement for the console about Bron-Kerbosch
-            print("Clique finding via Bron-Kerbosch...")
 
     # Checking for modular product option
     if args.modular_product:

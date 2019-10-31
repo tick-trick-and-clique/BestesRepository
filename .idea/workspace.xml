@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="51e76ea8-33cc-4581-a5ad-06fe1fd9988d" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Modulares_Produkt.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modulares_Produkt.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Main.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -200,11 +200,6 @@
           <url>file://$PROJECT_DIR$/Graph.py</url>
           <line>154</line>
           <option name="timeStamp" value="21" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Main.py</url>
-          <line>655</line>
-          <option name="timeStamp" value="24" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
