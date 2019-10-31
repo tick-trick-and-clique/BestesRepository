@@ -18,6 +18,7 @@ import os
 # -i <GRAPH1> <GRAPH2> <GRAPH3> -ga bk -sgo <#OUTPUTS>
 print("5______________python3 Main.py -i klein.graph mittel.graph groß.graph -ga bk -sgo 3_______________")
 os.system("python3 Main.py -i klein.graph mittel.graph groß.graph -ga bk -sgo 3")
+# python3 Main.py -i klein.graph mittel.graph groß.graph -ga bk -sgo 3 -n "bolt://localhost:7687" "neo4j" "1234"
 # # -i <GRAPH1> <GRAPH2> <GRAPH3> -ga bk -sgo <NAME>
 # print("6______________python3 Main.py -i klein.graph mittel.graph groß.graph -ga bk -sgo sgo_name.graph_______________")
 # os.system("python3 Main.py -i klein.graph mittel.graph groß.graph -ga bk -sgo sgo_name.graph")

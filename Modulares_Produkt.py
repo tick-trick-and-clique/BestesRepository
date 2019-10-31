@@ -3,8 +3,8 @@
 import os
 from runpy import run_path
 from Graph import GRAPH
-from Vertex import VERTEX, is_compatible_vertex
-from Edge import EDGE, is_compatible_edge
+from Vertex import VERTEX
+from Edge import EDGE
 
 
 def import_file(filename, function_name):   # FIXME: evtl import von GRAPH oder so
@@ -91,7 +91,9 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
     new_list_of_edges = []
     new_number_of_edges = 0
     edge_id = 1
-
+    print(g1._GRAPH__has_labeled_nodes)
+    mp_has_labeled_vertices = g1._GRAPH__has_labeled_nodes or g2._GRAPH__has_labeled_nodes
+    mp_has_labeled_edges = g1._GRAPH__has_labeled_edges or g2._GRAPH__has_labeled_edges
     for i, v1 in enumerate(g1_vertices):
         g1_cut = g1_vertices.copy()
         g1_cut.remove(v1)
@@ -252,5 +254,5 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
     # Vertex and Edge labels are enabled and combined
     return GRAPH("Modular Product of " + g1.get_name() + " and " + g2.get_name(),
                  list(new_dict_of_vertices.values()), new_list_of_edges, new_number_of_vertices, int(new_number_of_edges / 2),
-                 False, is_labeled_edges=bool(isinstance(edge_comparison_import_para, list)),
-                 is_labeled_nodes=bool(isinstance(vertex_comparison_import_para, list))), anchor
+                 False, has_labeled_edges= mp_has_labeled_edges,
+                 has_labeled_nodes=mp_has_labeled_vertices), anchor

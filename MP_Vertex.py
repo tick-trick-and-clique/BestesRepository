@@ -93,4 +93,4 @@ def modular_product_MP_VERTEX(g1, g2):
     # Vertex and Edge labels are enabled, yet set to a default value for the moment, same as the edge id.
     return GRAPH("Modular Product of " + g1.get_name() + " and " + g2.get_name(),
                  new_list_of_vertices, new_list_of_edges, new_number_of_vertices, int(new_number_of_edges/2),
-                 False, is_labeled_edges=True, is_labeled_nodes=True)
+                 False, has_labeled_edges=True, has_labeled_nodes=True)
