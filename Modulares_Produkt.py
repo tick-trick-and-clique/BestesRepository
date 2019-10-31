@@ -3,14 +3,11 @@
 import os
 from runpy import run_path
 from Graph import GRAPH
-# from Main import import_file # hat irgendwie nicht geklappt, hab die Funktion jetzt hier reinkopiert
-# AJ: Ja hab ich auch schonmal probiert, hat glaub ich damit zu tun, dass es bei wechselseitigen Imports
-# keine Hierarchie der .py Files mehr gibt oder so.
 from Vertex import VERTEX, is_compatible_vertex
 from Edge import EDGE, is_compatible_edge
 
 
-def import_file(filename, function_name):
+def import_file(filename, function_name):   # FIXME: evtl import von GRAPH oder so
     if not os.path.isdir(os.path.dirname(filename)) and not os.path.exists(filename):
         raise Exception("No such file with given path or filename!")
     if not os.path.isdir(os.path.dirname(filename)):
@@ -25,11 +22,10 @@ def import_file(filename, function_name):
 def is_identical_label(label, other_label):
     return label == other_label
 
-def create_new_vertex(new_dict_of_vertices, g1_is_bigger, actual_i, actual_k, cut,
+def create_new_vertex(new_dict_of_vertices, actual_i, actual_k, cut,
                       vertex_g1, index_vert_g1, label_list_vert_g1, len_g1,
                       vertex_g2, index_vert_g2, label_list_vert_g2, len_g2):
-    # if (index_vert_g1 >= index_vert_g2) == g1_is_bigger: # like this, all combination of vertices are appended just once!
-    print("got in there!!!")
+    #print("got in there!!!")
     union_label_set = set(label_list_vert_g1).union(set(label_list_vert_g2))
     vertex_label_combined = ""
     for label in union_label_set:
@@ -38,24 +34,24 @@ def create_new_vertex(new_dict_of_vertices, g1_is_bigger, actual_i, actual_k, cu
         vertex_label_combined = vertex_label_combined[:-1]
 
     if not cut or (cut and index_vert_g1 < actual_i and index_vert_g2 < actual_k):
-        print("case 1")
+        #print("case 1")
         vertex_key = index_vert_g1 + index_vert_g2 * (len_g1)
     elif cut and index_vert_g1 >= actual_i and index_vert_g2 < actual_k:
-        print("case 2")
+        #print("case 2")
         vertex_key = index_vert_g1 + 1 + index_vert_g2 * (len_g1 )
     elif cut and index_vert_g1 < actual_i and index_vert_g2 >= actual_k:
         vertex_key = index_vert_g1 + (index_vert_g2 + 1) * (len_g1)
-        print("case 3")
+        #print("case 3")
     else:
         vertex_key = index_vert_g1 + 1 + (index_vert_g2 + 1) * (len_g1)
-        print("case 4")
-    print("vertex_key", vertex_key)
+        #print("case 4")
+    #print("vertex_key", vertex_key)
     if not vertex_key in new_dict_of_vertices:
 
         v = VERTEX(vertex_key, vertex_label_combined)
         v.combine_mapping(vertex_g1)
         v.combine_mapping(vertex_g2)
-        print("NEW VERTEX: ", v)
+        #print("NEW VERTEX: ", v)
         new_dict_of_vertices[vertex_key] = v
 
 
@@ -90,46 +86,11 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
     g2_vertices = g2.get_list_of_vertices()
     g1_len = len(g1_vertices)
     g2_len = len(g2_vertices)
-    g1_is_bigger = g1_len >= g2_len
     g1_edges = g1.get_list_of_edges()
     g2_edges = g2.get_list_of_edges()
-    print("g1_is_bigger", g1_is_bigger)
-
-    # for i, vertex_g1 in enumerate(g1_vertices):
-    #     for j, vertex_g2 in enumerate(g2_vertices):
-    #         vertex_label_combined = ""
-    #         # if isinstance(vertex_comparison_import_para, list):
-    #         if vertex_comparison_import_para:
-    #             vertex_label_combined = None
-    #             if vertex_g1.get_label() == vertex_g2.get_label():
-    #                 vertex_label_combined = vertex_g1.get_label()
-    #             else:
-    #                 label_list_vert_g1 = vertex_g1.get_label().split("#")
-    #                 label_list_vert_g2 = vertex_g2.get_label().split("#")
-    #                 union_label_set = set(label_list_vert_g1).union(set(label_list_vert_g2))
-    #                 vertex_label_combined = ""
-    #                 for label in union_label_set:
-    #                     vertex_label_combined += label + "#"
-    #                 if vertex_label_combined.endswith("#"):
-    #                     vertex_label_combined = vertex_label_combined[:-1]
-    #         v = VERTEX(i + j * g1.get_number_of_vertices(), vertex_label_combined)
-    #         v.combine_mapping(vertex_g1)
-    #         v.combine_mapping(vertex_g2)
-    #         new_list_of_vertices.append(v)
-
-    # if anchor_graph_parameters:
-    #     for v_mp in new_list_of_vertices:
-    #         for v_anchor in anchor_graph_parameters[0].get_list_of_vertices():
-    #             if v_mp.get_mapping()[anchor_graph_parameters[1]].get_id() == v_anchor.get_id():
-    #                 anchor.append(v_mp)
-    # Initialize an empty list of edges and an edge counter.
-    # Iterate over all pairs of vertices (twice --> both directions) for both graphs.
-    # Skip cases where vertices are identical.
     new_list_of_edges = []
     new_number_of_edges = 0
     edge_id = 1
-
-
 
     for i, v1 in enumerate(g1_vertices):
         g1_cut = g1_vertices.copy()
@@ -143,7 +104,7 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                     # correspond to booleans that are evaluated from ID check of vertex 1 with the IDs of the neighbours
                     # attribute of vertex 2 and vice versa.
 
-                    print("---------v1 ", i, v1, "v2 ", j, v2, "v3 ", k, v3, "v4 ", l, v4)
+                    #print("---------v1 ", i, v1, "v2 ", j, v2, "v3 ", k, v3, "v4 ", l, v4)
                     neighbours_in_g1 = [v1.get_id() in [vertex.get_id() for vertex in v2.get_out_neighbours()],
                                         v2.get_id() in [vertex.get_id() for vertex in v1.get_out_neighbours()]]
                     neighbours_in_g2 = [v3.get_id() in [vertex.get_id() for vertex in v4.get_out_neighbours()],
@@ -163,7 +124,7 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                                     break
                             if not vertex_label_compatibility_v1v3:
                                 break
-                        print("vertex_label_compatibility_v1v3", vertex_label_compatibility_v1v3)
+                        #print("vertex_label_compatibility_v1v3", vertex_label_compatibility_v1v3)
 
                         # Check vertex-compatibility for pair v2v4
                         for label_v2 in label_list_v2:
@@ -173,17 +134,17 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                                     break
                             if not vertex_label_compatibility_v2v4:
                                 break
-                        print("vertex_label_compatibility_v2v4", vertex_label_compatibility_v2v4)
+                        #print("vertex_label_compatibility_v2v4", vertex_label_compatibility_v2v4)
 
                     if vertex_label_compatibility_v1v3:
-                        print("Try to create combination v1v3")
-                        create_new_vertex(new_dict_of_vertices, g1_is_bigger, i, k, False,
+                        #print("Try to create combination v1v3")
+                        create_new_vertex(new_dict_of_vertices, i, k, False,
                                           v1, i, label_list_v1, g1_len,
                                           v3, k, label_list_v3, g2_len)
 
                     if vertex_label_compatibility_v2v4:
-                        print("Try to create combination v2v4")
-                        create_new_vertex(new_dict_of_vertices, g1_is_bigger, i, k, True,
+                        #print("Try to create combination v2v4")
+                        create_new_vertex(new_dict_of_vertices, i, k, True,
                                           v2, j, label_list_v2, g1_len,
                                           v4, l, label_list_v4, g2_len)
 
@@ -191,15 +152,14 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
 
                     # Conditions for an edge
                     if neighbours_in_g1 == neighbours_in_g2 and vertex_label_compatibility:
-                        print("conditions for an Edge are met!")
+                        #print("conditions for an Edge are met!")
                         edge_label_combined = "Default"
 
                         # Find "Forward" Edges
                         union_edge_label_set_forward = set()
                         edge_label_compatibility_forward = True # Default
                         if neighbours_in_g1[1] and neighbours_in_g2[1]:  # There is a forward Edge ...
-
-                            print("There is an forward edge v1v2 and v3v4")
+                            #print("There is an forward edge v1v2 and v3v4")
                             edge_g1_forward = [edge for edge in g1_edges if edge.get_start_and_end()[0] == v1 and \
                                                edge.get_start_and_end()[1] == v2][0]
                             edge_g2_forward = [edge for edge in g2_edges if edge.get_start_and_end()[0] == v3 and \
@@ -245,7 +205,7 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                                 if not edge_label_compatibility_backward:
                                     break
 
-                        # FIXME: What do these 5 lines? Need to take action on Edge formation or not based on the calculated compatibilities (or not)
+                        # Check overall edge_label_compatibility
                         if edge_label_compatibility_forward and edge_label_compatibility_backward:
                             pass
                         else:
@@ -261,7 +221,8 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                                 edge_label_combined += label + "#"
                             if edge_label_combined.endswith("#"):
                                 edge_label_combined = edge_label_combined[:-1]
-                    else:
+
+                    else:   # if conditions for an edge are not met
                         continue
 
                     # Pick right vertex from new_list_of_vertices to form edges
@@ -279,16 +240,16 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                     new_number_of_edges += 1
                     edge_id += 1
                     start_vertex.append_out_neighbour(end_vertex)
-    # The modular product as undirected graph is returned with a default name.
-    # Vertex and Edge labels are enabled, yet set to a default value for the moment, same as the edge id.
+
     if anchor_graph_parameters:
         for v_mp in new_dict_of_vertices.values():
             for v_anchor in list(anchor_graph_parameters[0].get_list_of_vertices()):
                 if v_mp.get_mapping()[anchor_graph_parameters[1]].get_id() == v_anchor.get_id():
                     anchor.append(v_mp)
     new_number_of_vertices = len(new_dict_of_vertices.values())
-    for vertex in new_dict_of_vertices.values():
-        print("vertex and type", vertex, type(vertex))
+
+    # The modular product as undirected graph is returned with a default name.
+    # Vertex and Edge labels are enabled and combined
     return GRAPH("Modular Product of " + g1.get_name() + " and " + g2.get_name(),
                  list(new_dict_of_vertices.values()), new_list_of_edges, new_number_of_vertices, int(new_number_of_edges / 2),
                  False, is_labeled_edges=bool(isinstance(edge_comparison_import_para, list)),
