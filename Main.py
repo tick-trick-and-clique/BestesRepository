@@ -20,8 +20,7 @@ from GuideTree import upgma, guide_tree_to_newick, save_newick, parse_newick_fil
 from Neo4j import NEO4J
 from runpy import run_path
 from Json_Parser import json_parser
-from copy import deepcopy, copy
-from lib2to3.fixer_util import Number
+from copy import deepcopy
 
 
 def parser(file, neo4j):
@@ -320,7 +319,7 @@ def matching_using_mb(graph_left, graph_right, check_connection=False, vertex_co
 
 
 def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_matchings,
-                       anchor_graph_parameters=[None, None], smaller=0.0, matching_sort_func=None,
+                       anchor_graph_parameters=[None, None], smaller=0.0,
                        no_stereo_isomers=False, check_connection=False, vertex_comparison_import_para=None,
                        edge_comparison_import_para=None):
     """
@@ -335,7 +334,6 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
     if cluster.get_left_child().children_exist():
         graphs_left = recursive_matching(input_graphs, cluster.get_left_child(), matching_algorithm, pivot,
                                          number_matchings, anchor_graph_parameters=anchor_graph_parameters,
-                                         matching_sort_func=matching_sort_func,
                                          smaller=smaller, no_stereo_isomers=no_stereo_isomers,
                                          check_connection=check_connection,
                                          vertex_comparison_import_para=vertex_comparison_import_para,
@@ -344,7 +342,6 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
     if cluster.get_right_child().children_exist():
         graphs_right = recursive_matching(input_graphs, cluster.get_right_child(), matching_algorithm, pivot,
                                           number_matchings, anchor_graph_parameters=anchor_graph_parameters,
-                                          matching_sort_func=matching_sort_func,
                                           smaller=smaller, no_stereo_isomers=no_stereo_isomers,
                                           check_connection=check_connection,
                                           vertex_comparison_import_para=vertex_comparison_import_para,
@@ -382,10 +379,7 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
         matching_graphs = toss_stereoisomers(new_graphs, input_graphs)
     else:
         matching_graphs = new_graphs
-    if matching_sort_func:
-        matching_graphs = sorted(matching_graphs, key=lambda x: matching_sort_func(x), reverse=True)
-    else:
-        matching_graphs = sorted(matching_graphs, key=lambda x: x.get_number_of_vertices(), reverse=True)
+    matching_graphs = sorted(matching_graphs, key=lambda x: x.get_number_of_vertices(), reverse=True)
     number_matchings = min(len(new_graphs), number_matchings)
     matching_graphs = matching_graphs[:number_matchings]
     cluster.set_elements(matching_graphs)
@@ -578,10 +572,10 @@ if __name__ == '__main__':
     p = []
     newick = None
     
-    #Check if user what to make a new Neo4J Upload 
+    # Check if user what to make a new Neo4J Upload
     # create Neo4J View
     if args.neo4j:
-        #Delete old Neo4j database entries
+        # Delete old Neo4j database entries
         neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], [],  [], "", True)
 
     #  Initialising list of graphs
@@ -685,16 +679,6 @@ if __name__ == '__main__':
             else:
                 anchor, p = anchor_from_anchor_vertex_list(anchor_graph.get_list_of_vertices(), p)
 
-    matching_sort_func = None
-    if args.matching_sort is not None:
-        if len(args.matching_sort) != 2:
-            raise Exception("Please provide a file name together with a function name in that file that will take"
-                            "a matching graph and return a floating point number. Matching graphs will then be sorted"
-                            "in descending order regarding the return value of that function!")
-        else:
-            matching_sort_func = import_file(args.matching_sort[0], args.matching_sort[1])
-            print("Passed Function for matching sorting: " + str(args.matching_sort[1]))
-
     # Checking for bron-kerbosch option
     if args.bron_kerbosch is not None:
         print("Matching algorithm: Bron-kerbosch")
@@ -715,15 +699,10 @@ if __name__ == '__main__':
                 matching_graph = retrieve_graph_from_clique(selected_cliques[i], input_graphs[0])
                 matching_graphs.append(matching_graph)
             print("Single Bron-kerbosch: Found " + str(len(matching_graphs)) + " cliques!")
-            if matching_sort_func:
-                matching_graphs = sorted(matching_graphs, key=lambda x: matching_sort_func(x), reverse=True)
-            else:
-                matching_graphs = sorted(matching_graphs, key=lambda x: x.get_number_of_vertices(), reverse=True)
+            matching_graphs = sorted(matching_graphs, key=lambda x: x.get_number_of_vertices(), reverse=True)
             for matching_graph in matching_graphs:
                 original_subgraph = retrieve_original_subgraphs(matching_graph, input_graphs)
                 selected_subgraphs.append(original_subgraph)
-                
-            # Log statement for the console about Bron-Kerbosch
 
     # Checking for modular product option
     if args.modular_product:
@@ -733,19 +712,6 @@ if __name__ == '__main__':
         else:
             graph1_name = input_graphs[0].get_name()
             graph2_name = input_graphs[1].get_name()
-            """
-            AJ: I think this not necessary 
-            # Save Input Parameter ["path to script", "name of function"] to pass to modular_prduct() for import
-            vertex_comparison_import_parameters = None    # Default: Vertex-Labels are ignored within modular_product()
-            edge_comparison_import_parameters = None      # Default: Edge-Labels are ignored within modular_product()
-            if args.vertex_label_comparison and args.edge_label_comparison:
-                vertex_comparison_import_parameters = args.vertex_label_comparison
-                edge_comparison_import_parameters = args.edge_label_comparison
-            elif args.vertex_label_comparison:
-                vertex_comparison_import_parameters = args.vertex_label_comparison
-            elif args.edge_label_comparison:
-                edge_comparison_import_parameters = args.edge_label_comparison
-            """
             graph, anchor = modular_product(input_graphs[0], input_graphs[1],
                                             vertex_comparison_import_para=args.vertex_label_comparison,
                                             edge_comparison_import_para=args.edge_label_comparison)
@@ -774,7 +740,7 @@ if __name__ == '__main__':
         raise Exception("For guide tree construction, please pass either a .newick file, a built-in keyword (see "
                         "help message) or 'custom <file.py>' for introducing you own comparison function!")
     # Checking for graph alignment option. This option performs graph alignment of a number of graphs given as input
-    # files. The matching order is according to the guide tree option (passing a comaprison function or a '.newick' file
+    # files. The matching order is according to the guide tree option (passing a comparison function or a '.newick' file
     # , using graph density for guide tree construction is default. The graph names in the '.newick' file must be
     # unique!.
     # Matching is done either by forming the modular product and performing bron-kerbosch-algorithm or by the
@@ -849,26 +815,13 @@ if __name__ == '__main__':
             print("Graph alignment not performed.")
             pass
         else:
-            """
-            AJ: I think this is not needed
-            # Default: Labels of edges and vertices are not compared
-            vertex_comparison_import_para = None
-            edge_comparison_import_para = None
-            if args.graph_alignment[0] == "bk" and args.vertex_label_comparison and args.edge_label_comparison:
-                vertex_comparison_import_para = args.vertex_label_comparison
-                edge_comparison_import_para = args.edge_label_comparison
-            elif args.graph_alignment[0] == "bk" and args.vertex_label_comparison:
-                vertex_comparison_import_para = args.vertex_label_comparison
-            elif args.graph_alignment[0] == "bk" and args.edge_label_comparison:
-                edge_comparison_import_para = args.edge_label_comparison
-            """
             if args.graph_alignment[0] == "mb":
                 print("Matching-based algorithm performing...")
             elif args.graph_alignment[0] == "bk":
                 print("Bron-kerbosch algorithm performing...")
             matching_graphs = recursive_matching(input_graphs, cluster_tree, args.graph_alignment[0], args.pivot, i,
                                                  anchor_graph_parameters=anchor_graph_parameters,
-                                                 smaller=smaller, matching_sort_func=matching_sort_func,
+                                                 smaller=smaller,
                                                  no_stereo_isomers=args.no_stereo_isomers,
                                                  check_connection=args.check_connection,
                                                  vertex_comparison_import_para=args.vertex_label_comparison,
@@ -995,11 +948,3 @@ if __name__ == '__main__':
                                                  subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
     else:
         print("Subgraph output: False")
-
-                    
-# Consider different types of multiple alignment strategies concerning comparison of analogue attributes (e.g. a
-# specific vertex/edge label), i.e. How should those attributes be handled for graphs resulting from the alignment
-# during multiple alignments (create a mean value?)?
-    # - For matching-based this is handled in 'mb_mapping_to_graph' so far, only including labels of one graph
-    # - For bron-kerbosch this is handled in the call of 'retrieve_graph_from_clique in 'matching_using_bk' so far,
-# TODO: import file funktionen inzwischen in 3 .py files, vielleicht als getrenntes file machen
