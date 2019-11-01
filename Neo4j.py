@@ -25,9 +25,9 @@ class NEO4J(object):
                 self.create_graphs(vertices_objects, edges_objects, graph_id)
         except:
             print("Please connect with Neo4J Server")
-            print("URI: " + self.uri)
-            print("USER_NAME: " + self.user)
-            print("PASSWORD: " + self.pwd)
+            print("URI: " + self.__uri)
+            print("USER_NAME: " + self.__user)
+            print("PASSWORD: " + self.__pwd)
     
     def set_uri(self,uri):
         '''
