@@ -69,7 +69,7 @@ def json_parser(file_path, neo4j, no_h_atoms):
 
     # Instantiate GRAPH object
     graph = GRAPH(molecule_name, list_of_vertices, list_of_edges, len(list_of_vertices), int(len(list_of_edges)/2),
-                  False, is_labeled_nodes=True, is_labeled_edges=True)
+                  False, has_labeled_nodes=True, has_labeled_edges=True)
 
     # for input graphs, each vertex needs to contain a mapping of itself
     for v in graph.get_list_of_vertices():

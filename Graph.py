@@ -13,7 +13,7 @@ from copy import copy
 class GRAPH(object):
     # TODO: number_of_vertices and number_of_edges is kind of obsolete, remove and reconstruct from given lists?!
     def __init__(self, name, list_of_vertices, list_of_edges, number_of_vertices, number_of_edges, is_directed,
-                 is_labeled_nodes=False, is_labeled_edges=False):
+                 has_labeled_nodes=False, has_labeled_edges=False):
         self.__name = name
         self.__list_of_vertices: List[VERTEX] = list_of_vertices
         self.__list_of_edges: List[EDGE] = list_of_edges
@@ -24,22 +24,15 @@ class GRAPH(object):
                 list_vertices.append(edge.get_start_and_end()[0])
                 list_vertices.append(edge.get_start_and_end()[1])
             unique_vertices = set(list_vertices)
-            vert_id = 1
-            for _ in unique_vertices:
-                if is_labeled_nodes:
-                    self.__list_of_vertices.append(VERTEX(vert_id, randomString()))
-                else:
-                    self.__list_of_vertices.append(VERTEX(vert_id, ""))
-                vert_id += 1
-            self.__number_of_vertices = vert_id
+            self.__list_of_vertices = list(unique_vertices)
         self.__number_of_vertices = len(self.__list_of_vertices)
         if is_directed:
             self.__number_of_edges = len(self.__list_of_edges)
         else:
             self.__number_of_edges = int(len(self.__list_of_edges)/2)
         self.__is_directed = is_directed
-        self.__is_labeled_nodes = is_labeled_nodes  # has to be transferred while initialising the graph
-        self.__is_labeled_edges = is_labeled_edges  # has to be transferred while initialising the graph
+        self.__has_labeled_nodes = has_labeled_nodes  # has to be transferred while initialising the graph
+        self.__has_labeled_edges = has_labeled_edges  # has to be transferred while initialising the graph
 
     def get_name(self):
         '''
@@ -52,6 +45,8 @@ class GRAPH(object):
         sets name(string) of the graph
         '''
         self.__name = name
+
+
 
     def get_list_of_vertices(self):
         '''
@@ -80,11 +75,11 @@ class GRAPH(object):
     def get_is_directed(self):
         return self.__is_directed
 
-    def get_is_labelled_nodes(self):
-        return self.__is_labeled_nodes
+    def get_has_labeled_nodes(self):
+        return self.__has_labeled_nodes
 
-    def get_is_labelled_edges(self):
-        return self.__is_labeled_edges
+    def get_has_labeled_edges(self):
+        return self.__has_labeled_edges
 
     def get_cardinality_of_vertex(self, vertex):
         cardinality = len(vertex.get_out_neighbours())
@@ -318,9 +313,9 @@ class GRAPH(object):
                 f.write("#edges;" + str(int(len(self.__list_of_edges))) + "\n")
             else:
                 f.write("#edges;" + str(int(len(self.__list_of_edges)/2)) + "\n")
-            f.write("nodes labeled;" + str(self.__is_labeled_nodes) + "\n")  #HOW DO I FIGURE OUT THE BEST?
+            f.write("nodes labeled;" + str(self.__has_labeled_nodes) + "\n")  #HOW DO I FIGURE OUT THE BEST?
             # PROBABLY WHEN ADDING NODES TO GRAPH?! PROBABLY WHEN ADDING NODES TO THE GRAPH
-            f.write("edges labeled;" + str(self.__is_labeled_edges) + "\n")
+            f.write("edges labeled;" + str(self.__has_labeled_edges) + "\n")
             f.write("directed graph;" + str(self.__is_directed))
             if len(self.__list_of_vertices) > 0:
                 f.write("\n")
@@ -391,7 +386,7 @@ class GRAPH(object):
             if edge.get_start_and_end()[0] in list_of_vertices and edge.get_start_and_end()[1] in list_of_vertices:
                 loe.append(edge)
         return GRAPH(self.get_name(), lov, loe, len(lov), len(loe), self.get_is_directed(),
-                     self.get_is_labelled_nodes(), self.get_is_labelled_edges())
+                     self.get_has_labeled_nodes(), self.get_has_labeled_edges())
 
     def is_connected(self):
         """
@@ -469,8 +464,8 @@ def retrieve_graph_from_clique(clique, orig_graph):
     # Now the new graph can be built
     graph_name = "".join([random.choice(string.ascii_letters) for i in range(8)])
     new_graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), orig_graph.get_is_directed(),
-                      is_labeled_nodes=orig_graph.get_is_labelled_nodes(),
-                      is_labeled_edges=orig_graph.get_is_labelled_edges())
+                      has_labeled_nodes=orig_graph.get_has_labeled_nodes(),
+                      has_labeled_edges=orig_graph.get_has_labeled_edges())
     return new_graph
 
 
@@ -495,7 +490,7 @@ def retrieve_original_subgraphs(matching_graph, input_graphs):
                         if edge.get_start_and_end()[0] == v1 and edge.get_start_and_end()[1] == v2:
                             loe.append(edge)
             subgraphs.append(GRAPH(graph.get_name(), lov, loe, len(lov), len(loe), graph.get_is_directed(),
-                             graph.get_is_labelled_nodes(), graph.get_is_labelled_edges()))
+                                   graph.get_has_labeled_nodes(), graph.get_has_labeled_edges()))
     return subgraphs
 
 
