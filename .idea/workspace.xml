@@ -3,22 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="51e76ea8-33cc-4581-a5ad-06fe1fd9988d" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Graph.py" beforeDir="false" afterPath="$PROJECT_DIR$/Graph.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Json_Parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/Json_Parser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MP_Vertex.py" beforeDir="false" afterPath="$PROJECT_DIR$/MP_Vertex.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Modulares_Produkt.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modulares_Produkt.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph1.graph" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph2.graph" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph3.graph" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph3_small_anchor_false.graph" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph3_small_anchor_true.graph" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph4.graph" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph5.graph" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph6.graph" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph7.graph" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/groß.graph" beforeDir="false" afterPath="$PROJECT_DIR$/groß.graph" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_script_Tilman.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_script_Tilman.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GuideTree.py" beforeDir="false" afterPath="$PROJECT_DIR$/GuideTree.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/difference_vertices_for_guide_tree.py.py" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />

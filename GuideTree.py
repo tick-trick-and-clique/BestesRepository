@@ -228,7 +228,7 @@ def parse_newick_file_into_tree(newick_file, graphs):
     Return type: Cluster
     """
     # Find the position of the branch separator (here: comma)
-    with open(newick_file, "r") as f:
+    with open(newick_file[0], "r") as f:
         newick_string = f.readline()
     return parse_newick_string_into_tree(newick_string, graphs)
 
@@ -238,12 +238,15 @@ def parse_newick_string_into_tree(newick_string, graphs):
     Helper function for parse_newick_file_into_tree.
     Return type: Cluster
     """
+    newick_string = newick_string.rstrip("\n")
     count = 1
-    i = 1
+    i = 1   #FIXME: Why start at position 1, which is just the second character of the actual string?!
+            #FIXME: You assume, that there is always "()" surrounding everything, right? Is it like that?!
     if newick_string[i] == "(":
         count += 1
     i += 1
     while count != 1:
+        print("-----> got in while....")
         if newick_string[i] == "(":
             count += 1
         if newick_string[i] == ")":
@@ -252,7 +255,7 @@ def parse_newick_string_into_tree(newick_string, graphs):
     position = newick_string.find(",", i, len(newick_string))
     # Divide the string into its branches
     newick_string1 = newick_string[1:position]
-    newick_string2 = newick_string[position + 1:-1]
+    newick_string2 = newick_string[position + 1:len(newick_string)-1]
     # If neither of the branches is a leaf, then:
     if newick_string1[0] == "(" and newick_string2[0] == "(":
         cluster1 = parse_newick_string_into_tree(newick_string1, graphs)
