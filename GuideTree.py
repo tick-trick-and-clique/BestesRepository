@@ -236,11 +236,11 @@ def parse_newick_string_into_tree(newick_string, graphs):
     count = 1
     i = 1   #FIXME: Why start at position 1, which is just the second character of the actual string?!
             #FIXME: You assume, that there is always "()" surrounding everything, right? Is it like that?!
+            # AJ: Yes!
     if newick_string[i] == "(":
         count += 1
     i += 1
     while count != 1:
-        print("-----> got in while....")
         if newick_string[i] == "(":
             count += 1
         if newick_string[i] == ")":
