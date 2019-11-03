@@ -213,12 +213,7 @@ class GRAPH(object):
         """
         result = []
         if not P and not X:
-            # Dev Log Statement
-            # print("Found Clique")
-            for elem in R:
-                # Dev Log Statement
-                # print(elem)
-                return [R]
+            return [R]
         if pivot == "max":
             pivot_vertex = self.select_max_pivot(P, X)
         elif pivot == "random":
@@ -237,10 +232,8 @@ class GRAPH(object):
             raise ValueError("Given optional pivot argument is illegal!")
         for vertex in [elem for elem in P if elem not in pivot_vertex.get_out_neighbours()]:
             new_R = R + [vertex]
-            # p intersects/geschnitten N(vertex
             rev = self.reversed_edges(vertex.get_out_neighbours(), vertex)
             new_P = [val for val in P if val in rev]
-            # x intersects/geschnitten N(vertex)
             new_X = [val for val in X if val in rev]
             result += self.bron_kerbosch(new_R, new_P, new_X, pivot=pivot)
             P.remove(vertex)
@@ -270,16 +263,15 @@ class GRAPH(object):
     def check_clique_properties(self):
         """
         checks if all vertices in R(list) are adjacent to every other vertex in R
-        # TODO: Correctness of sort function is untested!
         """
         check = True
         v_list = self.get_list_of_vertices()
         for vertex in v_list:
             n_list = vertex.get_out_neighbours()
-            n_list.sort(key=lambda v: v.get_id())
+            n_list = sorted(n_list, key=lambda v: v.get_id())
             v_list_copy = v_list.copy()
             v_list_copy.remove(vertex)
-            v_list_copy.sort(key=lambda v: v.get_id())
+            v_list_copy = sorted(v_list_copy, key=lambda v: v.get_id())
             if n_list != v_list_copy:
                 check = False
         return check
@@ -288,16 +280,11 @@ class GRAPH(object):
         """
         saves representation of the GRAPH object to textfile: ["self.__name.graph"]
         """
-        # Default value should be self.__name.graph
         if output_file == 1:
-            output_file = self.get_name() + ".graph"        # Couldn't call self.get_name() in the method parameter list
-
-        # If provided argument is not a valid directory and also is not a valid file name, raise NotADirectoryError
+            output_file = self.get_name() + ".graph"
         if not os.path.isdir(os.path.dirname(output_file)) \
                 and not os.path.isdir(os.path.dirname(os.path.abspath(output_file))):
             raise NotADirectoryError("Given path is not a directory!")
-
-        # If the provided argument does not end with '.graph', raise NameError
         if output_file[-6:] != ".graph":
             raise RuntimeError("Given path of filename must end with '.graph'")
 
@@ -305,36 +292,26 @@ class GRAPH(object):
         # impede overwriting
         if sequential_number is not None:
             output_file = output_file[:-6] + "_" + str(sequential_number) + output_file[-6:]
-
-        # Provided argument is a directory, else it is a filename and the current working directory path is added
         if os.path.isdir(os.path.dirname(output_file)):
             filename = output_file
         else:
             filename = os.path.abspath(output_file)
-
         with open(filename, "w") as f:
             f.write("#nodes;" + str(self.__number_of_vertices) + "\n")
             if self.__is_directed:
                 f.write("#edges;" + str(int(len(self.__list_of_edges))) + "\n")
             else:
                 f.write("#edges;" + str(int(len(self.__list_of_edges)/2)) + "\n")
-            f.write("nodes labeled;" + str(self.__is_labeled_nodes) + "\n")  #HOW DO I FIGURE OUT THE BEST?
-            # PROBABLY WHEN ADDING NODES TO GRAPH?! PROBABLY WHEN ADDING NODES TO THE GRAPH
+            f.write("nodes labeled;" + str(self.__is_labeled_nodes) + "\n")
             f.write("edges labeled;" + str(self.__is_labeled_edges) + "\n")
             f.write("directed graph;" + str(self.__is_directed))
             if len(self.__list_of_vertices) > 0:
                 f.write("\n")
-                # sorted_vertices = sorted(self.get_list_of_vertices(), key=lambda x: x.get_id())
                 for vertex in self.get_list_of_vertices():
                     f.write("\n" + str(vertex.get_id()) + ";" + str(vertex.get_label()))
-                    #Wenn nodes ohne Label ";" weglassen?
-
             if len(self.__list_of_edges) > 0:
                 f.write("\n")
                 for edge in self.__list_of_edges:
-                    #print(edge.get_start_and_end()[0])
-                    #print(edge.get_start_and_end()[1])
-
                     f.write("\n" + str(edge.get_start_and_end()[0].get_id()) + ";"
                             + str(edge.get_start_and_end()[1].get_id()) + ";" + str(edge.get_label()))
         f.close()
@@ -466,7 +443,6 @@ def retrieve_graph_from_clique(clique, orig_graph):
                         edge.get_start_and_end()[1].get_id() == copy_orig_vertex2.get_id():
                     copy_orig_vertex.append_out_neighbour(copy_orig_vertex2)
                     loe.append(EDGE(edge.get_id(), [copy_orig_vertex, copy_orig_vertex2], edge.get_label()))
-    # Now the new graph can be built
     graph_name = "".join([random.choice(string.ascii_letters) for i in range(8)])
     new_graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), orig_graph.get_is_directed(),
                       is_labeled_nodes=orig_graph.get_is_labelled_nodes(),
@@ -537,15 +513,12 @@ def remaining_candidates(r, p):
     result = []
     for v in p:
         truelist = []
-        # print("v mapping", v.get_mapping()["graph2"], v.get_mapping()["graph6"])
         if v not in r:
             for vertex in r:
                 if vertex in v.get_out_neighbours():
                     truelist.append(True)
-                    #print("t")
                 else:
                     truelist.append(False)
-                    #print("f")
             if all(truelist):
                 result.append(v)
     return result

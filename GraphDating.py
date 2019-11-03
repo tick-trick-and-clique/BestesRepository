@@ -94,7 +94,6 @@ def parser(file, neo4j):
                 edges = []
                 for elem in lastlines:
                     edges.append(elem.rstrip())
-                # print("len(edges): %s" % len(edges)) # AJ: Dieses Statement würde ich löschen, sieht nicht gut aus
             except IOError:
                 print("Wrong input file format: Mistake in edges part.")
         file_path_name = file
@@ -104,19 +103,16 @@ def parser(file, neo4j):
     vertices_objects: List[VERTEX] = []
     if number_vertices != 0:
         for vertex in vertices:
-            if vertices_labelled:  # if vertices are labelled
+            if vertices_labelled:
                 vertex_splitted = vertex.split(";")
                 if len(vertex_splitted) == 1:
                     raise Exception("Wrong format: Vertices should be labelled but aren't.")
-                    #  TODO: Wouldn't raise this exception, because it checks for EVERY item
-                    #  AJ: "I guess if the headers says that Vertices are labelled, ALL of them should be labelled,
-                    #       not just some. So I think its fine."
                 try:
                     i = int(vertex_splitted[0])
                 except TypeError:
                     print("Illegal type for vertex ID in .graph format, please provide integer!")
                 vertices_objects.append(VERTEX(int(vertex_splitted[0]), vertex_splitted[1]))
-            else:  # if vertices arent labelled
+            else:
                 vertex_splitted = vertex.split(";")
                 if len(vertex_splitted) == 2 and vertex_splitted[1]:
                     raise Exception("Wrong format: Vertices are labelled but header doesn't say so.")
@@ -124,7 +120,7 @@ def parser(file, neo4j):
                     i = int(vertex_splitted[0])
                 except TypeError:
                     print("Illegal type for vertex ID in .graph format, please provide integer!")
-                vertices_objects.append(VERTEX(int(vertex_splitted[0]), ""))
+                vertices_objects.append(VERTEX(i, ""))
 
     # save edges as objects
     edges_objects: List[EDGE] = []
@@ -132,26 +128,15 @@ def parser(file, neo4j):
         identifier = 1  # each edge gets an id
         for edge in edges:
             edge_splitted = edge.split(";")
-            # print("edge: %s" % edge)
-            # print("edge, (edge_splitted[0], edge_splitted[1], edge_splitted[2]): %s, (%s, %s, %s)" %
-            #       edge, edge_splitted[0], edge_splitted[1], edge_splitted[2])
             # search for start vertex in vertices_objects and for end vertex
             start_and_end: List[VERTEX] = [item for item in vertices_objects if (item.get_id() == int(edge_splitted[0]))] \
                             + [item for item in vertices_objects if (item.get_id() == int(edge_splitted[1]))]
-            # print("start_and_end[0].get_id(); start_and_end[1].get_id():\t %s, %s" %
-            #       (start_and_end[0].get_id(), start_and_end[1].get_id()))
-            #  FIXME: Isnt't it obsolete to call >check_start_end_in_vertices(start_and_end, edge)< ? look above!
-            #  AJ: "The function checks (1) if <edge> carries two vertex IDs and (2) whether these IDS are in the list
-            #  of vertices. I think its fine.
             check_start_end_in_vertices(start_and_end, edge)  # check if start and end vertex are in vertices list
             end_and_start = [start_and_end[1], start_and_end[0]]
 
-            if edges_labbelled:  # if edges are labelled
+            if edges_labbelled:
                 if len(edge_splitted) == 2:
                     raise Exception("Wrong format: Edges should be labelled but aren't.")
-                    #  FIXME: Wouldn't raise this exception, because it checks for EVERY item
-                    #  AJ: "I guess if the headers says that Edges are labelled, ALL of them should be labelled,
-                    #       not just some. So I think its fine."
                 if directed:  # if graph is directed
                     edges_objects.append(EDGE(identifier, start_and_end, edge_splitted[2]))
                     identifier += 1
@@ -159,8 +144,7 @@ def parser(file, neo4j):
                     # the format includes unnecessarily all edges
                     if start_and_end not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, start_and_end, edge_splitted[2]))
-                        identifier += 1 #  TODO: Shouldn't the id of edge (1;2) and (2;1) in an undir-G. be the same?!
-                                        #  AJ: "See below."
+                        identifier += 1
                     if end_and_start not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, end_and_start, edge_splitted[2]))
                         identifier += 1
@@ -174,26 +158,18 @@ def parser(file, neo4j):
                     # the format includes unnecessarily all edges
                     if start_and_end not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, start_and_end, ""))
-                        identifier += 1 # TODO: Shouldn't the id of edge (1;2) and (2;1) in an undir-G. be the same?!
-                        #  TODO: Maybe change the parsing, so that internally the id of two inverted edges
-                        #   in undirected graphs have the same id (like in Graph_Builder)
-                        #   AJ: " In the end it doesn't matter. The id of an edge will never be save in
-                        #   a .graph file (because we don't allow multi-graphs), so it's just an attribute to access a
-                        #   distinct edge. Only we should handle it consequently in the same style."
+                        identifier += 1
                     if end_and_start not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, end_and_start, ""))
                         identifier += 1
 
     # Testing header fits actual number of vertices and edges
-    # print("len(vertices_objects) %s \t" % len(vertices_objects) + "number_vertices %s" % number_vertices)
     if not len(vertices_objects) == number_vertices:
         raise Exception("Number of vertices doesn't fit predicted number in header!")
     if not directed:
-        # print("len(edges_objects) %s \t" % len(edges_objects) + "number_edges %s" % number_edges)
         if not len(edges_objects) / 2 == number_edges or len(edges_objects) == number_edges:
             raise Exception("Number of edges doesn't fit predicted number in header!")
     else:
-        # print("len(edges_objects) %s \t" % len(edges_objects) + "number_edges %s" % number_edges)
         if not len(edges_objects) == number_edges:
             raise Exception("Number of edges doesn't fit predicted number in header!")
 
@@ -375,7 +351,7 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
                     new_graphs += mb_helper(gl, gr, check_connection=check_connection,
                                             vertex_comparison_import_para=vertex_comparison_import_para,
                                             edge_comparison_import_para=edge_comparison_import_para)
-    if no_stereo_isomers:           # List[Dict{"Graph_name": List[VERTEX, ...]}] # Die Dict müssen verglichen werden
+    if no_stereo_isomers:
         matching_graphs = toss_stereoisomers(new_graphs, input_graphs)
     else:
         matching_graphs = new_graphs
@@ -541,7 +517,7 @@ def toss_stereoisomers(new_graphs, input_graphs):
         for already in check_list:
             true_list = []
             for key in already.keys():
-                if already[key] == d[key]:  # Comparison of two lists!
+                if already[key] == d[key]:
                     true_list.append(True)
                 else:
                     true_list.append(False)
@@ -559,7 +535,8 @@ if __name__ == '__main__':
     try:
         args = parse_command_line()
     except IOError:
-        pass
+        args = {}
+        raise Exception("Error occurred passing the command line arguments!")
 
     if args.syntax:
         raise Exception("Please use proper syntax, use '-h' for more information!")
@@ -571,15 +548,13 @@ if __name__ == '__main__':
     anchor = []
     p = []
     newick = None
+    graphs = []
     
     # Check if user what to make a new Neo4J Upload
     # create Neo4J View
     if args.neo4j:
         # Delete old Neo4j database entries
         neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], [],  [], "", True)
-
-    #  Initialising list of graphs
-    graphs = []
 
     # Console output for passed parameters
     print("Input format: ." + args.input_format)
@@ -616,13 +591,8 @@ if __name__ == '__main__':
     else:
         direction = None
         for i in range(len(args.input)):
-
-            # If input argument is neither a valid path nor a file in the current working directory. If, raise
-            # Exception.
             if not os.path.isdir(os.path.dirname(args.input[i])) and not os.path.exists(args.input[i]):
                 raise Exception("No such file with given path or filename!")
-
-            # If input argument is a not a full path, add current working directory. Else, take what's given.
             if not os.path.isdir(os.path.dirname(args.input[i])):
                 file_path = os.path.abspath(args.input[i])
             else:
@@ -659,11 +629,8 @@ if __name__ == '__main__':
                 isinstance(args.bron_kerbosch, list):
             print("Anchor File: --")
     else:
-        # If input argument is neither a valid path nor a file in the current working directory. If, raise
-        # Exception.
         if not os.path.isdir(os.path.dirname(args.anchor)) and not os.path.exists(args.anchor):
             raise Exception("No such file with given path or filename!")
-        # If anchor argument is a not a full path, add current working directory. Else, take what's given.
         if not os.path.isdir(os.path.dirname(args.anchor)):
             file_path = os.path.abspath(args.anchor)
         else:
@@ -739,6 +706,7 @@ if __name__ == '__main__':
     if isinstance(args.guide_tree, list) and len(args.guide_tree) == 0:
         raise Exception("For guide tree construction, please pass either a .newick file, a built-in keyword (see "
                         "help message) or 'custom <file.py>' for introducing you own comparison function!")
+
     # Checking for graph alignment option. This option performs graph alignment of a number of graphs given as input
     # files. The matching order is according to the guide tree option (passing a comparison function or a '.newick' file
     # , using graph density for guide tree construction is default. The graph names in the '.newick' file must be
@@ -885,7 +853,6 @@ if __name__ == '__main__':
     else:
         print("Graph output: False")
 
-
     # Output of subgraphs from graph alignment or bron-kerbosch algorithm on a modular product.
     if args.subgraph_output is not None and (input_graphs or graph):
         number_output = len(selected_subgraphs)
@@ -929,7 +896,7 @@ if __name__ == '__main__':
                                              subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
         elif len(args.subgraph_output) == 1:
             if args.subgraph_output[0].isdigit():
-                subgraph_number = int(args.subgraph_output[0]) #if subgraph output value is the number of selected subgraphs
+                subgraph_number = int(args.subgraph_output[0])
                 for i in range(min(len(selected_subgraphs), subgraph_number)):
                     for subgraph in selected_subgraphs[i]:
                         subgraph.save_to_txt(output_file=subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
@@ -937,7 +904,7 @@ if __name__ == '__main__':
                         if args.neo4j:
                             neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
                                                  subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
-            else:#if subgraph output value is only the path or the graph name
+            else:
                 for i in range(len(selected_subgraphs)):
                     for subgraph in selected_subgraphs[i]:
                         subgraph.save_to_txt(output_file= subgraph.get_name() + "_" + args.subgraph_output[0],

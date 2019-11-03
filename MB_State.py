@@ -26,7 +26,7 @@ def is_identical_label(label, other_label):
 
 class MB_State:
 
-    # DEV NOTE: core_1 and core_2 are supposed to be dictionaries with integers keys and VERTEX type values here
+    # NOTE: core_1 and core_2 are supposed to be dictionaries with integers keys and VERTEX type values here
     # while the other four data structures hold integer type values.
 
     def __init__(self, g1, g2, vertex_comparison_import_para=None, edge_comparison_import_para=None):
@@ -78,14 +78,9 @@ class MB_State:
         result_as_mapping_dict = {}
         result_as_mapping_list = []
         if self.all_vertices_of_g2_covered():
-            #print("Result:")
-            #print("IDs of Vertices")
-            #print("Graph 1  Graph2")
             for key, value in self.core_1.items():
                 if value:
-                   #print(key, value.get_id(), sep="\t")
-                   result_as_mapping_dict[key] = value.get_id()
-            #type(print("\n"))
+                    result_as_mapping_dict[key] = value.get_id()
             self.restore_data_structures(previously_added)
             return [result_as_mapping_dict]
         else:
@@ -121,15 +116,12 @@ class MB_State:
         Therefore, it is checked whether:
             - Vertices are compatible (evaluating the label)
             - Edges from and into the space of already matched vertices correspond and edge are compatible (evaluating
-            the label)
+            the label, if wanted)
             - The number of vertices from out and in edges, where vertices are not in the space of already matched
             vertices but have edges from or into the space, are equal
             - The number of vertices from out and in edges, where vertices are not in the space of already matched
             vertices and also do not have edges from or into the space, are equal
-        CAUTION: Compatibility checks are ONLY performed from Graph 1 to Graph 2 for non-symmetric compatibility
-        reasons!"""
-
-        # DEV NOTE: EDGE label is interpreted as the edge compatibility attribute here
+        NOTE: Compatibility checks are symmetric, non-symmetric vertex/edge compatibilies are not supported!"""
 
         g1_vertex_index, g2_vertex_index = candidate
         g1_vertex = [v for v in self.graph1.get_list_of_vertices() if g1_vertex_index == v.get_id()][0]
@@ -285,5 +277,3 @@ class MB_State:
             self.core_1[previously_added[0]] = None
             self.core_2[previously_added[1]] = None
         return
-
-#TODO: Alle matchings kicken, die nur aus einem knoten bestehen!

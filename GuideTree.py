@@ -200,22 +200,18 @@ def save_newick(newick_string, output_file=1):
     """
     if output_file == "1":
         output_file = "Default_name.newick"
-    # If provided argument is not a valid directory and also is not a valid file name, raise NotADirectoryError
     if not os.path.isdir(os.path.dirname(output_file)) \
             and not os.path.isdir(os.path.dirname(os.path.abspath(output_file))):
         raise NotADirectoryError("Given path is not a directory!")
-    # Provided argument is a directory, else it is a filename and the current working directory path is added
     if os.path.isdir(os.path.dirname(output_file)):
         filename = output_file
     else:
         filename = os.path.abspath(output_file)
-    # If the provided argument does not end with '.newick
     if output_file[-7:] != ".newick":
         raise NameError("Given path of filename must end with '.newick'")
     with open(filename, "w") as f:
         f.write(newick_string)
         f.close()
-    # Log Statement
     return True
 
 
@@ -225,7 +221,6 @@ def parse_newick_file_into_tree(newick_file, graphs):
     unique (!) names in the string. Returns a top cluster (i.e. tree root) of the guide tree.
     Return type: Cluster
     """
-    # Find the position of the branch separator (here: comma)
     with open(newick_file, "r") as f:
         newick_string = f.readline()
     return parse_newick_string_into_tree(newick_string, graphs)
