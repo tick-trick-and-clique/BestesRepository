@@ -192,7 +192,7 @@ def parser(file, neo4j):
     
     # create graph from class GRAPH
     graph = GRAPH(graph_name, vertices_objects, edges_objects, number_vertices, number_edges, directed,
-                 is_labeled_nodes=vertices_labelled, is_labeled_edges=edges_labbelled)
+                  has_labeled_nodes=vertices_labelled, has_labeled_edges=edges_labbelled)
 
     # for input graphs, each vertex needs to contain a mapping of itself
     for v in graph.get_list_of_vertices():
@@ -399,7 +399,7 @@ def mb_mapping_to_graph(result_as_mapping, graph1, graph2):
                         new_v1.append_out_neighbour(new_v2)
         graph_name = "".join([random.choice(string.ascii_letters) for n in range(8)])
         graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), graph1.get_is_directed(),
-                      graph1.get_is_labelled_nodes(), graph1.get_is_labelled_edges())
+                      graph1.get_has_labeled_nodes(), graph1.get_has_labeled_edges())
     return graph
 
 
@@ -596,7 +596,7 @@ if __name__ == '__main__':
             if not os.path.isdir(os.path.dirname(args.input[i])):
                 file_path = os.path.abspath(args.input[i])
             else:
-                file_path = args.input
+                file_path = os.path.abspath(args.input[i])
 
             # Log statement for the console about the input file
             print("Input file path of file " + str(i) + ": " + file_path)
