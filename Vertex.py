@@ -32,7 +32,7 @@ class VERTEX(object):
             raise TypeError("\n Dude... passed parameter has to be a list! \n")
         else:
             if len(new_neighbours) == 1:
-                self.__out_neighbours.append(new_neighbours)        # Hier wird eine Liste angefügt, oder?!
+                self.__out_neighbours.append(new_neighbours)
             elif len(new_neighbours) > 1:
                 self.__out_neighbours.extend(new_neighbours)
 
@@ -50,12 +50,3 @@ class VERTEX(object):
 
     def combine_mapping(self, vertex):
         self.__mapping = {**self.__mapping, **vertex.get_mapping()}
-
-
-def is_compatible_vertex(vertex, other_vertex):
-    # Function returns whether two vertices are 'compatible'.
-    # Here, this is performed by comparison of vertex labels.
-    if vertex.get_label() == other_vertex.get_label():
-        return True
-    else:
-        return False

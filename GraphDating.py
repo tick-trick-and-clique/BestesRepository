@@ -20,8 +20,7 @@ from GuideTree import upgma, guide_tree_to_newick, save_newick, parse_newick_fil
 from Neo4j import NEO4J
 from runpy import run_path
 from Json_Parser import json_parser
-from copy import deepcopy, copy
-from lib2to3.fixer_util import Number
+from copy import deepcopy
 
 
 def parser(file, neo4j):
@@ -95,7 +94,6 @@ def parser(file, neo4j):
                 edges = []
                 for elem in lastlines:
                     edges.append(elem.rstrip())
-                # print("len(edges): %s" % len(edges)) # AJ: Dieses Statement würde ich löschen, sieht nicht gut aus
             except IOError:
                 print("Wrong input file format: Mistake in edges part.")
         file_path_name = file
@@ -105,19 +103,16 @@ def parser(file, neo4j):
     vertices_objects: List[VERTEX] = []
     if number_vertices != 0:
         for vertex in vertices:
-            if vertices_labelled:  # if vertices are labelled
+            if vertices_labelled:
                 vertex_splitted = vertex.split(";")
                 if len(vertex_splitted) == 1:
                     raise Exception("Wrong format: Vertices should be labelled but aren't.")
-                    #  TODO: Wouldn't raise this exception, because it checks for EVERY item
-                    #  AJ: "I guess if the headers says that Vertices are labelled, ALL of them should be labelled,
-                    #       not just some. So I think its fine."
                 try:
                     i = int(vertex_splitted[0])
                 except TypeError:
                     print("Illegal type for vertex ID in .graph format, please provide integer!")
                 vertices_objects.append(VERTEX(int(vertex_splitted[0]), vertex_splitted[1]))
-            else:  # if vertices arent labelled
+            else:
                 vertex_splitted = vertex.split(";")
                 if len(vertex_splitted) == 2 and vertex_splitted[1]:
                     raise Exception("Wrong format: Vertices are labelled but header doesn't say so.")
@@ -125,7 +120,7 @@ def parser(file, neo4j):
                     i = int(vertex_splitted[0])
                 except TypeError:
                     print("Illegal type for vertex ID in .graph format, please provide integer!")
-                vertices_objects.append(VERTEX(int(vertex_splitted[0]), ""))
+                vertices_objects.append(VERTEX(i, ""))
 
     # save edges as objects
     edges_objects: List[EDGE] = []
@@ -133,26 +128,15 @@ def parser(file, neo4j):
         identifier = 1  # each edge gets an id
         for edge in edges:
             edge_splitted = edge.split(";")
-            # print("edge: %s" % edge)
-            # print("edge, (edge_splitted[0], edge_splitted[1], edge_splitted[2]): %s, (%s, %s, %s)" %
-            #       edge, edge_splitted[0], edge_splitted[1], edge_splitted[2])
             # search for start vertex in vertices_objects and for end vertex
             start_and_end: List[VERTEX] = [item for item in vertices_objects if (item.get_id() == int(edge_splitted[0]))] \
                             + [item for item in vertices_objects if (item.get_id() == int(edge_splitted[1]))]
-            # print("start_and_end[0].get_id(); start_and_end[1].get_id():\t %s, %s" %
-            #       (start_and_end[0].get_id(), start_and_end[1].get_id()))
-            #  FIXME: Isnt't it obsolete to call >check_start_end_in_vertices(start_and_end, edge)< ? look above!
-            #  AJ: "The function checks (1) if <edge> carries two vertex IDs and (2) whether these IDS are in the list
-            #  of vertices. I think its fine.
             check_start_end_in_vertices(start_and_end, edge)  # check if start and end vertex are in vertices list
             end_and_start = [start_and_end[1], start_and_end[0]]
 
-            if edges_labbelled:  # if edges are labelled
+            if edges_labbelled:
                 if len(edge_splitted) == 2:
                     raise Exception("Wrong format: Edges should be labelled but aren't.")
-                    #  FIXME: Wouldn't raise this exception, because it checks for EVERY item
-                    #  AJ: "I guess if the headers says that Edges are labelled, ALL of them should be labelled,
-                    #       not just some. So I think its fine."
                 if directed:  # if graph is directed
                     edges_objects.append(EDGE(identifier, start_and_end, edge_splitted[2]))
                     identifier += 1
@@ -160,8 +144,7 @@ def parser(file, neo4j):
                     # the format includes unnecessarily all edges
                     if start_and_end not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, start_and_end, edge_splitted[2]))
-                        identifier += 1 #  TODO: Shouldn't the id of edge (1;2) and (2;1) in an undir-G. be the same?!
-                                        #  AJ: "See below."
+                        identifier += 1
                     if end_and_start not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, end_and_start, edge_splitted[2]))
                         identifier += 1
@@ -175,26 +158,18 @@ def parser(file, neo4j):
                     # the format includes unnecessarily all edges
                     if start_and_end not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, start_and_end, ""))
-                        identifier += 1 # TODO: Shouldn't the id of edge (1;2) and (2;1) in an undir-G. be the same?!
-                        #  TODO: Maybe change the parsing, so that internally the id of two inverted edges
-                        #   in undirected graphs have the same id (like in Graph_Builder)
-                        #   AJ: " In the end it doesn't matter. The id of an edge will never be save in
-                        #   a .graph file (because we don't allow multi-graphs), so it's just an attribute to access a
-                        #   distinct edge. Only we should handle it consequently in the same style."
+                        identifier += 1
                     if end_and_start not in [edge.get_start_and_end() for edge in edges_objects]:
                         edges_objects.append(EDGE(identifier, end_and_start, ""))
                         identifier += 1
 
     # Testing header fits actual number of vertices and edges
-    # print("len(vertices_objects) %s \t" % len(vertices_objects) + "number_vertices %s" % number_vertices)
     if not len(vertices_objects) == number_vertices:
         raise Exception("Number of vertices doesn't fit predicted number in header!")
     if not directed:
-        # print("len(edges_objects) %s \t" % len(edges_objects) + "number_edges %s" % number_edges)
         if not len(edges_objects) / 2 == number_edges or len(edges_objects) == number_edges:
             raise Exception("Number of edges doesn't fit predicted number in header!")
     else:
-        # print("len(edges_objects) %s \t" % len(edges_objects) + "number_edges %s" % number_edges)
         if not len(edges_objects) == number_edges:
             raise Exception("Number of edges doesn't fit predicted number in header!")
 
@@ -266,8 +241,6 @@ def matching_using_bk(input_graphs, graph_left, graph_right, pivot, anchor_graph
         mp, anchor = modular_product(graph_left, graph_right,
                                      vertex_comparison_import_para=vertex_comparison_import_para,
                                      edge_comparison_import_para=edge_comparison_import_para)
-    # Log statement for the console about Bron-Kerbosch
-    print("Clique finding via Bron-Kerbosch...")
     clique_findings = []
     p = mp.get_list_of_vertices()
     if anchor_graph_parameters:
@@ -310,7 +283,6 @@ def matching_using_mb(graph_left, graph_right, check_connection=False, vertex_co
         graph2 = graph_left
     mb_state = MB_State(graph1, graph2, vertex_comparison_import_para=vertex_comparison_import_para,
                         edge_comparison_import_para=edge_comparison_import_para)
-    print("Matching-based algorithm performing...")
     result_as_mappings = mb_state.mb_algorithm()
     for mapping in result_as_mappings:
         matching_graph = mb_mapping_to_graph(mapping, graph1, graph2)
@@ -323,7 +295,7 @@ def matching_using_mb(graph_left, graph_right, check_connection=False, vertex_co
 
 
 def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_matchings,
-                       anchor_graph_parameters=[None, None], smaller=0.0, matching_sort_func=None,
+                       anchor_graph_parameters=[None, None], smaller=0.0,
                        no_stereo_isomers=False, check_connection=False, vertex_comparison_import_para=None,
                        edge_comparison_import_para=None):
     """
@@ -338,7 +310,6 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
     if cluster.get_left_child().children_exist():
         graphs_left = recursive_matching(input_graphs, cluster.get_left_child(), matching_algorithm, pivot,
                                          number_matchings, anchor_graph_parameters=anchor_graph_parameters,
-                                         matching_sort_func=matching_sort_func,
                                          smaller=smaller, no_stereo_isomers=no_stereo_isomers,
                                          check_connection=check_connection,
                                          vertex_comparison_import_para=vertex_comparison_import_para,
@@ -347,7 +318,6 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
     if cluster.get_right_child().children_exist():
         graphs_right = recursive_matching(input_graphs, cluster.get_right_child(), matching_algorithm, pivot,
                                           number_matchings, anchor_graph_parameters=anchor_graph_parameters,
-                                          matching_sort_func=matching_sort_func,
                                           smaller=smaller, no_stereo_isomers=no_stereo_isomers,
                                           check_connection=check_connection,
                                           vertex_comparison_import_para=vertex_comparison_import_para,
@@ -373,18 +343,19 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
                 new_graphs += matching_using_mb(gl, gr, check_connection=check_connection,
                                                 vertex_comparison_import_para=vertex_comparison_import_para,
                                                 edge_comparison_import_para=edge_comparison_import_para)
-                if smaller:
+                if gl.get_number_of_vertices() >= gr.get_number_of_vertices():
+                    little_graph = gr
+                else:
+                    little_graph = gl
+                if smaller and little_graph in input_graphs:
                     new_graphs += mb_helper(gl, gr, check_connection=check_connection,
                                             vertex_comparison_import_para=vertex_comparison_import_para,
                                             edge_comparison_import_para=edge_comparison_import_para)
-    if no_stereo_isomers:           # List[Dict{"Graph_name": List[VERTEX, ...]}] # Die Dict müssen verglichen werden
+    if no_stereo_isomers:
         matching_graphs = toss_stereoisomers(new_graphs, input_graphs)
     else:
         matching_graphs = new_graphs
-    if matching_sort_func:
-        matching_graphs = sorted(matching_graphs, key=lambda x: matching_sort_func(x), reverse=True)
-    else:
-        matching_graphs = sorted(matching_graphs, key=lambda x: x.get_number_of_vertices(), reverse=True)
+    matching_graphs = sorted(matching_graphs, key=lambda x: x.get_number_of_vertices(), reverse=True)
     number_matchings = min(len(new_graphs), number_matchings)
     matching_graphs = matching_graphs[:number_matchings]
     cluster.set_elements(matching_graphs)
@@ -481,10 +452,10 @@ def pairwise_alignment(input_graphs, matching_method, pivot, check_connection=Fa
             raise Exception("No matchings in pairwise alignment, please adjust graph reduction parameter (see help"
                             "message for '-ga' command line option!")
         for graph in matching_graphs:
-            if graph.get_number_of_vertices() > score:
+            if graph.get_number_of_vertices()/graph1.get_number_of_vertices() > score:
                 score = graph.get_number_of_vertices()/graph1.get_number_of_vertices()
         scoring.append((score, graph1_name, graph2_name))
-    scoring.sort(key=lambda x: x[2])
+    scoring.sort(key=lambda x: x[2], reverse=True)
     newick_string = parse_list_of_scored_graph_pairs_into_newick(scoring)
     cluster_tree = parse_newick_string_into_tree(newick_string, input_graphs)
     return cluster_tree
@@ -546,7 +517,7 @@ def toss_stereoisomers(new_graphs, input_graphs):
         for already in check_list:
             true_list = []
             for key in already.keys():
-                if already[key] == d[key]:  # Comparison of two lists!
+                if already[key] == d[key]:
                     true_list.append(True)
                 else:
                     true_list.append(False)
@@ -564,7 +535,8 @@ if __name__ == '__main__':
     try:
         args = parse_command_line()
     except IOError:
-        pass
+        args = {}
+        raise Exception("Error occurred passing the command line arguments!")
 
     if args.syntax:
         raise Exception("Please use proper syntax, use '-h' for more information!")
@@ -576,15 +548,13 @@ if __name__ == '__main__':
     anchor = []
     p = []
     newick = None
+    graphs = []
     
-    #Check if user what to make a new Neo4J Upload 
+    # Check if user what to make a new Neo4J Upload
     # create Neo4J View
     if args.neo4j:
-        #Delete old Neo4j database entries
+        # Delete old Neo4j database entries
         neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], [],  [], "", True)
-
-    #  Initialising list of graphs
-    graphs = []
 
     # Console output for passed parameters
     print("Input format: ." + args.input_format)
@@ -621,17 +591,12 @@ if __name__ == '__main__':
     else:
         direction = None
         for i in range(len(args.input)):
-
-            # If input argument is neither a valid path nor a file in the current working directory. If, raise
-            # Exception.
             if not os.path.isdir(os.path.dirname(args.input[i])) and not os.path.exists(args.input[i]):
                 raise Exception("No such file with given path or filename!")
-
-            # If input argument is a not a full path, add current working directory. Else, take what's given.
             if not os.path.isdir(os.path.dirname(args.input[i])):
                 file_path = os.path.abspath(args.input[i])
             else:
-                file_path = args.input
+                file_path = os.path.abspath(args.input[i])
 
             # Log statement for the console about the input file
             print("Input file path of file " + str(i) + ": " + file_path)
@@ -664,11 +629,8 @@ if __name__ == '__main__':
                 isinstance(args.bron_kerbosch, list):
             print("Anchor File: --")
     else:
-        # If input argument is neither a valid path nor a file in the current working directory. If, raise
-        # Exception.
         if not os.path.isdir(os.path.dirname(args.anchor)) and not os.path.exists(args.anchor):
             raise Exception("No such file with given path or filename!")
-        # If anchor argument is a not a full path, add current working directory. Else, take what's given.
         if not os.path.isdir(os.path.dirname(args.anchor)):
             file_path = os.path.abspath(args.anchor)
         else:
@@ -683,16 +645,6 @@ if __name__ == '__main__':
                                 "please provide exactly one file path of a graph!")
             else:
                 anchor, p = anchor_from_anchor_vertex_list(anchor_graph.get_list_of_vertices(), p)
-
-    matching_sort_func = None
-    if args.matching_sort is not None:
-        if len(args.matching_sort) != 2:
-            raise Exception("Please provide a file name together with a function name in that file that will take"
-                            "a matching graph and return a floating point number. Matching graphs will then be sorted"
-                            "in descending order regarding the return value of that function!")
-        else:
-            matching_sort_func = import_file(args.matching_sort[0], args.matching_sort[1])
-            print("Passed Function for matching sorting: " + str(args.matching_sort[1]))
 
     # Checking for bron-kerbosch option
     if args.bron_kerbosch is not None:
@@ -714,15 +666,10 @@ if __name__ == '__main__':
                 matching_graph = retrieve_graph_from_clique(selected_cliques[i], input_graphs[0])
                 matching_graphs.append(matching_graph)
             print("Single Bron-kerbosch: Found " + str(len(matching_graphs)) + " cliques!")
-            if matching_sort_func:
-                matching_graphs = sorted(matching_graphs, key=lambda x: matching_sort_func(x), reverse=True)
-            else:
-                matching_graphs = sorted(matching_graphs, key=lambda x: x.get_number_of_vertices(), reverse=True)
+            matching_graphs = sorted(matching_graphs, key=lambda x: x.get_number_of_vertices(), reverse=True)
             for matching_graph in matching_graphs:
                 original_subgraph = retrieve_original_subgraphs(matching_graph, input_graphs)
                 selected_subgraphs.append(original_subgraph)
-                
-            # Log statement for the console about Bron-Kerbosch
 
     # Checking for modular product option
     if args.modular_product:
@@ -732,19 +679,6 @@ if __name__ == '__main__':
         else:
             graph1_name = input_graphs[0].get_name()
             graph2_name = input_graphs[1].get_name()
-            """
-            AJ: I think this not necessary 
-            # Save Input Parameter ["path to script", "name of function"] to pass to modular_prduct() for import
-            vertex_comparison_import_parameters = None    # Default: Vertex-Labels are ignored within modular_product()
-            edge_comparison_import_parameters = None      # Default: Edge-Labels are ignored within modular_product()
-            if args.vertex_label_comparison and args.edge_label_comparison:
-                vertex_comparison_import_parameters = args.vertex_label_comparison
-                edge_comparison_import_parameters = args.edge_label_comparison
-            elif args.vertex_label_comparison:
-                vertex_comparison_import_parameters = args.vertex_label_comparison
-            elif args.edge_label_comparison:
-                edge_comparison_import_parameters = args.edge_label_comparison
-            """
             graph, anchor = modular_product(input_graphs[0], input_graphs[1],
                                             vertex_comparison_import_para=args.vertex_label_comparison,
                                             edge_comparison_import_para=args.edge_label_comparison)
@@ -772,8 +706,9 @@ if __name__ == '__main__':
     if isinstance(args.guide_tree, list) and len(args.guide_tree) == 0:
         raise Exception("For guide tree construction, please pass either a .newick file, a built-in keyword (see "
                         "help message) or 'custom <file.py>' for introducing you own comparison function!")
+
     # Checking for graph alignment option. This option performs graph alignment of a number of graphs given as input
-    # files. The matching order is according to the guide tree option (passing a comaprison function or a '.newick' file
+    # files. The matching order is according to the guide tree option (passing a comparison function or a '.newick' file
     # , using graph density for guide tree construction is default. The graph names in the '.newick' file must be
     # unique!.
     # Matching is done either by forming the modular product and performing bron-kerbosch-algorithm or by the
@@ -848,22 +783,13 @@ if __name__ == '__main__':
             print("Graph alignment not performed.")
             pass
         else:
-            """
-            AJ: I think this is not needed
-            # Default: Labels of edges and vertices are not compared
-            vertex_comparison_import_para = None
-            edge_comparison_import_para = None
-            if args.graph_alignment[0] == "bk" and args.vertex_label_comparison and args.edge_label_comparison:
-                vertex_comparison_import_para = args.vertex_label_comparison
-                edge_comparison_import_para = args.edge_label_comparison
-            elif args.graph_alignment[0] == "bk" and args.vertex_label_comparison:
-                vertex_comparison_import_para = args.vertex_label_comparison
-            elif args.graph_alignment[0] == "bk" and args.edge_label_comparison:
-                edge_comparison_import_para = args.edge_label_comparison
-            """
+            if args.graph_alignment[0] == "mb":
+                print("Matching-based algorithm performing...")
+            elif args.graph_alignment[0] == "bk":
+                print("Bron-kerbosch algorithm performing...")
             matching_graphs = recursive_matching(input_graphs, cluster_tree, args.graph_alignment[0], args.pivot, i,
                                                  anchor_graph_parameters=anchor_graph_parameters,
-                                                 smaller=smaller, matching_sort_func=matching_sort_func,
+                                                 smaller=smaller,
                                                  no_stereo_isomers=args.no_stereo_isomers,
                                                  check_connection=args.check_connection,
                                                  vertex_comparison_import_para=args.vertex_label_comparison,
@@ -894,7 +820,10 @@ if __name__ == '__main__':
     # Checking for output options.
     # Output of newick string.
     if args.newick_output:
-        print("Newick string output: True")
+        if args.newick_output == "1":
+            print("Newick string output: True (Default name)")
+        else:
+            print("Newick string output: True (" + args.newick_output + ")")
         if newick is None:
             raise Exception("Select guide tree and/or graph alignment option to create a newick string to save!")
         else:
@@ -914,15 +843,15 @@ if __name__ == '__main__':
                                     "Random graph generation, modular product calculation and format conversion can "
                                     "only be performed in seperate calls!")
                 elif len(args.graph_output) == 0:
-                    graph.save_to_txt(output_file=graphs[i].get_name() + "_output.graph")
+                    graphs[i].save_to_txt(output_file=graphs[i].get_name() + "_output.graph")
                 else:
-                    graph.save_to_txt(output_file=args.graph_output[i] + "_output.graph")
+                    graphs[i].save_to_txt(output_file=args.graph_output[i] + "_output.graph")
                 if args.neo4j:
                     # create Neo4J View
-                    neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], graph.get_list_of_vertices(),graph.get_list_of_edges(), graph.get_name(), False)
+                    neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], graphs[i].get_list_of_vertices(),
+                                         graphs[i].get_list_of_edges(), graphs[i].get_name(), False)
     else:
         print("Graph output: False")
-
 
     # Output of subgraphs from graph alignment or bron-kerbosch algorithm on a modular product.
     if args.subgraph_output is not None and (input_graphs or graph):
@@ -967,7 +896,7 @@ if __name__ == '__main__':
                                              subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
         elif len(args.subgraph_output) == 1:
             if args.subgraph_output[0].isdigit():
-                subgraph_number = int(args.subgraph_output[0]) #if subgraph output value is the number of selected subgraphs
+                subgraph_number = int(args.subgraph_output[0])
                 for i in range(min(len(selected_subgraphs), subgraph_number)):
                     for subgraph in selected_subgraphs[i]:
                         subgraph.save_to_txt(output_file=subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph")
@@ -975,7 +904,7 @@ if __name__ == '__main__':
                         if args.neo4j:
                             neo4jProjekt = NEO4J(args.neo4j[0], args.neo4j[1], args.neo4j[2], subgraph.get_list_of_vertices(), subgraph.get_list_of_edges(),
                                                  subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
-            else:#if subgraph output value is only the path or the graph name
+            else:
                 for i in range(len(selected_subgraphs)):
                     for subgraph in selected_subgraphs[i]:
                         subgraph.save_to_txt(output_file= subgraph.get_name() + "_" + args.subgraph_output[0],
@@ -986,11 +915,3 @@ if __name__ == '__main__':
                                                  subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
     else:
         print("Subgraph output: False")
-
-                    
-# Consider different types of multiple alignment strategies concerning comparison of analogue attributes (e.g. a
-# specific vertex/edge label), i.e. How should those attributes be handled for graphs resulting from the alignment
-# during multiple alignments (create a mean value?)?
-    # - For matching-based this is handled in 'mb_mapping_to_graph' so far, only including labels of one graph
-    # - For bron-kerbosch this is handled in the call of 'retrieve_graph_from_clique in 'matching_using_bk' so far,
-# TODO: import file funktionen inzwischen in 3 .py files, vielleicht als getrenntes file machen

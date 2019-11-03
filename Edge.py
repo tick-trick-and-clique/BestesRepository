@@ -28,12 +28,3 @@ class EDGE(object):
 
     def get_label(self):
         return self.__label
-
-
-def is_compatible_edge(edge, other_edge):
-    # Function returns whether two edges of are 'compatible'.
-    # Here, this is performed by comparison of edge labels.
-    if edge.get_label() == other_edge.get_label():
-        return True
-    else:
-        return False

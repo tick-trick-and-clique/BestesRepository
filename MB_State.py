@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from Edge import is_compatible_edge
-from Vertex import is_compatible_vertex
 """
 This class implements a so called 'state' like described for the
 matching-based algorithm by Cordella et al.
 """
 import os
 from runpy import run_path
+
 
 def import_file(filename, function_name):
     if not os.path.isdir(os.path.dirname(filename)) and not os.path.exists(filename):
@@ -20,9 +19,14 @@ def import_file(filename, function_name):
     f = settings[function_name]
     return f
 
+
+def is_identical_label(label, other_label):
+    return label == other_label
+
+
 class MB_State:
 
-    # DEV NOTE: core_1 and core_2 are supposed to be dictionaries with integers keys and VERTEX type values here
+    # NOTE: core_1 and core_2 are supposed to be dictionaries with integers keys and VERTEX type values here
     # while the other four data structures hold integer type values.
 
     def __init__(self, g1, g2, vertex_comparison_import_para=None, edge_comparison_import_para=None):
@@ -60,9 +64,9 @@ class MB_State:
         self.vertex_comparison_function = None
         self.edge_comparison_function = None
         if isinstance(vertex_comparison_import_para, list):
-            self.vertex_comparison_function = is_compatible_vertex
+            self.vertex_comparison_function = is_identical_label
         if isinstance(edge_comparison_import_para, list):
-            self.edge_comparison_function = is_compatible_vertex
+            self.edge_comparison_function = is_identical_label
         if vertex_comparison_import_para:
             self.vertex_comparison_function = import_file(vertex_comparison_import_para[0],
                                                           vertex_comparison_import_para[1])
@@ -74,14 +78,9 @@ class MB_State:
         result_as_mapping_dict = {}
         result_as_mapping_list = []
         if self.all_vertices_of_g2_covered():
-            #print("Result:")
-            #print("IDs of Vertices")
-            #print("Graph 1  Graph2")
             for key, value in self.core_1.items():
                 if value:
-                   #print(key, value.get_id(), sep="\t")
-                   result_as_mapping_dict[key] = value.get_id()
-            #type(print("\n"))
+                    result_as_mapping_dict[key] = value.get_id()
             self.restore_data_structures(previously_added)
             return [result_as_mapping_dict]
         else:
@@ -117,22 +116,19 @@ class MB_State:
         Therefore, it is checked whether:
             - Vertices are compatible (evaluating the label)
             - Edges from and into the space of already matched vertices correspond and edge are compatible (evaluating
-            the label)
+            the label, if wanted)
             - The number of vertices from out and in edges, where vertices are not in the space of already matched
             vertices but have edges from or into the space, are equal
             - The number of vertices from out and in edges, where vertices are not in the space of already matched
             vertices and also do not have edges from or into the space, are equal
-        CAUTION: Compatibility checks are ONLY performed from Graph 1 to Graph 2 for non-symmetric compatibility
-        reasons!"""
-
-        # DEV NOTE: EDGE label is interpreted as the edge compatibility attribute here
+        NOTE: Compatibility checks are symmetric, non-symmetric vertex/edge compatibilies are not supported!"""
 
         g1_vertex_index, g2_vertex_index = candidate
         g1_vertex = [v for v in self.graph1.get_list_of_vertices() if g1_vertex_index == v.get_id()][0]
         g2_vertex = [v for v in self.graph2.get_list_of_vertices() if g2_vertex_index == v.get_id()][0]
 
         if self.vertex_comparison_function:
-            if not is_compatible_vertex(g1_vertex, g2_vertex):
+            if not self.vertex_comparison_function(g1_vertex.get_label(), g2_vertex.get_label()):
                 return False
 
         temp_out1 = 0
@@ -148,17 +144,18 @@ class MB_State:
             if self.core_1[other_v_in_g1.get_id()] is not None:
                 other_v_in_g2 = self.core_1[other_v_in_g1.get_id()]
                 if not self.graph2.has_edge(g2_vertex, other_v_in_g2) \
-                        or (self.edge_comparison_function and
-                            not is_compatible_edge(edge, self.graph2.get_edge(g2_vertex, other_v_in_g2))):
+                        or (self.edge_comparison_function and not
+                            self.edge_comparison_function(edge.get_label(),
+                                                          self.graph2.get_edge(g2_vertex, other_v_in_g2).get_label())):
                     return False
             else:
                 if self.in_1[other_v_in_g1.get_id()] > 0:
-                    temp_in1 += temp_in1
+                    temp_in1 += 1
                 if self.out_1[other_v_in_g1.get_id()] > 0:
-                    temp_out1 += temp_out1
+                    temp_out1 += 1
                 if self.in_1[other_v_in_g1.get_id()] == 0 and \
                         self.out_1[other_v_in_g1.get_id()] == 0:
-                    temp_new1 += temp_new1
+                    temp_new1 += 1
 
         # Check 'in' edges of g1_vertex
         for edge in self.graph1.get_in_edge_list(g1_vertex):
@@ -166,17 +163,18 @@ class MB_State:
             if self.core_1[other_v_in_g1.get_id()] is not None:
                 other_v_in_g2 = self.core_1[other_v_in_g1.get_id()]
                 if not self.graph2.has_edge(other_v_in_g2, g2_vertex) \
-                        or (self.edge_comparison_function and
-                            not is_compatible_edge(edge, self.graph2.get_edge(other_v_in_g2, g2_vertex))):
+                        or (self.edge_comparison_function and not
+                            self.edge_comparison_function(edge.get_label(),
+                                                          self.graph2.get_edge(other_v_in_g2, g2_vertex).get_label())):
                     return False
             else:
                 if self.in_1[other_v_in_g1.get_id()] > 0:
-                    temp_in1 += temp_in1
+                    temp_in1 += 1
                 if self.out_1[other_v_in_g1.get_id()] > 0:
-                    temp_out1 += temp_out1
+                    temp_out1 += 1
                 if self.in_1[other_v_in_g1.get_id()] == 0 and \
                         self.out_1[other_v_in_g1.get_id()] == 0:
-                    temp_new1 += temp_new1
+                    temp_new1 += 1
 
         # Check 'out' edges of g2_vertex
         for edge in self.graph2.get_out_edge_list(g2_vertex):
@@ -184,17 +182,18 @@ class MB_State:
             if self.core_2[other_v_in_g2.get_id()] is not None:
                 other_v_in_g1 = self.core_2[other_v_in_g2.get_id()]
                 if not self.graph1.has_edge(g1_vertex, other_v_in_g1) \
-                        or (self.edge_comparison_function and
-                            not is_compatible_edge(edge, self.graph1.get_edge(g1_vertex, other_v_in_g1))):
+                        or (self.edge_comparison_function and not
+                            self.edge_comparison_function(edge.get_label(),
+                                                          self.graph1.get_edge(g1_vertex, other_v_in_g1).get_label())):
                     return False
             else:
                 if self.in_2[other_v_in_g2.get_id()] > 0:
-                    temp_in2 += temp_in2
+                    temp_in2 += 1
                 if self.out_2[other_v_in_g2.get_id()] > 0:
-                    temp_out2 += temp_out2
+                    temp_out2 += 1
                 if self.in_2[other_v_in_g2.get_id()] == 0 and \
                         self.out_2[other_v_in_g2.get_id()] == 0:
-                    temp_new2 += temp_new2
+                    temp_new2 += 1
 
         # Check 'in' edges of g2_vertex
         for edge in self.graph2.get_in_edge_list(g2_vertex):
@@ -202,18 +201,19 @@ class MB_State:
             if self.core_2[other_v_in_g2.get_id()] is not None:
                 other_v_in_g1 = self.core_2[other_v_in_g2.get_id()]
                 if not self.graph1.has_edge(other_v_in_g1, g1_vertex) \
-                        or (self.edge_comparison_function and
-                            not is_compatible_edge(edge, self.graph1.get_edge(other_v_in_g1, g1_vertex))):
+                        or (self.edge_comparison_function and not
+                            self.edge_comparison_function(edge.get_label(),
+                                                          self.graph1.get_edge(other_v_in_g1, g1_vertex).get_label())):
                     return False
             else:
                 if self.in_2[other_v_in_g2.get_id()] > 0:
-                    temp_in2 += temp_in2
+                    temp_in2 += 1
                 if self.out_2[other_v_in_g2.get_id()] > 0:
-                    temp_out2 += temp_out2
+                    temp_out2 += 1
                 if self.in_2[other_v_in_g2.get_id()] == 0 and \
                         self.out_2[other_v_in_g2.get_id()] == 0:
-                    temp_new2 += temp_new2
-        return temp_in1 <= temp_in2 and temp_out1 <= temp_out2 and temp_new1 <= temp_new2
+                    temp_new2 += 1
+        return temp_in1 >= temp_in2 and temp_out1 >= temp_out2 and temp_new1 >= temp_new2
 
     def add_pair(self, candidate):
         # Function updates data structures according to the new pair of vertices to be added to the matching
@@ -255,12 +255,12 @@ class MB_State:
         if previously_added:
             for key, value in self.out_1.items():
                 if value == self.core_len:
-                    self.in_1[key] = 0
+                    self.out_1[key] = 0
                     self.out_1_len -= 1
                     self.both_1_len -= 1
             for key, value in self.in_1.items():
                 if value == self.core_len:
-                    self.out_1[key] = 0
+                    self.in_1[key] = 0
                     self.in_1_len -= 1
                     self.both_1_len -= 1
             for key, value in self.out_2.items():
