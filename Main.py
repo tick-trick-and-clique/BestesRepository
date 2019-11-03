@@ -626,7 +626,7 @@ if __name__ == '__main__':
             if not os.path.isdir(os.path.dirname(args.input[i])):
                 file_path = os.path.abspath(args.input[i])
             else:
-                file_path = args.input
+                file_path = os.path.abspath(args.input[i])
 
             # Log statement for the console about the input file
             print("Input file path of file " + str(i) + ": " + file_path)
