@@ -79,7 +79,6 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
     new_list_of_edges = []
     new_number_of_edges = 0
     edge_id = 1
-    print(g1._GRAPH__has_labeled_nodes)
     mp_has_labeled_vertices = g1._GRAPH__has_labeled_nodes or g2._GRAPH__has_labeled_nodes
     mp_has_labeled_edges = g1._GRAPH__has_labeled_edges or g2._GRAPH__has_labeled_edges
     for i, v1 in enumerate(g1_vertices):

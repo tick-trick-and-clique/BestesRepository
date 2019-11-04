@@ -549,7 +549,7 @@ if __name__ == '__main__':
     p = []
     newick = None
     graphs = []
-    
+
     # Check if user what to make a new Neo4J Upload
     # create Neo4J View
     if args.neo4j:
@@ -579,7 +579,6 @@ if __name__ == '__main__':
             graph = buildRndCluster(args.random_cluster[0], args.random_cluster[1],
                                     args.random_cluster[2], args.random_cluster[3])
             graphs.append(graph)
-            #print(len(graphs))
         except IOError:
             print("Invalid number of arguments for random cluster graph building!")
         except ValueError:
