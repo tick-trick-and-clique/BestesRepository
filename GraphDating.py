@@ -809,7 +809,7 @@ if __name__ == '__main__':
             cluster_tree = upgma(f, input_graphs, anchor_graph=anchor_graph)
             newick = guide_tree_to_newick(cluster_tree)
         elif args.guide_tree[0][-7:] == ".newick":
-            print("Guide tree construction: New string file passed")
+            print("Guide tree construction: Newick string file passed")
             newick = args.guide_tree[0]
         elif input_graphs:
             if args.guide_tree[0] == "density":
