@@ -216,9 +216,8 @@ class GRAPH(object):
         elif pivot is None:
             for vertex in P[:]:
                 new_R = R + [vertex]
-                rev = self.reversed_edges(vertex.get_out_neighbours(), vertex)
-                new_P = [val for val in P if val in rev]  # P intersects w/ neighbours of vertex
-                new_X = [val for val in X if val in rev]  # X intersects w/ neighbours of vertex
+                new_P = [val for val in P if val in vertex.get_out_neighbours()]  # P intersects w/ neighbours of vertex
+                new_X = [val for val in X if val in vertex.get_out_neighbours()]  # X intersects w/ neighbours of vertex
                 result += self.bron_kerbosch(new_R, new_P, new_X)
                 P.remove(vertex)
                 X.append(vertex)
@@ -227,9 +226,8 @@ class GRAPH(object):
             raise ValueError("Given optional pivot argument is illegal!")
         for vertex in [elem for elem in P if elem not in pivot_vertex.get_out_neighbours()]:
             new_R = R + [vertex]
-            rev = self.reversed_edges(vertex.get_out_neighbours(), vertex)
-            new_P = [val for val in P if val in rev]
-            new_X = [val for val in X if val in rev]
+            new_P = [val for val in P if val in vertex.get_out_neighbours()]
+            new_X = [val for val in X if val in vertex.get_out_neighbours()]
             result += self.bron_kerbosch(new_R, new_P, new_X, pivot=pivot)
             P.remove(vertex)
             X.append(vertex)
