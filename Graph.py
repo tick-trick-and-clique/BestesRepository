@@ -201,6 +201,7 @@ class GRAPH(object):
                     edge_obj.get_start_and_end()[1] == start_id:
                 return edge_obj
 
+
     def bron_kerbosch(self, R, P, X, pivot=None):
         """
         bron kerbosch algo to find maximal cliques in graph
@@ -214,23 +215,26 @@ class GRAPH(object):
         elif pivot == "random":
             pivot_vertex = self.select_random_pivot(P, X)
         elif pivot is None:
-            for vertex in P[:]:
-                new_R = R + [vertex]
-                new_P = [val for val in P if val in vertex.get_out_neighbours()]  # P intersects w/ neighbours of vertex
-                new_X = [val for val in X if val in vertex.get_out_neighbours()]  # X intersects w/ neighbours of vertex
+            for vertex in P.copy():
+                new_R = R
+                new_R.add(vertex)
+                neighbours = vertex.get_out_neighbours()
+                new_P = set([val for val in P if val in neighbours])  # P intersects w/ neighbours of vertex
+                new_X = set([val for val in X if val in neighbours])  # X intersects w/ neighbours of vertex
                 result += self.bron_kerbosch(new_R, new_P, new_X)
                 P.remove(vertex)
-                X.append(vertex)
+                X.add(vertex)
             return result
         else:
             raise ValueError("Given optional pivot argument is illegal!")
         for vertex in [elem for elem in P if elem not in pivot_vertex.get_out_neighbours()]:
-            new_R = R + [vertex]
-            new_P = [val for val in P if val in vertex.get_out_neighbours()]
-            new_X = [val for val in X if val in vertex.get_out_neighbours()]
+            new_R = R
+            new_R.add(vertex)
+            new_P = set([val for val in P if val in vertex.get_out_neighbours()])
+            new_X = set([val for val in X if val in vertex.get_out_neighbours()])
             result += self.bron_kerbosch(new_R, new_P, new_X, pivot=pivot)
             P.remove(vertex)
-            X.append(vertex)
+            X.add(vertex)
         return result
 
     def select_random_pivot(self, P, X):
@@ -257,17 +261,11 @@ class GRAPH(object):
         """
         checks if all vertices in R(list) are adjacent to every other vertex in R
         """
-        check = True
-        v_list = self.get_list_of_vertices()
-        for vertex in v_list:
-            n_list = vertex.get_out_neighbours()
-            n_list = sorted(n_list, key=lambda v: v.get_id())
-            v_list_copy = v_list.copy()
-            v_list_copy.remove(vertex)
-            v_list_copy = sorted(v_list_copy, key=lambda v: v.get_id())
-            if n_list != v_list_copy:
-                check = False
-        return check
+        v_set = set(self.get_list_of_vertices())
+        for vertex in v_set:
+            n_set = vertex.get_out_neighbours()
+            if n_set.difference(v_set) != vertex:
+                return False
 
     def save_to_txt(self, output_file=1, sequential_number=None):
         """
@@ -377,7 +375,7 @@ class GRAPH(object):
             vertex = queue.get()
             already_seen.add(vertex)
             candidates = set()
-            candidates.union(set(vertex.get_out_neighbours()))
+            candidates.union(vertex.get_out_neighbours())
             for v in v_list:
                 if vertex in v.get_out_neighbours():
                     candidates.add(v)

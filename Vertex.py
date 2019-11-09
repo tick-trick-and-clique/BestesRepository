@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 class VERTEX(object):
     def __init__(self, id, label):
         self.__id = id
-        self.__out_neighbours = []
+        self.__out_neighbours = set()
         self.__label = label
         self.__mapping = {}
 
@@ -25,22 +26,13 @@ class VERTEX(object):
         return self.__label
 
     def set_out_neighbours(self, neighbours):
-        self.__out_neighbours = neighbours
-
-    def append_out_neighbours(self, new_neighbours):
-        if not isinstance(new_neighbours, list):
-            raise TypeError("\n Dude... passed parameter has to be a list! \n")
-        else:
-            if len(new_neighbours) == 1:
-                self.__out_neighbours.append(new_neighbours)
-            elif len(new_neighbours) > 1:
-                self.__out_neighbours.extend(new_neighbours)
+        self.__out_neighbours = set(neighbours)
 
     def append_out_neighbour(self, new_neighbour):
         if not isinstance(new_neighbour, type(self)):
             raise TypeError("\n Dude... passed parameter has to be of type 'VERTEX'! \n")
         else:
-            self.__out_neighbours.append(new_neighbour)
+            self.__out_neighbours.add(new_neighbour)
 
     def add_vertex_to_mapping(self, vertex, graph_name):
         self.__mapping[graph_name] = vertex

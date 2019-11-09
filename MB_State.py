@@ -41,19 +41,17 @@ class MB_State:
         self.vCount1 = g1.get_number_of_vertices()
         self.vCount2 = g2.get_number_of_vertices()
         gv1 = self.graph1.get_list_of_vertices()
-        gv1 = sorted(gv1, key=lambda x: self.graph1.get_cardinality_of_vertex(x))
-        for v in gv1:
-            id = v.get_id()
-            self.core_1[id] = None
-            self.in_1[id] = 0
-            self.out_1[id] = 0
+        self.gv1 = sorted(gv1, key=lambda x: self.graph1.get_cardinality_of_vertex(x))
+        for i in range(len(gv1)):
+            self.core_1[i] = None
+            self.in_1[i] = 0
+            self.out_1[i] = 0
         gv2 = self.graph2.get_list_of_vertices()
-        gv2 = sorted(gv2, key=lambda x: self.graph2.get_cardinality_of_vertex(x))
-        for v in gv2:
-            id = v.get_id()
-            self.core_2[id] = None
-            self.in_2[id] = 0
-            self.out_2[id] = 0
+        self.gv2 = sorted(gv2, key=lambda x: self.graph2.get_cardinality_of_vertex(x))
+        for i in range(len(gv2)):
+            self.core_2[i] = None
+            self.in_2[i] = 0
+            self.out_2[i] = 0
         self.core_len = 0
         self.both_1_len = 0
         self.both_2_len = 0
@@ -80,7 +78,7 @@ class MB_State:
         if self.all_vertices_of_g2_covered():
             for key, value in self.core_1.items():
                 if value:
-                    result_as_mapping_dict[key] = value.get_id()
+                    result_as_mapping_dict[self.gv1[key].get_id()] = value.get_id()
             self.restore_data_structures(previously_added)
             return [result_as_mapping_dict]
         else:
@@ -124,8 +122,8 @@ class MB_State:
         NOTE: Compatibility checks are symmetric, non-symmetric vertex/edge compatibilies are not supported!"""
 
         g1_vertex_index, g2_vertex_index = candidate
-        g1_vertex = [v for v in self.graph1.get_list_of_vertices() if g1_vertex_index == v.get_id()][0]
-        g2_vertex = [v for v in self.graph2.get_list_of_vertices() if g2_vertex_index == v.get_id()][0]
+        g1_vertex = self.gv1[g1_vertex_index]
+        g2_vertex = self.gv2[g2_vertex_index]
 
         if self.vertex_comparison_function:
             if not self.vertex_comparison_function(g1_vertex.get_label(), g2_vertex.get_label()):
@@ -141,110 +139,119 @@ class MB_State:
         # Check 'out' edges of g1_vertex
         for edge in self.graph1.get_out_edge_list(g1_vertex):
             other_v_in_g1 = edge.get_start_and_end()[1]
-            if self.core_1[other_v_in_g1.get_id()] is not None:
-                other_v_in_g2 = self.core_1[other_v_in_g1.get_id()]
+            other_v_in_g1_index = self.gv1.index(other_v_in_g1)
+            if self.core_1[other_v_in_g1_index] is not None:
+                other_v_in_g2 = self.core_1[other_v_in_g1_index]
                 if not self.graph2.has_edge(g2_vertex, other_v_in_g2) \
                         or (self.edge_comparison_function and not
                             self.edge_comparison_function(edge.get_label(),
                                                           self.graph2.get_edge(g2_vertex, other_v_in_g2).get_label())):
                     return False
             else:
-                if self.in_1[other_v_in_g1.get_id()] > 0:
+                if self.in_1[other_v_in_g1_index] > 0:
                     temp_in1 += 1
-                if self.out_1[other_v_in_g1.get_id()] > 0:
+                if self.out_1[other_v_in_g1_index] > 0:
                     temp_out1 += 1
-                if self.in_1[other_v_in_g1.get_id()] == 0 and \
-                        self.out_1[other_v_in_g1.get_id()] == 0:
+                if self.in_1[other_v_in_g1_index] == 0 and \
+                        self.out_1[other_v_in_g1_index] == 0:
                     temp_new1 += 1
 
         # Check 'in' edges of g1_vertex
         for edge in self.graph1.get_in_edge_list(g1_vertex):
             other_v_in_g1 = edge.get_start_and_end()[0]
-            if self.core_1[other_v_in_g1.get_id()] is not None:
-                other_v_in_g2 = self.core_1[other_v_in_g1.get_id()]
+            other_v_in_g1_index = self.gv1.index(other_v_in_g1)
+            if self.core_1[other_v_in_g1_index] is not None:
+                other_v_in_g2 = self.core_1[other_v_in_g1_index]
                 if not self.graph2.has_edge(other_v_in_g2, g2_vertex) \
                         or (self.edge_comparison_function and not
                             self.edge_comparison_function(edge.get_label(),
                                                           self.graph2.get_edge(other_v_in_g2, g2_vertex).get_label())):
                     return False
             else:
-                if self.in_1[other_v_in_g1.get_id()] > 0:
+                if self.in_1[other_v_in_g1_index] > 0:
                     temp_in1 += 1
-                if self.out_1[other_v_in_g1.get_id()] > 0:
+                if self.out_1[other_v_in_g1_index] > 0:
                     temp_out1 += 1
-                if self.in_1[other_v_in_g1.get_id()] == 0 and \
-                        self.out_1[other_v_in_g1.get_id()] == 0:
+                if self.in_1[other_v_in_g1_index] == 0 and \
+                        self.out_1[other_v_in_g1_index] == 0:
                     temp_new1 += 1
 
         # Check 'out' edges of g2_vertex
         for edge in self.graph2.get_out_edge_list(g2_vertex):
             other_v_in_g2 = edge.get_start_and_end()[1]
-            if self.core_2[other_v_in_g2.get_id()] is not None:
-                other_v_in_g1 = self.core_2[other_v_in_g2.get_id()]
+            other_v_in_g2_index = self.gv2.index(other_v_in_g2)
+            if self.core_2[other_v_in_g2_index] is not None:
+                other_v_in_g1 = self.core_2[other_v_in_g2_index]
                 if not self.graph1.has_edge(g1_vertex, other_v_in_g1) \
                         or (self.edge_comparison_function and not
                             self.edge_comparison_function(edge.get_label(),
                                                           self.graph1.get_edge(g1_vertex, other_v_in_g1).get_label())):
                     return False
             else:
-                if self.in_2[other_v_in_g2.get_id()] > 0:
+                if self.in_2[other_v_in_g2_index] > 0:
                     temp_in2 += 1
-                if self.out_2[other_v_in_g2.get_id()] > 0:
+                if self.out_2[other_v_in_g2_index] > 0:
                     temp_out2 += 1
-                if self.in_2[other_v_in_g2.get_id()] == 0 and \
-                        self.out_2[other_v_in_g2.get_id()] == 0:
+                if self.in_2[other_v_in_g2_index] == 0 and \
+                        self.out_2[other_v_in_g2_index] == 0:
                     temp_new2 += 1
 
         # Check 'in' edges of g2_vertex
         for edge in self.graph2.get_in_edge_list(g2_vertex):
             other_v_in_g2 = edge.get_start_and_end()[0]
-            if self.core_2[other_v_in_g2.get_id()] is not None:
-                other_v_in_g1 = self.core_2[other_v_in_g2.get_id()]
+            other_v_in_g2_index = self.gv2.index(other_v_in_g2)
+            if self.core_2[other_v_in_g2_index] is not None:
+                other_v_in_g1 = self.core_2[other_v_in_g2_index]
                 if not self.graph1.has_edge(other_v_in_g1, g1_vertex) \
                         or (self.edge_comparison_function and not
                             self.edge_comparison_function(edge.get_label(),
                                                           self.graph1.get_edge(other_v_in_g1, g1_vertex).get_label())):
                     return False
             else:
-                if self.in_2[other_v_in_g2.get_id()] > 0:
+                if self.in_2[other_v_in_g2_index] > 0:
                     temp_in2 += 1
-                if self.out_2[other_v_in_g2.get_id()] > 0:
+                if self.out_2[other_v_in_g2_index] > 0:
                     temp_out2 += 1
-                if self.in_2[other_v_in_g2.get_id()] == 0 and \
-                        self.out_2[other_v_in_g2.get_id()] == 0:
+                if self.in_2[other_v_in_g2_index] == 0 and \
+                        self.out_2[other_v_in_g2_index] == 0:
                     temp_new2 += 1
+
         return temp_in1 >= temp_in2 and temp_out1 >= temp_out2 and temp_new1 >= temp_new2
 
     def add_pair(self, candidate):
         # Function updates data structures according to the new pair of vertices to be added to the matching
         self.core_len += 1
         g1_vertex_index, g2_vertex_index = candidate
-        g1_vertex = [v for v in self.graph1.get_list_of_vertices() if g1_vertex_index == v.get_id()][0]
-        g2_vertex = [v for v in self.graph2.get_list_of_vertices() if g2_vertex_index == v.get_id()][0]
+        g1_vertex = self.gv1[g1_vertex_index]
+        g2_vertex = self.gv2[g2_vertex_index]
         self.core_1[g1_vertex_index] = g2_vertex
         self.core_2[g2_vertex_index] = g1_vertex
         for edge in self.graph1.get_out_edge_list(g1_vertex):
             other_v = edge.get_start_and_end()[1]
-            if not self.out_1[other_v.get_id()]:
-                self.out_1[other_v.get_id()] = self.core_len
+            other_v_index = self.gv1.index(other_v)
+            if not self.out_1[other_v_index]:
+                self.out_1[other_v_index] = self.core_len
                 self.out_1_len += 1
                 self.both_1_len += 1
         for edge in self.graph1.get_in_edge_list(g1_vertex):
             other_v = edge.get_start_and_end()[0]
-            if not self.in_1[other_v.get_id()]:
-                self.in_1[other_v.get_id()] = self.core_len
+            other_v_index = self.gv1.index(other_v)
+            if not self.in_1[other_v_index]:
+                self.in_1[other_v_index] = self.core_len
                 self.in_1_len += 1
                 self.both_1_len += 1
         for edge in self.graph2.get_out_edge_list(g2_vertex):
             other_v = edge.get_start_and_end()[1]
-            if not self.out_2[other_v.get_id()]:
-                self.out_2[other_v.get_id()] = self.core_len
+            other_v_index = self.gv2.index(other_v)
+            if not self.out_2[other_v_index]:
+                self.out_2[other_v_index] = self.core_len
                 self.out_2_len += 1
                 self.both_2_len += 1
         for edge in self.graph2.get_in_edge_list(g2_vertex):
             other_v = edge.get_start_and_end()[0]
-            if not self.in_2[other_v.get_id()]:
-                self.in_2[other_v.get_id()] = self.core_len
+            other_v_index = self.gv2.index(other_v)
+            if not self.in_2[other_v_index]:
+                self.in_2[other_v_index] = self.core_len
                 self.in_2_len += 1
                 self.both_2_len += 1
         return
