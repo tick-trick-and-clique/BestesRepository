@@ -6,10 +6,13 @@ Created on 07.05.2019
 @author: chris
 '''
 
+from typing import List
+from Vertex import VERTEX
+
 class EDGE(object):
     def __init__(self, id, start_and_end, label):
         self.__id = id
-        self.__start_and_end = start_and_end
+        self.__start_and_end: List[VERTEX] = start_and_end
         self.__label = label
         
     def __str__(self):

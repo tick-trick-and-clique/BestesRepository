@@ -28,7 +28,7 @@ class VERTEX(object):
     def set_out_neighbours(self, neighbours):
         self.__out_neighbours = set(neighbours)
 
-    def append_out_neighbour(self, new_neighbour):
+    def add_out_neighbour(self, new_neighbour):
         if not isinstance(new_neighbour, type(self)):
             raise TypeError("\n Dude... passed parameter has to be of type 'VERTEX'! \n")
         else:

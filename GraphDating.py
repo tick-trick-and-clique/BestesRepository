@@ -15,7 +15,6 @@ from Command_Line_Parser import parse_command_line
 from Modulares_Produkt import modular_product
 from Graph_Builder import buildRndGraph, buildRndCluster
 from MB_State import MB_State
-from MB_State2 import MB_State2
 from GuideTree import upgma, guide_tree_to_newick, save_newick, parse_newick_file_into_tree, \
     parse_list_of_scored_graph_pairs_into_newick, parse_newick_string_into_tree
 from Neo4j import NEO4J
@@ -179,7 +178,7 @@ def parser(file, neo4j):
         for edge in edges_objects:
             if edge.get_start_and_end()[0].get_id() == vertex.get_id():
                 neighbour = edge.get_start_and_end()[1]
-                vertex.append_out_neighbour(neighbour)
+                vertex.add_out_neighbour(neighbour)
 
     # Retrieving graph name from file_path_name
     pos = file_path_name.rfind("/")
@@ -514,7 +513,7 @@ def mb_mapping_to_graph(result_as_mapping, graph1, graph2):
                             edge.get_start_and_end()[1].get_id() == new_v2.get_id():
                         new_e = EDGE(edge.get_id(), [new_v1, new_v2], edge.get_label())
                         loe.append(new_e)
-                        new_v1.append_out_neighbour(new_v2)
+                        new_v1.add_out_neighbour(new_v2)
         graph_name = "".join([random.choice(string.ascii_letters) for n in range(8)])
         graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), graph1.get_is_directed(),
                       graph1.get_has_labeled_nodes(), graph1.get_has_labeled_edges())

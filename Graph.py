@@ -94,20 +94,17 @@ class GRAPH(object):
         :param vertex_tbd: vertex to be deleted; Either of Datatype object(VERTEX) or vertex-ID as int or string
         :return: None
         '''
-        # print("VERTEX-DELETION______________\nBEFORE:\n" + "number_of_vertices, number_of_edges: (%s, %s) " %
-        #       (len(self.__list_of_vertices), len(self.__list_of_edges)))
         if isinstance(vertex_tbd, VERTEX):
-            #print("Vertex to be deleted: %s" % vertex_tbd)
             #  Update out-neighbours
             for vertex in self.reversed_edges(self.__list_of_vertices, vertex_tbd):
-                new_neighbours = [v_id for v_id in vertex.get_out_neighbours() if not v_id == vertex_tbd.get_id()]
+                new_neighbours = [vert for vert in vertex.get_out_neighbours() if not vert == vertex_tbd]
                 vertex.set_out_neighbours(new_neighbours)
             #  Delete vertex from list and corresponding edges
             self.__list_of_vertices[:] = [vertex for vertex in self.__list_of_vertices if not vertex_tbd == vertex]
             self.__list_of_edges[:] = [edge for edge in self.__list_of_edges
-                                       if not (vertex_tbd.get_id() in edge.get_start_and_end())]
+                                       if not (vertex_tbd in edge.get_start_and_end())]
         else:
-            raise IOError("Wrong input format: Parameter <vertex> has to be an VERTEX -object")
+            raise IOError("Wrong input format: Parameter <vertex_tbd> has to be an VERTEX -object")
 
         #  Update number of vertices and edges
         self.__number_of_vertices = len(self.__list_of_vertices)
@@ -121,8 +118,6 @@ class GRAPH(object):
         :param edge_tbd: vertex to be deleted; Either of Datatype object(EDGE) or edge-ID as int or string
         :return: None
         '''
-        # print("EDGE-DELETION______________\nBEFORE:\n" + "number_of_vertices, number_of_edges: (%s, %s) " %
-        #       (len(self.__list_of_vertices), len(self.__list_of_edges)))
         #  For directed graphs:
         if self.__is_directed:
             if isinstance(edge_tbd, EDGE):
@@ -158,8 +153,6 @@ class GRAPH(object):
         #  Update number of vertices and edges
         self.__number_of_vertices = len(self.__list_of_vertices)
         self.__number_of_edges = len(self.__list_of_edges)
-        # print("AFTER:\n" + "number_of_vertices, number_of_edges: (%s, %s) " %
-        #       (len(self.__list_of_vertices), len(self.__list_of_edges)) + "\n")
 
     def __str__(self):
         '''
@@ -185,7 +178,7 @@ class GRAPH(object):
 
     def reversed_edges(self, list_of_vertices, current_vertex):
         """
-        Checks if neighbours of current vertex has reversed edge to currentvertex
+        returns list of vertices (in-neighbours of <current_vertex>, which have <current_vertex> as an out-neighbours
         """
         vertices_with_reverse_edges = []
         for elem in list_of_vertices:
@@ -388,6 +381,11 @@ class GRAPH(object):
         else:
             return False
 
+    def fill_neighbourhood(self):
+        """fills neighbourhood of all vertices in this graph. Mandatory after creating of a graph!"""
+        for edge_obj in self.__list_of_edges:
+            edge_obj.get_start_and_end()[0].add_out_neighbour(edge_obj.get_start_and_end()[1])
+
 
 def density(graph1, graph2):
     """ function to calculate the density of two graphs and return the difference between """
@@ -432,7 +430,7 @@ def retrieve_graph_from_clique(clique, orig_graph):
             for copy_orig_vertex2 in lov_cut:
                 if edge.get_start_and_end()[0].get_id() == copy_orig_vertex.get_id() and \
                         edge.get_start_and_end()[1].get_id() == copy_orig_vertex2.get_id():
-                    copy_orig_vertex.append_out_neighbour(copy_orig_vertex2)
+                    copy_orig_vertex.add_out_neighbour(copy_orig_vertex2)
                     loe.append(EDGE(edge.get_id(), [copy_orig_vertex, copy_orig_vertex2], edge.get_label()))
     graph_name = "".join([random.choice(string.ascii_letters) for i in range(8)])
     new_graph = GRAPH(graph_name, lov, loe, len(lov), len(loe), orig_graph.get_is_directed(),
@@ -513,3 +511,5 @@ def remaining_candidates(r, p):
             if all(truelist):
                 result.append(v)
     return result
+
+

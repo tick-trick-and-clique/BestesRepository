@@ -26,7 +26,7 @@ def buildRndGraph(nr_nodes, p_connected, labeled_nodes=False, labeled_edges=Fals
 
     # 1 Create Vertices
     for vertex_id in range(1, nr_nodes + 1):
-        appendNewVertexToList(list_vertices, vertex_id, labeled_nodes)
+        append_VERTEX_to_list(list_vertices, vertex_id, labeled_nodes)
 
     # 2 Create Edges if arbitrarily number [0.0, 1.0] <= p_connected
     list_combinations = combinations(list_vertices, 2)
@@ -43,15 +43,15 @@ def buildRndGraph(nr_nodes, p_connected, labeled_nodes=False, labeled_edges=Fals
             if directed_edge_normal:  # draw edge in "normal" direction of combination: 0->1
                 # print("1-direct, normal")
                 tmp_dir_edge = combination
-                edge_id = appendNewEdgeToList(list_edges, edge_id, tmp_dir_edge, directed, labeled_edges)[1]
+                edge_id = append_EDGE_to_List(list_edges, edge_id, tmp_dir_edge, directed, labeled_edges)[1]
             elif directed_edge_reverse:  # draw edge in "reversed" direction of combination: 1->0
                 # print("1-direct, reverse")
                 tmp_dir_edge = [combination[1], combination[0]]
-                edge_id = appendNewEdgeToList(list_edges, edge_id, tmp_dir_edge, directed, labeled_edges)[1]
+                edge_id = append_EDGE_to_List(list_edges, edge_id, tmp_dir_edge, directed, labeled_edges)[1]
         elif (directed is False) and (random.random() <= p_connected):
             # print("2-NON-direct")
             tmp_edge = combination
-            edge_id = appendNewEdgeToList(list_edges, edge_id, tmp_edge, directed, labeled_edges)[1]
+            edge_id = append_EDGE_to_List(list_edges, edge_id, tmp_edge, directed, labeled_edges)[1]
 
     # 3 Create Graph
     if not directed:
@@ -73,13 +73,7 @@ def buildRndGraph(nr_nodes, p_connected, labeled_nodes=False, labeled_edges=Fals
                           int(len(list_edges) / 2), directed, labeled_nodes, labeled_edges)
 
     # 4 Set out-neighbours setting
-    for vertex in graph.get_list_of_vertices():
-        for edge in graph.get_list_of_edges():
-            if edge.get_start_and_end()[0] == vertex.get_id():
-                neighbour_id = edge.get_start_and_end()[1]
-                for vertex2 in graph.get_list_of_vertices():
-                    if vertex2.get_id() == neighbour_id:
-                        vertex.append_out_neighbour(vertex2)
+    graph.fill_neighbourhood()
 
     return graph
 
@@ -232,7 +226,7 @@ def buildRndCluster(n, d, del_vert=0, del_edges=0, labeled_nodes=False, labeled_
         list_vert_ids.extend(edge)
     list_unique_vert_ids = list(set(list_vert_ids))
     for vertex_id in list_unique_vert_ids:
-        appendNewVertexToList(vertices_objects, vertex_id, labeled_nodes)
+        append_VERTEX_to_list(vertices_objects, vertex_id, labeled_nodes)
 
     # Create EDGE-Objects
     edges_objects: List[EDGE] = []
@@ -243,13 +237,13 @@ def buildRndCluster(n, d, del_vert=0, del_edges=0, labeled_nodes=False, labeled_
 
     for edge in edges:
         # print(edge)
-        edge_with_objects = [getVERTEXwithID(vertices_objects, edge[0]), getVERTEXwithID(vertices_objects, edge[1])]
+        edge_with_objects = [get_VERTEX_with_ID(vertices_objects, edge[0]), get_VERTEX_with_ID(vertices_objects, edge[1])]
         inverted_edge_with_objects = [edge_with_objects[1], edge_with_objects[0]]
 
         if labeled_edges:
             # Edges have to be appended in both directions for undirected graphs
-            edges_objects.append(EDGE(edge_id, edge_with_objects, randomString()))
-            edges_objects.append(EDGE(edge_id, inverted_edge_with_objects, randomString()))
+            edges_objects.append(EDGE(edge_id, edge_with_objects, random_string()))
+            edges_objects.append(EDGE(edge_id, inverted_edge_with_objects, random_string()))
             edge_id += 1
         else:
             edges_objects.append(EDGE(edge_id, edge_with_objects, ""))
@@ -260,33 +254,27 @@ def buildRndCluster(n, d, del_vert=0, del_edges=0, labeled_nodes=False, labeled_
                   [], edges_objects, 0, 0, labeled_nodes, labeled_edges, directed)
 
     # Set neighbours setting
-    for vertex in graph.get_list_of_vertices():
-        for edge in graph.get_list_of_edges():
-            if edge.get_start_and_end()[0] == vertex.get_id():
-                neighbour_id = edge.get_start_and_end()[1]
-                for vertex2 in graph.get_list_of_vertices():
-                    if vertex2.get_id() == neighbour_id:
-                        vertex.append_out_neighbour(vertex2)
+    graph.fill_neighbourhood()
 
     # Delete vertices according to input
-    for deletion in range(0, del_vert):
+    while del_vert > 0:
         rand_index = random.randint(0, len(graph.get_list_of_vertices())-1)
         vertex_tbd = graph.get_list_of_vertices()[rand_index]
-        # print(deletion, "Deletion of vertex at index of list: ", rand_index, sep="\t")
-        # print(isinstance(vertex_tbd, VERTEX))
         graph.del_vertex(vertex_tbd)
-        # graph.del_vertex(rand_index)
+        del_vert -= 1
+
     # Delete edges according to input
-    for deletion in range(0, del_edges):
+    while del_edges > 0:
         rand_index = random.randint(0, len(graph.get_list_of_edges())-1)
         edge_tbd = graph.get_list_of_edges()[rand_index]
         graph.del_edge(edge_tbd)
+        del_edges -= 1
         # graph.del_vertex(rand_index)
 
     return graph
 
 
-def randomString(stringLength=3):
+def random_string(stringLength=3):
     """ Generate a random string of fixed length """
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(stringLength))
@@ -301,29 +289,29 @@ def printListEdges(list):
     print(output)
 
 
-def appendNewVertexToList(vertices, vertex_id: int, labeled=False):
+def append_VERTEX_to_list(vertices, vertex_id: int, labeled=False):
     """Appends VERTEX with a given VERTEX-ID to a given list of VERTEX"""
     if labeled:
-        vertices.append(VERTEX(vertex_id, randomString()))
+        vertices.append(VERTEX(vertex_id, random_string()))
     else:
         vertices.append(VERTEX(vertex_id, ""))
     return vertices
 
 
-def appendNewEdgeToList(edges, edge_id, start_and_end: List[VERTEX], directed=False, labeled=False):
+def append_EDGE_to_List(edges, edge_id, start_and_end: List[VERTEX], directed=False, labeled=False):
     """Appends a new EDGE with a given EDGE-ID start-and-end-Vertex-ID to a given list of EDGE"""
     if directed:
         if labeled:
-            edges.append(EDGE(edge_id, start_and_end, randomString()))
+            edges.append(EDGE(edge_id, start_and_end, random_string()))
             edge_id += 1
         else:
             edges.append(EDGE(edge_id, start_and_end, ""))
             edge_id += 1
     else:
+        # Edges have to be appended in both directions for undirected graphs
         if labeled:
-            # Edges have to be appended in both directions for undirected graphs
-            edges.append(EDGE(edge_id, start_and_end, randomString()))
-            edges.append(EDGE(edge_id, [start_and_end[1], start_and_end[0]], randomString()))
+            edges.append(EDGE(edge_id, start_and_end, random_string()))
+            edges.append(EDGE(edge_id, [start_and_end[1], start_and_end[0]], random_string()))
             edge_id += 1
         else:
             edges.append(EDGE(edge_id, start_and_end, ""))
@@ -332,18 +320,18 @@ def appendNewEdgeToList(edges, edge_id, start_and_end: List[VERTEX], directed=Fa
     return edges, edge_id
 
 
-def appendNewEdgeToSet(edges: List[EDGE], edge_id, start_and_end, directed=False, labeled=False):
+def add_EDGE_to_set(edges: List[EDGE], edge_id, start_and_end, directed=False, labeled=False):
     """Appends a new EDGE with a given EDGE-ID start-and-end-Vertex-ID to a given set of EDGE"""
     if directed:
         if labeled:
-            edges.add(EDGE(edge_id, start_and_end, randomString()))
+            edges.add(EDGE(edge_id, start_and_end, random_string()))
         else:
             edges.add(EDGE(edge_id, start_and_end, ""))
     else:
         if labeled:
             # Edges have to be appended in both directions for undirected graphs
-            edges.add(EDGE(edge_id, start_and_end, randomString()))
-            edges.add(EDGE(edge_id, [start_and_end[1], start_and_end[0]], randomString()))
+            edges.add(EDGE(edge_id, start_and_end, random_string()))
+            edges.add(EDGE(edge_id, [start_and_end[1], start_and_end[0]], random_string()))
         else:
             # print("____SET APPEND___")
             tmp_edge = EDGE(edge_id, start_and_end, "")
@@ -356,7 +344,7 @@ def appendNewEdgeToSet(edges: List[EDGE], edge_id, start_and_end, directed=False
             edges.add(inv_edge)
     return edges
 
-def getVERTEXwithID(list_vertices: List[VERTEX], vertex_id):
+def get_VERTEX_with_ID(list_vertices: List[VERTEX], vertex_id):
     for vertex_obj in list_vertices:
         if vertex_obj.get_id() == vertex_id:
             return vertex_obj

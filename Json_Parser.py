@@ -65,7 +65,7 @@ def json_parser(file_path, neo4j, no_h_atoms):
     for edge in list_of_edges:
         for vertex in list_of_vertices:
             if edge.get_start_and_end()[0].get_id() == vertex.get_id():
-                vertex.append_out_neighbour(edge.get_start_and_end()[1])
+                vertex.add_out_neighbour(edge.get_start_and_end()[1])
 
     # Instantiate GRAPH object
     graph = GRAPH(molecule_name, list_of_vertices, list_of_edges, len(list_of_vertices), int(len(list_of_edges)/2),

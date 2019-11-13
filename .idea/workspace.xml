@@ -2,7 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="51e76ea8-33cc-4581-a5ad-06fe1fd9988d" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/test_script_Tilman.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_script_Tilman.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Edge.py" beforeDir="false" afterPath="$PROJECT_DIR$/Edge.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Graph.py" beforeDir="false" afterPath="$PROJECT_DIR$/Graph.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GraphDating.py" beforeDir="false" afterPath="$PROJECT_DIR$/GraphDating.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Graph_Builder.py" beforeDir="false" afterPath="$PROJECT_DIR$/Graph_Builder.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Json_Parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/Json_Parser.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Vertex.py" beforeDir="false" afterPath="$PROJECT_DIR$/Vertex.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -55,7 +61,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.test_script_Tilman">
+  <component name="RunManager" selected="Python.test">
     <configuration name="Main" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="BestesRepository" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -121,8 +127,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.test_script_Tilman" />
         <item itemvalue="Python.test" />
+        <item itemvalue="Python.test_script_Tilman" />
         <item itemvalue="Python.Main" />
       </list>
     </recent_temporary>
@@ -184,43 +190,28 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Graph.py</url>
-          <line>293</line>
+          <line>282</line>
           <option name="timeStamp" value="8" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Graph.py</url>
-          <line>142</line>
-          <option name="timeStamp" value="15" />
+          <url>file://$PROJECT_DIR$/Graph_Builder.py</url>
+          <line>259</line>
+          <option name="timeStamp" value="29" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Graph.py</url>
-          <line>143</line>
-          <option name="timeStamp" value="16" />
+          <url>file://$PROJECT_DIR$/Graph_Builder.py</url>
+          <line>260</line>
+          <option name="timeStamp" value="30" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Graph.py</url>
-          <line>145</line>
-          <option name="timeStamp" value="17" />
+          <url>file://$PROJECT_DIR$/Graph_Builder.py</url>
+          <line>261</line>
+          <option name="timeStamp" value="31" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Graph.py</url>
-          <line>146</line>
-          <option name="timeStamp" value="18" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Graph.py</url>
-          <line>147</line>
-          <option name="timeStamp" value="19" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Graph.py</url>
-          <line>148</line>
-          <option name="timeStamp" value="20" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Graph.py</url>
-          <line>149</line>
-          <option name="timeStamp" value="21" />
+          <url>file://$PROJECT_DIR$/Graph_Builder.py</url>
+          <line>262</line>
+          <option name="timeStamp" value="32" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -231,5 +222,10 @@
         </breakpoint>
       </default-breakpoints>
     </breakpoint-manager>
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="name_graph" language="Python" />
+      </configuration>
+    </watches-manager>
   </component>
 </project>
