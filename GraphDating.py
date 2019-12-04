@@ -21,6 +21,7 @@ from Neo4j import NEO4J
 from runpy import run_path
 from Json_Parser import json_parser
 from copy import deepcopy
+import time
 
 
 def parser(file, neo4j):
@@ -167,7 +168,7 @@ def parser(file, neo4j):
     if not len(vertices_objects) == number_vertices:
         raise Exception("Number of vertices doesn't fit predicted number in header!")
     if not directed:
-        if not len(edges_objects) / 2 == number_edges or len(edges_objects) == number_edges:
+        if not (len(edges_objects) / 2 == number_edges or len(edges_objects) == number_edges):
             raise Exception("Number of edges doesn't fit predicted number in header!")
     else:
         if not len(edges_objects) == number_edges:
@@ -639,6 +640,8 @@ if __name__ == '__main__':
     p = []
     newick = None
     graphs = []
+    if args.benchmark:
+        ts_mp_1, ts_mp_2, ts_bk_1, ts_bk_2, ts_ga_1, ts_ga_2 = None, None, None, None, None, None
 
     # Check if user what to make a new Neo4J Upload
     # create Neo4J View
@@ -749,7 +752,9 @@ if __name__ == '__main__':
             if len(p) == 0:
                 selected_cliques.append(anchor)
             else:
+                ts_bk_1 = time.time()
                 selected_cliques = input_graphs[0].bron_kerbosch(set(anchor), set(p), set(), pivot=args.pivot)
+                ts_bk_2 = time.time()
             matching_graphs = []
             for i in range(len(selected_cliques)):
                 matching_graph = retrieve_graph_from_clique(selected_cliques[i], input_graphs[0])
@@ -768,9 +773,11 @@ if __name__ == '__main__':
         else:
             graph1_name = input_graphs[0].get_name()
             graph2_name = input_graphs[1].get_name()
+            ts_mp_1 = time.time()
             graph, anchor = modular_product(input_graphs[0], input_graphs[1],
                                             vertex_comparison_import_para=args.vertex_label_comparison,
                                             edge_comparison_import_para=args.edge_label_comparison)
+            ts_mp_2 = time.time()
             graphs.append(graph)
             # if args.neo4j:
                 # neo4jProjekt = NEO4J("http://localhost:11003/db/data/", "neo4j", "1234")
@@ -836,6 +843,7 @@ if __name__ == '__main__':
             anchor_graph_parameters = [anchor_graph, input_graphs[0].get_name()]
         else:
             anchor_graph_parameters = None
+
         if args.guide_tree and input_graphs:
             if args.guide_tree[0] == "custom":
                 print("Guide tree construction: Custom function passed")
@@ -877,6 +885,7 @@ if __name__ == '__main__':
                 print("Matching-based algorithm performing...")
             elif args.graph_alignment[0] == "bk":
                 print("Bron-kerbosch algorithm performing...")
+            ts_ga_1 = time.time()   #timestamp before alignment
             matching_graphs = recursive_matching(input_graphs, cluster_tree, args.graph_alignment[0], args.pivot, i,
                                                  anchor_graph_parameters=anchor_graph_parameters,
                                                  smaller=smaller,
@@ -884,6 +893,7 @@ if __name__ == '__main__':
                                                  check_connection=args.check_connection,
                                                  vertex_comparison_import_para=args.vertex_label_comparison,
                                                  edge_comparison_import_para=args.edge_label_comparison)
+            ts_ga_2 = time.time()   #timestamp after alignment
             print("Graph Alignment: Found " + str(len(matching_graphs)) + " matching(s)! Maximum of " + str(i) + " "
                   "matching(s) have been forwarded...")
             for matching_graph in matching_graphs:
@@ -1005,3 +1015,35 @@ if __name__ == '__main__':
                                                  subgraph.get_name() + "_Subgraph_" + str(i + 1) + ".graph",False)
     else:
         print("Subgraph output: False")
+
+    if args.benchmark:
+        #Calculate runtime from timestamps
+        if args.graph_alignment:
+            runtime_ga = ts_ga_2 - ts_ga_1
+            print(runtime_ga)
+        if args.bron_kerbosch:
+            runtime_bk = ts_bk_2 - ts_bk_1
+            print(runtime_bk)
+        if args.modular_product:
+            runtime_mp = ts_mp_2 - ts_mp_1
+            print(runtime_mp)
+
+        file_name = args.benchmark[0]   # works as benchmark-descriptor, eg. "ga_bk_3graphs_10nodes_connect0.1)
+        algo_name = ""
+        with open(file_name, 'a') as file:
+            if args.graph_alignment:
+                if args.graph_alignment[0] == "bk":
+                    algo_name = "ga_bk"
+                    file.write(str(runtime_ga) + ";")
+                elif args.graph_alignment[0] == "mb":
+                    algo_name = "ga_mb"
+                    file.write(str(runtime_ga) + ";")
+            elif args.modular_product:
+                algo_name = "mp"
+                file.write(str(runtime_mp) + ";")
+            elif args.bron_kerbosch:
+                algo_name = "bk"
+                file.write(str(runtime_bk) + ";")
+
+
+

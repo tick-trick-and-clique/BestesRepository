@@ -10,6 +10,8 @@ parser.add_argument("-a", "--anchor", metavar="", default=[],
 parser.add_argument("-bk", "--bron-kerbosch", nargs="*",
                     help="Invokes maximal clique finding on input graph. Optionally, you may pass a file name together "
                          "clique sorting function name in that file.")
+parser.add_argument("-bm", "--benchmark", nargs="*",
+                    help="Writes benchmark-timestamps into file")
 parser.add_argument("-cc", "--check_connection", action="store_true",
                     help="If selected, only connected subgraphs will be the output of graph alignment!")
 parser.add_argument("-ga", "--graph_alignment", nargs="*", metavar="",

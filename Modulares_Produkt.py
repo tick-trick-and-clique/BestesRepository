@@ -219,7 +219,7 @@ def modular_product(g1, g2, anchor_graph_parameters=None,
                     new_list_of_edges.append(EDGE(edge_id, [start_vertex, end_vertex], edge_label_combined))
                     new_number_of_edges += 1
                     edge_id += 1
-                    start_vertex.append_out_neighbour(end_vertex)
+                    start_vertex.add_out_neighbour(end_vertex)  #FIXME: Wirft Fehler, wenn die Inputdateien genau gleich benannt sind, dann dann start_vertex and dieser Stelle =None
     if anchor_graph_parameters:
         for v_mp in new_dict_of_vertices.values():
             for v_anchor in list(anchor_graph_parameters[0].get_list_of_vertices()):

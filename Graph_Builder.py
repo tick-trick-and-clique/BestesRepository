@@ -36,9 +36,9 @@ def buildRndGraph(nr_nodes, p_connected, labeled_nodes=False, labeled_edges=Fals
     for combination in list_combinations:  # Example: Combination:= [1,3]
         #print(combination)
         if directed:
-            directed_edge_normal = (random.random() <= math.sqrt(p_connected))
+            directed_edge_normal = (random.random() <= p_connected)
             # if TRUE: draw edge in "natural" direction of combination
-            directed_edge_reverse = (random.random() <= math.sqrt(p_connected))
+            directed_edge_reverse = (random.random() <= p_connected)
             # if TRUE: draw edge in "reverse" direction of combination
             if directed_edge_normal:  # draw edge in "normal" direction of combination: 0->1
                 # print("1-direct, normal")
@@ -48,7 +48,7 @@ def buildRndGraph(nr_nodes, p_connected, labeled_nodes=False, labeled_edges=Fals
                 # print("1-direct, reverse")
                 tmp_dir_edge = [combination[1], combination[0]]
                 edge_id = append_EDGE_to_List(list_edges, edge_id, tmp_dir_edge, directed, labeled_edges)[1]
-        elif (directed is False) and (random.random() <= p_connected):
+        elif (directed is False) and (random.random() <= (1 - math.sqrt(1 - p_connected))): #
             # print("2-NON-direct")
             tmp_edge = combination
             edge_id = append_EDGE_to_List(list_edges, edge_id, tmp_edge, directed, labeled_edges)[1]
