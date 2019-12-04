@@ -3,12 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="51e76ea8-33cc-4581-a5ad-06fe1fd9988d" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Command_Line_Parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/Command_Line_Parser.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GraphDating.py" beforeDir="false" afterPath="$PROJECT_DIR$/GraphDating.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Graph_Builder.py" beforeDir="false" afterPath="$PROJECT_DIR$/Graph_Builder.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Modulares_Produkt.py" beforeDir="false" afterPath="$PROJECT_DIR$/Modulares_Produkt.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/benchmark.py" beforeDir="false" afterPath="$PROJECT_DIR$/benchmark.py" afterDir="false" />
     </list>
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -44,20 +41,15 @@
     </option>
   </component>
   <component name="ProjectId" id="1QSKQbWLvlVlf4Q1qIRN92C1ZRN" />
+  <component name="ProjectViewState">
+    <option name="compactDirectories" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showMembers" value="true" />
+  </component>
   <component name="PropertiesComponent">
     <property name="last_opened_file_path" value="$USER_HOME$/Dropbox/Bioinformatik Leipzig/SS19/2.2_Projekt_FM/191025_backup_testing/BestesRepository/Modulares_Produkt.py" />
-  </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
-      <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
-      </list>
-    </option>
   </component>
   <component name="RunManager" selected="Python.test">
     <configuration name="Main" type="PythonConfigurationType" factoryName="Python" temporary="true">
@@ -131,6 +123,18 @@
       </list>
     </recent_temporary>
   </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -182,6 +186,28 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="WindowStateProjectService">
+    <state width="1874" height="503" key="GridCell.Tab.0.bottom" timestamp="1575500934271">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state width="1874" height="503" key="GridCell.Tab.0.bottom/0.27.1920.1053@0.27.1920.1053" timestamp="1575500934271" />
+    <state width="1874" height="503" key="GridCell.Tab.0.center" timestamp="1575500934271">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state width="1874" height="503" key="GridCell.Tab.0.center/0.27.1920.1053@0.27.1920.1053" timestamp="1575500934271" />
+    <state width="1874" height="503" key="GridCell.Tab.0.left" timestamp="1575500934271">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state width="1874" height="503" key="GridCell.Tab.0.left/0.27.1920.1053@0.27.1920.1053" timestamp="1575500934271" />
+    <state width="1874" height="503" key="GridCell.Tab.0.right" timestamp="1575500934271">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state width="1874" height="503" key="GridCell.Tab.0.right/0.27.1920.1053@0.27.1920.1053" timestamp="1575500934271" />
+    <state x="616" y="380" key="com.intellij.ide.util.TipDialog" timestamp="1575493860113">
+      <screen x="0" y="27" width="1920" height="1053" />
+    </state>
+    <state x="616" y="380" key="com.intellij.ide.util.TipDialog/0.27.1920.1053@0.27.1920.1053" timestamp="1575493860113" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

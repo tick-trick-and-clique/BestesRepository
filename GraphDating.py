@@ -1017,16 +1017,12 @@ if __name__ == '__main__':
         print("Subgraph output: False")
 
     if args.benchmark:
-        #Calculate runtime from timestamps
         if args.graph_alignment:
             runtime_ga = ts_ga_2 - ts_ga_1
-            print(runtime_ga)
-        if args.bron_kerbosch:
+        if args.bron_kerbosch is not None:
             runtime_bk = ts_bk_2 - ts_bk_1
-            print(runtime_bk)
         if args.modular_product:
             runtime_mp = ts_mp_2 - ts_mp_1
-            print(runtime_mp)
 
         file_name = args.benchmark[0]   # works as benchmark-descriptor, eg. "ga_bk_3graphs_10nodes_connect0.1)
         algo_name = ""
@@ -1041,7 +1037,7 @@ if __name__ == '__main__':
             elif args.modular_product:
                 algo_name = "mp"
                 file.write(str(runtime_mp) + ";")
-            elif args.bron_kerbosch:
+            elif args.bron_kerbosch is not None:
                 algo_name = "bk"
                 file.write(str(runtime_bk) + ";")
 
