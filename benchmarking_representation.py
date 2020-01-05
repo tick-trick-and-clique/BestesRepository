@@ -40,7 +40,7 @@ def build_bar_plot_ga(x, y, e, n, title, ylim, anno_height, ylabel):
     fig = plt.figure()
     plt.bar(x, y)
     plt.errorbar(x, y, yerr=[np.zeros(len(e)), e], linestyle='None', elinewidth=1, capsize=3)
-    plt.xlabel("Number of Nodes", labelpad=12)
+    plt.xlabel("Number of Vertices", labelpad=12)
     plt.ylabel(ylabel, labelpad=12)
     axes = plt.gca()
     axes.set_ylim([0, ylim])
