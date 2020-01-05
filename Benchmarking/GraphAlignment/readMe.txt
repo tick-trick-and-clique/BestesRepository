@@ -1,7 +1,7 @@
 Die unten stehenden Dateinamen enthalten die Ergebnisse des Benchmarkings. Das ist so zu verstehen:
 * "benchmark_ga_"... steht für Benchmark GraphAlignment
 * ..."_bk_"/"_mb_" zeigt in der Folge an, ob Bron-Kerbosch oder Cordella (matching-based) verwendet wurde
-* ..."[Anzahl Knoten]_[Konnektivität].txt" steht am Schluss und zeigt welche Random-generierten Inputgraphen verwendet wurden (Grüße und Konnektivität).
+* ..."[Anzahl Knoten]_[Konnektivität].txt" steht am Schluss und zeigt welche Random-generierten Inputgraphen verwendet wurden (Größe und Konnektivität).
 Die Inputgraphen sind alle auch im Ordner "Graphen" enthalten
 
 Allgmein wurde das Graph Alignment immer auf drei Input Graphen gleicher Art ausgeführt. Die Anzahl der Aufrufe ist unterschiedlich und in der Folge spezifiziert.
