@@ -1,0 +1,16 @@
+#nodes;5
+#edges;2
+nodes labeled;False
+edges labeled;False
+directed graph;False
+
+1;
+2;
+3;
+4;
+5;
+
+2;3;
+3;2;
+4;5;
+5;4;
