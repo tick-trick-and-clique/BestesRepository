@@ -209,7 +209,7 @@ class GRAPH(object):
             pivot_vertex = self.select_random_pivot(P, X)
         elif pivot is None:
             for vertex in P.copy():
-                new_R = R
+                new_R = R.copy()
                 new_R.add(vertex)
                 neighbours = vertex.get_out_neighbours()
                 new_P = set([val for val in P if val in neighbours])  # P intersects w/ neighbours of vertex
