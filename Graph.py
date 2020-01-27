@@ -526,7 +526,7 @@ def retrieve_fusion_graph(matching_graph, input_graphs):
         lov += input_graph.get_list_of_vertices()
         loe += input_graph.get_list_of_edges()
     for i in range(len(lov)):
-        lov[i].set_id(i)
+        lov[i].set_id(i + 1)
     for vertex in matching_graph.get_list_of_vertices():
         map = vertex.get_mapping()
         combis = itertools.combinations(map.values(), 2)
@@ -536,7 +536,7 @@ def retrieve_fusion_graph(matching_graph, input_graphs):
             edge = EDGE(0, [combi[0], combi[1]], "$matching$")
             loe.append(edge)
     for i in range(len(loe)):
-        loe[i].set_id(i)
+        loe[i].set_id(i + 1)
     name = ''
     for input_graph in input_graphs:
         name += input_graph.get_name() + "&&"

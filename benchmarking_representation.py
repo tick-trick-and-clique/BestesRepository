@@ -44,15 +44,6 @@ def build_bar_plot_ga(x, y, e, n, title, ylim, anno_height, ylabel):
     plt.ylabel(ylabel, labelpad=12)
     axes = plt.gca()
     axes.set_ylim([0, ylim])
-    i = 0
-    for a in x:
-        label = str(n[i])
-        if i < 4:
-            label += "/30"
-        else:
-            label += "/10"
-        i += 1
-        plt.annotate(label, (a, anno_height), textcoords="offset points", xytext=(0, 10), ha='center', color="r")
     plt.suptitle(title)
     return fig
 
@@ -92,27 +83,23 @@ def data_for_plot_from_stats_bk(list_of_stats):
 if __name__ == '__main__':
 
     # Build plot for graph alignment using bron-kerbosch
-    stat3 = stats_from_array_data_ga("Benchmarking\GraphAlignment\\benchmark_ga_bk_3_0.5.txt", 3)
-    stat4 = stats_from_array_data_ga("Benchmarking\GraphAlignment\\benchmark_ga_bk_4_0.5.txt", 4)
-    stat5 = stats_from_array_data_ga("Benchmarking\GraphAlignment\\benchmark_ga_bk_5_0.5.txt", 5)
-    stat6 = stats_from_array_data_ga("Benchmarking\GraphAlignment\\benchmark_ga_bk_6_0.5.txt", 6)
-    stat7 = stats_from_array_data_ga("Benchmarking\GraphAlignment\\benchmark_ga_bk_7_0.5.txt", 7)
-    x, y, e, n, failed = data_for_plot_from_stats_ga([stat3, stat4, stat5, stat6, stat7])
-    fig = build_bar_plot_ga(x, y, e, n,  "Graph Alignment (Bron-Kerbosch)", 200, 175, "Time [s]")
+    stat3 = stats_from_array_data_ga("Benchmarking\GraphAlignment_zweiteRunde\\benchmark_ga_bk_10.txt", 10)
+    stat4 = stats_from_array_data_ga("Benchmarking\GraphAlignment_zweiteRunde\\benchmark_ga_bk_13.txt", 13)
+    stat7 = stats_from_array_data_ga("Benchmarking\GraphAlignment_zweiteRunde\\benchmark_ga_bk_7.txt", 7)
+    x, y, e, n, failed = data_for_plot_from_stats_ga([stat3, stat4, stat7])
+    fig = build_bar_plot_ga(x, y, e, n,  "Graph Alignment (Bron-Kerbosch)", 30, 25, "Time [s]")
     plt.savefig("GraphAlignment_BronKerbosch")
     plt.show()
     plt.close(fig)
 
     # Build plot for graph alignment using cordella
-    stat3 = stats_from_array_data_ga("Benchmarking\GraphAlignment\\benchmark_ga_mb_3_0.5.txt", 3)
-    stat4 = stats_from_array_data_ga("Benchmarking\GraphAlignment\\benchmark_ga_mb_4_0.5.txt", 4)
-    stat5 = stats_from_array_data_ga("Benchmarking\GraphAlignment\\benchmark_ga_mb_5_0.5.txt", 5)
-    stat6 = stats_from_array_data_ga("Benchmarking\GraphAlignment\\benchmark_ga_mb_6_0.5.txt", 6)
-    stat7 = stats_from_array_data_ga("Benchmarking\GraphAlignment\\benchmark_ga_mb_7_0.5.txt", 7)
-    x, y, e, n, failed = data_for_plot_from_stats_ga([stat3, stat4, stat5, stat6, stat7])
+    stat3 = stats_from_array_data_ga("Benchmarking\GraphAlignment_zweiteRunde\\benchmark_ga_mb_10.txt", 10)
+    stat4 = stats_from_array_data_ga("Benchmarking\GraphAlignment_zweiteRunde\\benchmark_ga_mb_13.txt", 13)
+    stat7 = stats_from_array_data_ga("Benchmarking\GraphAlignment_zweiteRunde\\benchmark_ga_mb_7.txt", 7)
+    x, y, e, n, failed = data_for_plot_from_stats_ga([stat3, stat4, stat7])
     y = [i*1000 for i in y]
     e = [i*1000 for i in e]
-    fig = build_bar_plot_ga(x, y, e, n, "Graph Alignment (VF2)", 3.5, 3, "Time [ms]")
+    fig = build_bar_plot_ga(x, y, e, n, "Graph Alignment (VF2)", 250, 220, "Time [ms]")
     plt.savefig("GraphAlignment_VF2")
     plt.show()
     plt.close()
