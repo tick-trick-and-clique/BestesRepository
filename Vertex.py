@@ -25,6 +25,9 @@ class VERTEX(object):
     def get_label(self):
         return self.__label
 
+    def set_id(self, id):
+        self.__id = id
+
     def set_out_neighbours(self, neighbours):
         self.__out_neighbours = set(neighbours)
 
