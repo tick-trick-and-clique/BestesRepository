@@ -29,6 +29,9 @@ class EDGE(object):
     def set_id(self, id):
         self.__id = id
 
+    def set_label(self, label):
+        self.__label = label
+
     def get_start_and_end(self):
         return self.__start_and_end
 

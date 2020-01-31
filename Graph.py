@@ -517,7 +517,10 @@ def remaining_candidates(r, p):
 def retrieve_fusion_graph(matching_graph, input_graphs):
     """
     Function takes a matching graph object and the input graphs as input and returns a fusion graph, i.e. a graph where
-    each of the input graph are embedded and edges between embeddings representing vertex matchings.
+    each of the input graph are embedded and edges between embeddings representing vertex matchings. Each Vertex and
+    Edge will carry a label, those that did not carry any in their input graph will receive the label '$None$'. The
+    order of vertices in respect to their ID follows the order of the input graphs. Vertex and Edge IDs cant not be
+    guaranteed to be identical in comparison of input graph and resulting alignment graph!
     Return type: GRAPH
     """
     lov = []
@@ -527,6 +530,8 @@ def retrieve_fusion_graph(matching_graph, input_graphs):
         loe += input_graph.get_list_of_edges()
     for i in range(len(lov)):
         lov[i].set_id(i + 1)
+        if not lov[i].get_label():
+            lov[i].set_label("$None$")
     for vertex in matching_graph.get_list_of_vertices():
         map = vertex.get_mapping()
         combis = itertools.combinations(map.values(), 2)
@@ -537,6 +542,8 @@ def retrieve_fusion_graph(matching_graph, input_graphs):
             loe.append(edge)
     for i in range(len(loe)):
         loe[i].set_id(i + 1)
+        if not loe[i].get_label():
+            loe[i].set_label("$None$")
     name = ''
     for input_graph in input_graphs:
         name += input_graph.get_name() + "&&"
