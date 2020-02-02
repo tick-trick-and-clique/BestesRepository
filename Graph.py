@@ -545,11 +545,13 @@ def retrieve_fusion_graph(matching_graph, input_graphs):
         if not loe[i].get_label():
             loe[i].set_label("$None$")
     name = ''
+    is_directed = False
     for input_graph in input_graphs:
         name += input_graph.get_name() + "&&"
+        is_directed = (is_directed or input_graph.get_is_directed())
     name = name[:-2]
-    graph = GRAPH(name, lov, loe, len(lov), len(loe), input_graphs[0].get_is_directed(),
-                  input_graphs[0].get_has_labeled_nodes(), input_graphs[0].get_has_labeled_edges())
+    graph = GRAPH(name, lov, loe, len(lov), len(loe), is_directed,
+                  True, True)
     return graph
 
 
