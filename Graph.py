@@ -4,6 +4,7 @@ import math
 import random
 import os
 import string
+import itertools
 from queue import Queue
 from Edge import EDGE
 from Vertex import VERTEX
@@ -209,7 +210,7 @@ class GRAPH(object):
             pivot_vertex = self.select_random_pivot(P, X)
         elif pivot is None:
             for vertex in P.copy():
-                new_R = R
+                new_R = R.copy()
                 new_R.add(vertex)
                 neighbours = vertex.get_out_neighbours()
                 new_P = set([val for val in P if val in neighbours])  # P intersects w/ neighbours of vertex
@@ -511,5 +512,44 @@ def remaining_candidates(r, p):
             if all(truelist):
                 result.append(v)
     return result
+
+
+def retrieve_fusion_graph(matching_graph, input_graphs):
+    """
+    Function takes a matching graph object and the input graphs as input and returns a fusion graph, i.e. a graph where
+    each of the input graph are embedded and edges between embeddings representing vertex matchings. Each Vertex and
+    Edge will carry a label, those that did not carry any in their input graph will receive the label '$None$'. The
+    order of vertices in respect to their ID follows the order of the input graphs. Vertex and Edge IDs cant not be
+    guaranteed to be identical in comparison of input graph and resulting alignment graph!
+    Return type: GRAPH
+    """
+    lov = []
+    loe = []
+    for input_graph in input_graphs:
+        lov += input_graph.get_list_of_vertices()
+        loe += input_graph.get_list_of_edges()
+    for i in range(len(lov)):
+        lov[i].set_id(i + 1)
+        if not lov[i].get_label():
+            lov[i].set_label("$None$")
+    for vertex in matching_graph.get_list_of_vertices():
+        map = vertex.get_mapping()
+        combis = itertools.combinations(map.values(), 2)
+        for combi in combis:
+            combi[0].add_out_neighbour(combi[1])
+            combi[1].add_out_neighbour(combi[0])
+            edge = EDGE(0, [combi[0], combi[1]], "$matching$")
+            loe.append(edge)
+    for i in range(len(loe)):
+        loe[i].set_id(i + 1)
+        if not loe[i].get_label():
+            loe[i].set_label("$None$")
+    name = ''
+    for input_graph in input_graphs:
+        name += input_graph.get_name() + "&&"
+    name = name[:-2]
+    graph = GRAPH(name, lov, loe, len(lov), len(loe), input_graphs[0].get_is_directed(),
+                  input_graphs[0].get_has_labeled_nodes(), input_graphs[0].get_has_labeled_edges())
+    return graph
 
 

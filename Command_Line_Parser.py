@@ -54,7 +54,6 @@ parser.add_argument("-elc", "--edge_label_comparison", nargs="*",
                          "If return is TRUE, two distinct EDGE-objects with relative strings as labels are "
                          "possible matches.")
 
-
 parser.add_argument("-mp", "--modular_product", action="store_true", help="Forms the modular product of two graphs.")
 parser.add_argument("-ms", "--matching_sort", nargs="*",
                     help="For custom sorting of matching graphs, pass a file name together with a function in that file"
@@ -85,6 +84,8 @@ parser.add_argument("-rc", "--random_cluster", nargs=4, type=int,
                               "degree at each node (d, integer), how many vertices you want to delete from the cluster"
                               "(del_vert, int) and finally how mandy edges you want to delete(del_edges, int)"
                               "e.g. '20 3 2 2'.")
+parser.add_argument("-s", "--seperate", action="store_true", help="Select if you like output to subgraphs of "
+                                                                  "input graphs.")
 parser.add_argument("-sgo", "--subgraph_output", metavar="", nargs='*',
                     help="Saves found subgraphs as .graph file. You may specifiy the number of matchings in your output"
                          "(e.g. -sgo 5), default is all matchings. If a path (in quotation marks!) is provided, subgraphs "
