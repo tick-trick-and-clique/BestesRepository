@@ -23,12 +23,12 @@ params.mode = "undirected" // options: "directed", "undirected" or "clustered" (
 /*
 * change working directory to your working directory
 */
-params.indir_graphDating = "./BestesRepository"
+params.indir_graphDating = "/your/path/to/BestesRepository"
 
 /*
 * change output directory to your wanted output directory!
 */
-params.outdir_random_graphs = "./data/random_graphs"
+params.outdir_random_graphs = "$baseDir/data/random_graphs"
 
 /* 
 * change channels for your wanted parameters!
@@ -57,20 +57,20 @@ process create_random_graphs {
   script:
   if( params.mode == "undirected")
     """
-    python3 ${params.indir_graphDating}/Main.py -rg ${x} ${y_u} False \
+    python3 ${params.indir_graphDating}/GraphDating.py -rg ${x} ${y_u} False \
     -go ${params.outdir_random_graphs}/random_graph_${x}_${y_u}_${params.mode}.graph
     """
     //break, return oder sowas
 
   else if( params.mode == "directed")
     """
-    python3 ${params.indir_graphDating}/Main.py -rg ${x} ${y_u} True \
+    python3 ${params.indir_graphDating}/GraphDating.py -rg ${x} ${y_u} True \
     -go ${params.outdir_random_graphs}/random_graph_${x}_${y_d}_${params.mode}.graph
     """
     //break, return oder sowas
   else if( params.mode == "clustered")
     """
-    python3 ${params.indir_graphDating}/Main.py -rc ${x} ${d_c} ${d_v} ${d_e} \
+    python3 ${params.indir_graphDating}/GraphDating.py -rc ${x} ${d_c} ${d_v} ${d_e} \
     -go ${params.outdir_random_graphs}/random_graph_${x}_${d_c}_${d_v}_${d_e}_${params.mode}.graph
     """
     //break, return oder sowas
