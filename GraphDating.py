@@ -264,13 +264,14 @@ def matching_using_bk(input_graphs, graph_left, graph_right, pivot, anchor_graph
     return result
 
 
-def matching_using_mb(graph1, graph2, vertex_comparison_import_para=None, edge_comparison_import_para=None):
+def matching_using_mb(graph1, graph2, vertex_comparison_import_para=None, edge_comparison_import_para=None,
+                      subsub=False):
     """
     Helper function for graph alignment using matching-based algorithm. Takes two graphs as input.
     Return type: [GRAPH, ...]
     """
     mb_state = MB_State(graph1, graph2, vertex_comparison_import_para=vertex_comparison_import_para,
-                        edge_comparison_import_para=edge_comparison_import_para)
+                        edge_comparison_import_para=edge_comparison_import_para, subsub=subsub)
     result_as_mappings = mb_state.mb_algorithm()
     result = []
     for mapping in result_as_mappings:
@@ -281,7 +282,7 @@ def matching_using_mb(graph1, graph2, vertex_comparison_import_para=None, edge_c
 def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_matchings,
                        anchor_graph_parameters=[None, None], smaller=0.0,
                        no_stereo_isomers=False, check_connection=False, vertex_comparison_import_para=None,
-                       edge_comparison_import_para=None):
+                       edge_comparison_import_para=None, subsub=False):
     """
     Performs graph alignment according to the guide tree in 'cluster' and the given matching algorithm.
     'number_matchings' specifies the maximum number of cliques that will be considered for further graph alignment.
@@ -297,7 +298,8 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
                                          smaller=smaller, no_stereo_isomers=no_stereo_isomers,
                                          check_connection=check_connection,
                                          vertex_comparison_import_para=vertex_comparison_import_para,
-                                         edge_comparison_import_para=edge_comparison_import_para)
+                                         edge_comparison_import_para=edge_comparison_import_para,
+                                         subsub=subsub)
     # Right child.
     if cluster.get_right_child().children_exist():
         graphs_right = recursive_matching(input_graphs, cluster.get_right_child(), matching_algorithm, pivot,
@@ -305,7 +307,8 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
                                           smaller=smaller, no_stereo_isomers=no_stereo_isomers,
                                           check_connection=check_connection,
                                           vertex_comparison_import_para=vertex_comparison_import_para,
-                                          edge_comparison_import_para=edge_comparison_import_para)
+                                          edge_comparison_import_para=edge_comparison_import_para,
+                                          subsub=subsub)
     # Else, the cluster is the root of two leaves, then:
     # Perform graph matching of the two leaf graphs (use the matching method provided by user)
     # Update the cluster with one new leaf, deleting the previous two
@@ -333,11 +336,13 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
                     graph2 = gl
                 result_as_mappings += matching_using_mb(graph1, graph2,
                                                         vertex_comparison_import_para=vertex_comparison_import_para,
-                                                        edge_comparison_import_para=edge_comparison_import_para)
+                                                        edge_comparison_import_para=edge_comparison_import_para,
+                                                        subsub=subsub)
                 if smaller and graph2 in input_graphs:
                     result_as_mappings += mb_helper(graph1, graph2,
                                                     vertex_comparison_import_para=vertex_comparison_import_para,
-                                                    edge_comparison_import_para=edge_comparison_import_para)
+                                                    edge_comparison_import_para=edge_comparison_import_para,
+                                                    subsub=subsub)
         matching_graphs = process_result_as_mappings(result_as_mappings, number_matchings, check_connection,
                                                      no_stereo_isomers)
     cluster.set_elements(matching_graphs)
@@ -535,7 +540,7 @@ def import_file(filename, function_name):
 
 def pairwise_alignment(input_graphs, matching_method, pivot, number_matchings, check_connection=False,
                        no_stereo_isomers=False, vertex_comparison_import_para=None,
-                       edge_comparison_import_para=None):
+                       edge_comparison_import_para=None, subsub=False):
     """
     Function takes a List[GRAPH, ...] and several other parameters necessary for graph matching and constructs a guide
     tree based on pairwise alignment of the input graphs. The scoring parameter is the size the greatest subgraph
@@ -562,11 +567,13 @@ def pairwise_alignment(input_graphs, matching_method, pivot, number_matchings, c
         else:
             result_as_mappings = matching_using_mb(graph1, graph2,
                                                    vertex_comparison_import_para=vertex_comparison_import_para,
-                                                   edge_comparison_import_para=edge_comparison_import_para)
+                                                   edge_comparison_import_para=edge_comparison_import_para,
+                                                   subsub=subsub)
             if smaller:
                 result_as_mappings += mb_helper(graph1, graph2,
                                                 vertex_comparison_import_para=vertex_comparison_import_para,
-                                                edge_comparison_import_para=edge_comparison_import_para)
+                                                edge_comparison_import_para=edge_comparison_import_para,
+                                                subsub=subsub)
             matching_graphs = process_result_as_mappings(result_as_mappings, number_matchings, check_connection,
                                                          no_stereo_isomers)
         if len(matching_graphs) == 0:
@@ -583,7 +590,7 @@ def pairwise_alignment(input_graphs, matching_method, pivot, number_matchings, c
 
 
 def mb_helper(gl, gr, vertex_comparison_import_para=None,
-              edge_comparison_import_para=None):
+              edge_comparison_import_para=None, subsub=False):
     """
     Helper function for the matching using pruned input graphs
     Return Type: [GRAPH, ...]
@@ -602,7 +609,8 @@ def mb_helper(gl, gr, vertex_comparison_import_para=None,
         for new_g in new_gs:
             result_as_mappings += matching_using_mb(gl, new_g,
                                                     vertex_comparison_import_para=vertex_comparison_import_para,
-                                                    edge_comparison_import_para=edge_comparison_import_para)
+                                                    edge_comparison_import_para=edge_comparison_import_para,
+                                                    subsub=subsub)
     else:
         gn = gl.get_number_of_vertices()
         margin = int(gn * smaller)
@@ -616,7 +624,8 @@ def mb_helper(gl, gr, vertex_comparison_import_para=None,
         for new_g in new_gs:
             result_as_mappings += matching_using_mb(gl, new_g,
                                                     vertex_comparison_import_para=vertex_comparison_import_para,
-                                                    edge_comparison_import_para=edge_comparison_import_para)
+                                                    edge_comparison_import_para=edge_comparison_import_para,
+                                                    subsub=subsub)
     return result_as_mappings
 
 
@@ -861,7 +870,8 @@ if __name__ == '__main__':
                                                   check_connection=args.check_connection,
                                                   no_stereo_isomers=args.no_stereo_isomers,
                                                   vertex_comparison_import_para=args.vertex_label_comparison,
-                                                  edge_comparison_import_para=args.edge_label_comparison)
+                                                  edge_comparison_import_para=args.edge_label_comparison,
+                                                  subsub=args.subsub)
                 copy = deepcopy(cluster_tree)
                 newick = guide_tree_to_newick(copy)
             elif args.guide_tree[0] not in ["density", "pairwise_align"]:
@@ -892,7 +902,8 @@ if __name__ == '__main__':
                                                  no_stereo_isomers=args.no_stereo_isomers,
                                                  check_connection=args.check_connection,
                                                  vertex_comparison_import_para=args.vertex_label_comparison,
-                                                 edge_comparison_import_para=args.edge_label_comparison)
+                                                 edge_comparison_import_para=args.edge_label_comparison,
+                                                 subsub=args.subsub)
             ts_ga_2 = time.time()   #timestamp after alignment
             print("Graph Alignment: Found " + str(len(matching_graphs)) + " matching(s)! Maximum of " + str(i) + " "
                   "matching(s) have been forwarded...")

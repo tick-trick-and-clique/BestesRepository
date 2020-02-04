@@ -92,6 +92,9 @@ parser.add_argument("-sgo", "--subgraph_output", metavar="", nargs='*',
                          "will be saved there with an additional sequential number. If a .graph file name is provided, "
                          "they will be saved with that name in the current working directory. Else they will be saved "
                          "in the current working directory using a default name.")
+parser.add_argument("-sub", "--subsub", action="store_true", help="Select if you like the VF2 algorithm to "
+                                                                  "heuristically detect subgraph-subgraph isomorphisms"
+                                                                  "as well.")
 parser.add_argument("syntax", nargs="?")
 
 

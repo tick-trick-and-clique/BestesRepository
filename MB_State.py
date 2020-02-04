@@ -29,7 +29,7 @@ class MB_State:
     # NOTE: core_1 and core_2 are supposed to be dictionaries with integers keys and VERTEX type values here
     # while the other four data structures hold integer type values.
 
-    def __init__(self, g1, g2, vertex_comparison_import_para=None, edge_comparison_import_para=None):
+    def __init__(self, g1, g2, vertex_comparison_import_para=None, edge_comparison_import_para=None, subsub=False):
         self.graph1 = g1
         self.graph2 = g2
         self.core_1 = {}
@@ -59,6 +59,8 @@ class MB_State:
         self.in_2_len = 0
         self.out_1_len = 0
         self.out_2_len = 0
+        self.max_matching_length = 0
+        self.subsub = subsub
         self.vertex_comparison_function = None
         self.edge_comparison_function = None
         if isinstance(vertex_comparison_import_para, list):
@@ -80,15 +82,37 @@ class MB_State:
                 if value:
                     result_as_mapping_dict[self.gv1[key].get_id()] = value.get_id()
             self.restore_data_structures(previously_added)
+            self.max_matching_length = len(result_as_mapping_dict.items())
             return [result_as_mapping_dict]
         else:
             p = self.compute_candidates()
+            added = False
             for candidate in p:
                 if self.is_feasible(candidate):
                     self.add_pair(candidate)
+                    added = True
                     result_as_mapping_list += self.mb_algorithm(previously_added=candidate)
-            self.restore_data_structures(previously_added)
-            return result_as_mapping_list
+            if self.subsub:
+                if not added:
+                    for key, value in self.core_1.items():
+                        if value:
+                            result_as_mapping_dict[self.gv1[key].get_id()] = value.get_id()
+                    self.restore_data_structures(previously_added)
+                    if len(result_as_mapping_dict.items()) >= self.max_matching_length:
+                        self.max_matching_length = len(result_as_mapping_dict.items())
+                        return [result_as_mapping_dict]
+                    else:
+                        return []
+                else:
+                    self.restore_data_structures(previously_added)
+                    result_as_mapping_list = [i for i in result_as_mapping_list if len(i) >= self.max_matching_length]
+                    print(self.max_matching_length)
+                    print(result_as_mapping_list)
+                    return result_as_mapping_list
+            else:
+                self.restore_data_structures(previously_added)
+                result_as_mapping_list = [i for i in result_as_mapping_list if len(i) >= self.max_matching_length]
+                return result_as_mapping_list
 
     def all_vertices_of_g2_covered(self):
         return self.vCount2 == self.core_len
@@ -101,10 +125,17 @@ class MB_State:
         elif self.in_1_len and self.in_2_len:
             v2 = min([key for key in self.in_2.keys() if not self.core_2[key]])
             p = {(key, v2) for key in self.in_1.keys() if not self.core_1[key]}
-        elif not self.both_1_len and not self.both_2_len:
+        elif not self.both_1_len and not self.both_2_len and not self.subsub:
             g1_set = {key for key in self.core_1.keys() if not self.core_1[key]}
             v2 = min({key for key in self.core_2.keys() if not self.core_2[key]})
             p = {(v1, v2) for v1 in g1_set}
+        elif not self.both_1_len and not self.both_2_len and self.subsub:
+            g1_set = {key for key in self.core_1.keys() if not self.core_1[key]}
+            g2_set = {key for key in self.core_2.keys() if not self.core_2[key]}
+            p = set()
+            for v1 in g1_set:
+                for v2 in g2_set:
+                    p.add((v1, v2))
         else:
             p = {}
         return p

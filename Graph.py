@@ -547,9 +547,9 @@ def retrieve_fusion_graph(matching_graph, input_graphs):
     name = ''
     is_directed = False
     for input_graph in input_graphs:
-        name += input_graph.get_name() + "&&"
+        name += input_graph.get_name() + "_AND_"
         is_directed = (is_directed or input_graph.get_is_directed())
-    name = name[:-2]
+    name = name[:-5]
     graph = GRAPH(name, lov, loe, len(lov), len(loe), is_directed,
                   True, True)
     return graph
