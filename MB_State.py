@@ -106,8 +106,6 @@ class MB_State:
                 else:
                     self.restore_data_structures(previously_added)
                     result_as_mapping_list = [i for i in result_as_mapping_list if len(i) >= self.max_matching_length]
-                    print(self.max_matching_length)
-                    print(result_as_mapping_list)
                     return result_as_mapping_list
             else:
                 self.restore_data_structures(previously_added)
