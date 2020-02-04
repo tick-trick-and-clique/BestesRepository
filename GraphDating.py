@@ -50,7 +50,7 @@ def parser(file, neo4j):
             vertices = []
             # read empty line
             empty = f.readline()
-            if empty is not "\n":
+            if empty != "\n":
                 raise Exception("Wrong input file format!")
             try:
                 lastlines = f.readlines()
@@ -63,7 +63,7 @@ def parser(file, neo4j):
             edges = []
             # read empty line
             empty = f.readline()
-            if empty is not "\n":
+            if empty != "\n":
                 raise Exception("Wrong input file format!")
             try:
                 lastlines = f.readlines()
@@ -75,19 +75,19 @@ def parser(file, neo4j):
         else:
             # read empty line
             empty = f.readline()
-            if empty is not "\n":
+            if empty != "\n":
                 raise Exception("Wrong input file format!")
             # read vertices part
             try:
                 newline = f.readline()
                 vertices = []
-                while newline is not "\n":
+                while newline != "\n":
                     vertices.append(newline.rstrip())
                     newline = f.readline()
             except IOError:
                 print("Wrong input file format: Mistake in vertices part.")
             # read empty line
-            if newline is not "\n":
+            if newline != "\n":
                 raise Exception("Wrong input file format!")
             # read edges part
             try:
@@ -740,7 +740,7 @@ if __name__ == '__main__':
         if not anchor_graph.check_clique_properties() and args.bron_kerbosch:
             raise Exception("Anchor is not a clique nor empty! For clique finding on a modular product using an anchor "
                             "pass a subgraph of the modular product which is a clique!")
-        elif args.bron_kerbosch is not None:
+        elif args.bron_kerbosch != None:
             if len(input_graphs) != 1:
                 raise Exception("For clique finding via bron-kerbosch, "
                                 "please provide exactly one file path of a graph!")
@@ -748,7 +748,7 @@ if __name__ == '__main__':
                 anchor, p = anchor_from_anchor_vertex_list(anchor_graph.get_list_of_vertices(), p)
 
     # Checking for bron-kerbosch option
-    if args.bron_kerbosch is not None:
+    if args.bron_kerbosch != None:
         print("Matching algorithm: Bron-kerbosch")
         if len(input_graphs) != 1:
             raise Exception("For clique finding via bron-kerbosch, please provide exactly one file path of a graph!")
@@ -948,7 +948,7 @@ if __name__ == '__main__':
         print("Newick string output: False")
 
     # Output of graph from random graph building or modular product.
-    if args.graph_output is not None:
+    if args.graph_output != None:
         print("Graph output: True")
         if len(graphs) == 0:
             raise Exception("No graph to save in memory!")
@@ -970,7 +970,7 @@ if __name__ == '__main__':
         print("Graph output: False")
 
     # Output of subgraphs from graph alignment or bron-kerbosch algorithm on a modular product.
-    if args.subgraph_output is not None and (input_graphs or graph):
+    if args.subgraph_output != None and (input_graphs or graph):
         number_output = len(selected_subgraphs)
         default_num_sgo = False
         try:
@@ -1035,7 +1035,7 @@ if __name__ == '__main__':
     if args.benchmark:
         if args.graph_alignment:
             runtime_ga = ts_ga_2 - ts_ga_1
-        if args.bron_kerbosch is not None:
+        if args.bron_kerbosch != None:
             runtime_bk = ts_bk_2 - ts_bk_1
         if args.modular_product:
             runtime_mp = ts_mp_2 - ts_mp_1
@@ -1053,7 +1053,7 @@ if __name__ == '__main__':
             elif args.modular_product:
                 algo_name = "mp"
                 file.write(str(runtime_mp) + ";")
-            elif args.bron_kerbosch is not None:
+            elif args.bron_kerbosch != None:
                 algo_name = "bk"
                 file.write(str(runtime_bk) + ";")
 
