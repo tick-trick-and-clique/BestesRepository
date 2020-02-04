@@ -50,7 +50,7 @@ def parser(file, neo4j):
             vertices = []
             # read empty line
             empty = f.readline()
-            if empty is not "\n":
+            if empty != "\n":
                 raise Exception("Wrong input file format!")
             try:
                 lastlines = f.readlines()
@@ -63,7 +63,7 @@ def parser(file, neo4j):
             edges = []
             # read empty line
             empty = f.readline()
-            if empty is not "\n":
+            if empty != "\n":
                 raise Exception("Wrong input file format!")
             try:
                 lastlines = f.readlines()
@@ -75,19 +75,19 @@ def parser(file, neo4j):
         else:
             # read empty line
             empty = f.readline()
-            if empty is not "\n":
+            if empty != "\n":
                 raise Exception("Wrong input file format!")
             # read vertices part
             try:
                 newline = f.readline()
                 vertices = []
-                while newline is not "\n":
+                while newline != "\n":
                     vertices.append(newline.rstrip())
                     newline = f.readline()
             except IOError:
                 print("Wrong input file format: Mistake in vertices part.")
             # read empty line
-            if newline is not "\n":
+            if newline != "\n":
                 raise Exception("Wrong input file format!")
             # read edges part
             try:
@@ -264,13 +264,14 @@ def matching_using_bk(input_graphs, graph_left, graph_right, pivot, anchor_graph
     return result
 
 
-def matching_using_mb(graph1, graph2, vertex_comparison_import_para=None, edge_comparison_import_para=None):
+def matching_using_mb(graph1, graph2, vertex_comparison_import_para=None, edge_comparison_import_para=None,
+                      subsub=False):
     """
     Helper function for graph alignment using matching-based algorithm. Takes two graphs as input.
     Return type: [GRAPH, ...]
     """
     mb_state = MB_State(graph1, graph2, vertex_comparison_import_para=vertex_comparison_import_para,
-                        edge_comparison_import_para=edge_comparison_import_para)
+                        edge_comparison_import_para=edge_comparison_import_para, subsub=subsub)
     result_as_mappings = mb_state.mb_algorithm()
     result = []
     for mapping in result_as_mappings:
@@ -281,7 +282,7 @@ def matching_using_mb(graph1, graph2, vertex_comparison_import_para=None, edge_c
 def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_matchings,
                        anchor_graph_parameters=[None, None], smaller=0.0,
                        no_stereo_isomers=False, check_connection=False, vertex_comparison_import_para=None,
-                       edge_comparison_import_para=None):
+                       edge_comparison_import_para=None, subsub=False):
     """
     Performs graph alignment according to the guide tree in 'cluster' and the given matching algorithm.
     'number_matchings' specifies the maximum number of cliques that will be considered for further graph alignment.
@@ -297,7 +298,8 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
                                          smaller=smaller, no_stereo_isomers=no_stereo_isomers,
                                          check_connection=check_connection,
                                          vertex_comparison_import_para=vertex_comparison_import_para,
-                                         edge_comparison_import_para=edge_comparison_import_para)
+                                         edge_comparison_import_para=edge_comparison_import_para,
+                                         subsub=subsub)
     # Right child.
     if cluster.get_right_child().children_exist():
         graphs_right = recursive_matching(input_graphs, cluster.get_right_child(), matching_algorithm, pivot,
@@ -305,7 +307,8 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
                                           smaller=smaller, no_stereo_isomers=no_stereo_isomers,
                                           check_connection=check_connection,
                                           vertex_comparison_import_para=vertex_comparison_import_para,
-                                          edge_comparison_import_para=edge_comparison_import_para)
+                                          edge_comparison_import_para=edge_comparison_import_para,
+                                          subsub=subsub)
     # Else, the cluster is the root of two leaves, then:
     # Perform graph matching of the two leaf graphs (use the matching method provided by user)
     # Update the cluster with one new leaf, deleting the previous two
@@ -333,11 +336,13 @@ def recursive_matching(input_graphs, cluster, matching_algorithm, pivot, number_
                     graph2 = gl
                 result_as_mappings += matching_using_mb(graph1, graph2,
                                                         vertex_comparison_import_para=vertex_comparison_import_para,
-                                                        edge_comparison_import_para=edge_comparison_import_para)
+                                                        edge_comparison_import_para=edge_comparison_import_para,
+                                                        subsub=subsub)
                 if smaller and graph2 in input_graphs:
                     result_as_mappings += mb_helper(graph1, graph2,
                                                     vertex_comparison_import_para=vertex_comparison_import_para,
-                                                    edge_comparison_import_para=edge_comparison_import_para)
+                                                    edge_comparison_import_para=edge_comparison_import_para,
+                                                    subsub=subsub)
         matching_graphs = process_result_as_mappings(result_as_mappings, number_matchings, check_connection,
                                                      no_stereo_isomers)
     cluster.set_elements(matching_graphs)
@@ -535,7 +540,7 @@ def import_file(filename, function_name):
 
 def pairwise_alignment(input_graphs, matching_method, pivot, number_matchings, check_connection=False,
                        no_stereo_isomers=False, vertex_comparison_import_para=None,
-                       edge_comparison_import_para=None):
+                       edge_comparison_import_para=None, subsub=False):
     """
     Function takes a List[GRAPH, ...] and several other parameters necessary for graph matching and constructs a guide
     tree based on pairwise alignment of the input graphs. The scoring parameter is the size the greatest subgraph
@@ -562,11 +567,13 @@ def pairwise_alignment(input_graphs, matching_method, pivot, number_matchings, c
         else:
             result_as_mappings = matching_using_mb(graph1, graph2,
                                                    vertex_comparison_import_para=vertex_comparison_import_para,
-                                                   edge_comparison_import_para=edge_comparison_import_para)
+                                                   edge_comparison_import_para=edge_comparison_import_para,
+                                                   subsub=subsub)
             if smaller:
                 result_as_mappings += mb_helper(graph1, graph2,
                                                 vertex_comparison_import_para=vertex_comparison_import_para,
-                                                edge_comparison_import_para=edge_comparison_import_para)
+                                                edge_comparison_import_para=edge_comparison_import_para,
+                                                subsub=subsub)
             matching_graphs = process_result_as_mappings(result_as_mappings, number_matchings, check_connection,
                                                          no_stereo_isomers)
         if len(matching_graphs) == 0:
@@ -583,7 +590,7 @@ def pairwise_alignment(input_graphs, matching_method, pivot, number_matchings, c
 
 
 def mb_helper(gl, gr, vertex_comparison_import_para=None,
-              edge_comparison_import_para=None):
+              edge_comparison_import_para=None, subsub=False):
     """
     Helper function for the matching using pruned input graphs
     Return Type: [GRAPH, ...]
@@ -602,7 +609,8 @@ def mb_helper(gl, gr, vertex_comparison_import_para=None,
         for new_g in new_gs:
             result_as_mappings += matching_using_mb(gl, new_g,
                                                     vertex_comparison_import_para=vertex_comparison_import_para,
-                                                    edge_comparison_import_para=edge_comparison_import_para)
+                                                    edge_comparison_import_para=edge_comparison_import_para,
+                                                    subsub=subsub)
     else:
         gn = gl.get_number_of_vertices()
         margin = int(gn * smaller)
@@ -616,7 +624,8 @@ def mb_helper(gl, gr, vertex_comparison_import_para=None,
         for new_g in new_gs:
             result_as_mappings += matching_using_mb(gl, new_g,
                                                     vertex_comparison_import_para=vertex_comparison_import_para,
-                                                    edge_comparison_import_para=edge_comparison_import_para)
+                                                    edge_comparison_import_para=edge_comparison_import_para,
+                                                    subsub=subsub)
     return result_as_mappings
 
 
@@ -731,7 +740,7 @@ if __name__ == '__main__':
         if not anchor_graph.check_clique_properties() and args.bron_kerbosch:
             raise Exception("Anchor is not a clique nor empty! For clique finding on a modular product using an anchor "
                             "pass a subgraph of the modular product which is a clique!")
-        elif args.bron_kerbosch is not None:
+        elif args.bron_kerbosch != None:
             if len(input_graphs) != 1:
                 raise Exception("For clique finding via bron-kerbosch, "
                                 "please provide exactly one file path of a graph!")
@@ -739,7 +748,7 @@ if __name__ == '__main__':
                 anchor, p = anchor_from_anchor_vertex_list(anchor_graph.get_list_of_vertices(), p)
 
     # Checking for bron-kerbosch option
-    if args.bron_kerbosch is not None:
+    if args.bron_kerbosch != None:
         print("Matching algorithm: Bron-kerbosch")
         if len(input_graphs) != 1:
             raise Exception("For clique finding via bron-kerbosch, please provide exactly one file path of a graph!")
@@ -861,7 +870,8 @@ if __name__ == '__main__':
                                                   check_connection=args.check_connection,
                                                   no_stereo_isomers=args.no_stereo_isomers,
                                                   vertex_comparison_import_para=args.vertex_label_comparison,
-                                                  edge_comparison_import_para=args.edge_label_comparison)
+                                                  edge_comparison_import_para=args.edge_label_comparison,
+                                                  subsub=args.subsub)
                 copy = deepcopy(cluster_tree)
                 newick = guide_tree_to_newick(copy)
             elif args.guide_tree[0] not in ["density", "pairwise_align"]:
@@ -892,7 +902,8 @@ if __name__ == '__main__':
                                                  no_stereo_isomers=args.no_stereo_isomers,
                                                  check_connection=args.check_connection,
                                                  vertex_comparison_import_para=args.vertex_label_comparison,
-                                                 edge_comparison_import_para=args.edge_label_comparison)
+                                                 edge_comparison_import_para=args.edge_label_comparison,
+                                                 subsub=args.subsub)
             ts_ga_2 = time.time()   #timestamp after alignment
             print("Graph Alignment: Found " + str(len(matching_graphs)) + " matching(s)! Maximum of " + str(i) + " "
                   "matching(s) have been forwarded...")
@@ -937,7 +948,7 @@ if __name__ == '__main__':
         print("Newick string output: False")
 
     # Output of graph from random graph building or modular product.
-    if args.graph_output is not None:
+    if args.graph_output != None:
         print("Graph output: True")
         if len(graphs) == 0:
             raise Exception("No graph to save in memory!")
@@ -959,7 +970,7 @@ if __name__ == '__main__':
         print("Graph output: False")
 
     # Output of subgraphs from graph alignment or bron-kerbosch algorithm on a modular product.
-    if args.subgraph_output is not None and (input_graphs or graph):
+    if args.subgraph_output != None and (input_graphs or graph):
         number_output = len(selected_subgraphs)
         default_num_sgo = False
         try:
@@ -1024,7 +1035,7 @@ if __name__ == '__main__':
     if args.benchmark:
         if args.graph_alignment:
             runtime_ga = ts_ga_2 - ts_ga_1
-        if args.bron_kerbosch is not None:
+        if args.bron_kerbosch != None:
             runtime_bk = ts_bk_2 - ts_bk_1
         if args.modular_product:
             runtime_mp = ts_mp_2 - ts_mp_1
@@ -1042,7 +1053,7 @@ if __name__ == '__main__':
             elif args.modular_product:
                 algo_name = "mp"
                 file.write(str(runtime_mp) + ";")
-            elif args.bron_kerbosch is not None:
+            elif args.bron_kerbosch != None:
                 algo_name = "bk"
                 file.write(str(runtime_bk) + ";")
 
