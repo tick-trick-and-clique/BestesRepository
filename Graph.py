@@ -287,8 +287,8 @@ class GRAPH(object):
                 f.write("#edges;" + str(int(len(self.__list_of_edges))) + "\n")
             else:
                 f.write("#edges;" + str(int(len(self.__list_of_edges)/2)) + "\n")
-            f.write("nodes labeled;" + str(self.__has_labeled_nodes) + "\n")
-            f.write("edges labeled;" + str(self.__has_labeled_edges) + "\n")
+            f.write("nodes labelled;" + str(self.__has_labeled_nodes) + "\n")
+            f.write("edges labelled;" + str(self.__has_labeled_edges) + "\n")
             f.write("directed graph;" + str(self.__is_directed))
             if len(self.__list_of_vertices) > 0:
                 f.write("\n")
