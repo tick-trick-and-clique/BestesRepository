@@ -543,6 +543,12 @@ def retrieve_fusion_graph(matching_graph, input_graphs):
         lov[i].set_id(i + 1)
         if not lov[i].get_label():
             lov[i].set_label("$None$")
+    name = ''
+    is_directed = False
+    for input_graph in input_graphs:
+        name += input_graph.get_name() + "_AND_"
+        is_directed = (is_directed or input_graph.get_is_directed())
+    name = name[:-5]
     for vertex in matching_graph.get_list_of_vertices():
         map = vertex.get_mapping()
         combis = itertools.combinations(map.values(), 2)
@@ -551,18 +557,13 @@ def retrieve_fusion_graph(matching_graph, input_graphs):
             combi[1].add_out_neighbour(combi[0])
             edge1 = EDGE(0, [combi[0], combi[1]], "$matching$")
             loe.append(edge1)
-            edge2 = EDGE(0, [combi[1], combi[0]], "$matching$")
-            loe.append(edge2)
+            if not is_directed:
+                edge2 = EDGE(0, [combi[1], combi[0]], "$matching$")
+                loe.append(edge2)
     for i in range(len(loe)):
         loe[i].set_id(i + 1)
         if not loe[i].get_label():
             loe[i].set_label("$None$")
-    name = ''
-    is_directed = False
-    for input_graph in input_graphs:
-        name += input_graph.get_name() + "_AND_"
-        is_directed = (is_directed or input_graph.get_is_directed())
-    name = name[:-5]
     graph = GRAPH(name, lov, loe, len(lov), len(loe), is_directed,
                   True, True)
     return graph
