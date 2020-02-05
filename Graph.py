@@ -306,7 +306,7 @@ class GRAPH(object):
                             i+=1
                         else:
                             i+=1
-                else: 
+                else:
                     for edge in self.__list_of_edges:
                         f.write("\n" + str(edge.get_start_and_end()[0].get_id()) + ";"
                                 + str(edge.get_start_and_end()[1].get_id()) + ";" + str(edge.get_label()))
@@ -549,8 +549,10 @@ def retrieve_fusion_graph(matching_graph, input_graphs):
         for combi in combis:
             combi[0].add_out_neighbour(combi[1])
             combi[1].add_out_neighbour(combi[0])
-            edge = EDGE(0, [combi[0], combi[1]], "$matching$")
-            loe.append(edge)
+            edge1 = EDGE(0, [combi[0], combi[1]], "$matching$")
+            loe.append(edge1)
+            edge2 = EDGE(0, [combi[1], combi[0]], "$matching$")
+            loe.append(edge2)
     for i in range(len(loe)):
         loe[i].set_id(i + 1)
         if not loe[i].get_label():
