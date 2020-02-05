@@ -200,26 +200,26 @@ class MB_State:
                 if self.in_1[other_v_in_g1_index] == 0 and \
                         self.out_1[other_v_in_g1_index] == 0:
                     temp_new1 += 1
-
-        # Check 'in' edges of g1_vertex
-        for edge in self.graph1.get_in_edge_list(g1_vertex):
-            other_v_in_g1 = edge.get_start_and_end()[0]
-            other_v_in_g1_index = self.gv1.index(other_v_in_g1)
-            if self.core_1[other_v_in_g1_index] is not None:
-                other_v_in_g2 = self.core_1[other_v_in_g1_index]
-                if not self.graph2.has_edge(other_v_in_g2, g2_vertex) \
-                        or (self.edge_comparison_function and not
-                            self.edge_comparison_function(edge.get_label(),
-                                                          self.graph2.get_edge(other_v_in_g2, g2_vertex).get_label())):
-                    return False
-            else:
-                if self.in_1[other_v_in_g1_index] > 0:
-                    temp_in1 += 1
-                if self.out_1[other_v_in_g1_index] > 0:
-                    temp_out1 += 1
-                if self.in_1[other_v_in_g1_index] == 0 and \
-                        self.out_1[other_v_in_g1_index] == 0:
-                    temp_new1 += 1
+        if not self.graph1.get_is_directed():
+            # Check 'in' edges of g1_vertex
+            for edge in self.graph1.get_in_edge_list(g1_vertex):
+                other_v_in_g1 = edge.get_start_and_end()[0]
+                other_v_in_g1_index = self.gv1.index(other_v_in_g1)
+                if self.core_1[other_v_in_g1_index] is not None:
+                    other_v_in_g2 = self.core_1[other_v_in_g1_index]
+                    if not self.graph2.has_edge(other_v_in_g2, g2_vertex) \
+                            or (self.edge_comparison_function and not
+                                self.edge_comparison_function(edge.get_label(),
+                                                              self.graph2.get_edge(other_v_in_g2, g2_vertex).get_label())):
+                        return False
+                else:
+                    if self.in_1[other_v_in_g1_index] > 0:
+                        temp_in1 += 1
+                    if self.out_1[other_v_in_g1_index] > 0:
+                        temp_out1 += 1
+                    if self.in_1[other_v_in_g1_index] == 0 and \
+                            self.out_1[other_v_in_g1_index] == 0:
+                        temp_new1 += 1
 
         # Check 'out' edges of g2_vertex
         for edge in self.graph2.get_out_edge_list(g2_vertex):
@@ -241,25 +241,26 @@ class MB_State:
                         self.out_2[other_v_in_g2_index] == 0:
                     temp_new2 += 1
 
-        # Check 'in' edges of g2_vertex
-        for edge in self.graph2.get_in_edge_list(g2_vertex):
-            other_v_in_g2 = edge.get_start_and_end()[0]
-            other_v_in_g2_index = self.gv2.index(other_v_in_g2)
-            if self.core_2[other_v_in_g2_index] is not None:
-                other_v_in_g1 = self.core_2[other_v_in_g2_index]
-                if not self.graph1.has_edge(other_v_in_g1, g1_vertex) \
-                        or (self.edge_comparison_function and not
-                            self.edge_comparison_function(edge.get_label(),
-                                                          self.graph1.get_edge(other_v_in_g1, g1_vertex).get_label())):
-                    return False
-            else:
-                if self.in_2[other_v_in_g2_index] > 0:
-                    temp_in2 += 1
-                if self.out_2[other_v_in_g2_index] > 0:
-                    temp_out2 += 1
-                if self.in_2[other_v_in_g2_index] == 0 and \
-                        self.out_2[other_v_in_g2_index] == 0:
-                    temp_new2 += 1
+        if not self.graph2.get_is_directed():
+            # Check 'in' edges of g2_vertex
+            for edge in self.graph2.get_in_edge_list(g2_vertex):
+                other_v_in_g2 = edge.get_start_and_end()[0]
+                other_v_in_g2_index = self.gv2.index(other_v_in_g2)
+                if self.core_2[other_v_in_g2_index] is not None:
+                    other_v_in_g1 = self.core_2[other_v_in_g2_index]
+                    if not self.graph1.has_edge(other_v_in_g1, g1_vertex) \
+                            or (self.edge_comparison_function and not
+                                self.edge_comparison_function(edge.get_label(),
+                                                              self.graph1.get_edge(other_v_in_g1, g1_vertex).get_label())):
+                        return False
+                else:
+                    if self.in_2[other_v_in_g2_index] > 0:
+                        temp_in2 += 1
+                    if self.out_2[other_v_in_g2_index] > 0:
+                        temp_out2 += 1
+                    if self.in_2[other_v_in_g2_index] == 0 and \
+                            self.out_2[other_v_in_g2_index] == 0:
+                        temp_new2 += 1
         if self.subsub:
             return True
         else:
