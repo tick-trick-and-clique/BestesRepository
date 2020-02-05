@@ -41,13 +41,15 @@ class MB_State:
         self.vCount1 = g1.get_number_of_vertices()
         self.vCount2 = g2.get_number_of_vertices()
         gv1 = self.graph1.get_list_of_vertices()
-        self.gv1 = sorted(gv1, key=lambda x: self.graph1.get_cardinality_of_vertex(x))
+        #self.gv1 = sorted(gv1, key=lambda x: self.graph1.get_cardinality_of_vertex(x))
+        self.gv1 = gv1
         for i in range(len(gv1)):
             self.core_1[i] = None
             self.in_1[i] = 0
             self.out_1[i] = 0
         gv2 = self.graph2.get_list_of_vertices()
-        self.gv2 = sorted(gv2, key=lambda x: self.graph2.get_cardinality_of_vertex(x))
+        #self.gv2 = sorted(gv2, key=lambda x: self.graph2.get_cardinality_of_vertex(x))
+        self.gv2 = gv2
         for i in range(len(gv2)):
             self.core_2[i] = None
             self.in_2[i] = 0
@@ -118,11 +120,25 @@ class MB_State:
     def compute_candidates(self):
         # Functions returns a set of index tuples corresponding to potential vertex matchings between the two graphs
         if self.out_1_len and self.out_2_len:
-            v2 = min([key for key in self.out_2.keys() if not self.core_2[key]])
-            p = {(key, v2) for key in self.out_1.keys() if not self.core_1[key]}
+            if self.subsub:
+                p = set()
+                for key1 in self.out_1:
+                    for key2 in self.out_2:
+                        if self.out_1[key1] and self.out_2[key2] and not self.core_1[key1] and not self.core_2[key2]:
+                            p.add((key1, key2))
+            else:
+                v2 = min([key for key in self.out_2.keys() if self.out_2[key] and not self.core_2[key]])
+                p = {(key, v2) for key in self.out_1.keys() if not self.core_1[key]}
         elif self.in_1_len and self.in_2_len:
-            v2 = min([key for key in self.in_2.keys() if not self.core_2[key]])
-            p = {(key, v2) for key in self.in_1.keys() if not self.core_1[key]}
+            if self.subsub:
+                p = set()
+                for key1 in self.in_1:
+                    for key2 in self.in_2:
+                        if self.in_1[key1] and self.in_2[key2] and not self.core_1[key1] and not self.core_2[key2]:
+                            p.add((key1, key2))
+            else:
+                v2 = min([key for key in self.in_2.keys() if self.in_2[key] and not self.core_2[key]])
+                p = {(key, v2) for key in self.in_1.keys() if not self.core_1[key]}
         elif not self.both_1_len and not self.both_2_len and not self.subsub:
             g1_set = {key for key in self.core_1.keys() if not self.core_1[key]}
             v2 = min({key for key in self.core_2.keys() if not self.core_2[key]})
@@ -244,8 +260,10 @@ class MB_State:
                 if self.in_2[other_v_in_g2_index] == 0 and \
                         self.out_2[other_v_in_g2_index] == 0:
                     temp_new2 += 1
-
-        return temp_in1 >= temp_in2 and temp_out1 >= temp_out2 and temp_new1 >= temp_new2
+        if self.subsub:
+            return True
+        else:
+            return temp_in1 >= temp_in2 and temp_out1 >= temp_out2 and temp_new1 >= temp_new2
 
     def add_pair(self, candidate):
         # Function updates data structures according to the new pair of vertices to be added to the matching
