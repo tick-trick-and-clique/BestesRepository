@@ -51,5 +51,7 @@ If Flag is chosen, Values are mandatory if not stated otherwise.
 | -sub | - | Select if you want the MB algorithm (VF2) to heuristically detect subgraph-subgraph isomorphisms. |
 
 ## Other
- 
+
+File paths must not contain '-'!
+
 Please read the GraphDating_Manual.pdf for further information!
