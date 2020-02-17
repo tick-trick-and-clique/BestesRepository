@@ -12,7 +12,6 @@ def parse_graph(file, neo4j, no_h_atoms):
     # Extract information from file
     with open(file, "r") as f:
         # Read header part
-        print("Parsing input file")
         try:
             number_vertices = int(f.readline().split(";")[1].rstrip())
             number_edges = int(f.readline().split(";")[1].rstrip())
@@ -52,10 +51,7 @@ def parse_graph(file, neo4j, no_h_atoms):
             except IOError:
                 print("Wrong input file format: Mistake in edges part.")
             if no_h_atoms:
-                print("number edges" + str(number_edges))
                 number_edges = number_edges - len(deleted_edges) 
-                print("number deleted edges "+ str(len(deleted_edges)))
-                print("new number_edges" + str((number_edges)))
         #if no edges but vertices
         elif number_edges == 0:
             edges = []
@@ -78,10 +74,7 @@ def parse_graph(file, neo4j, no_h_atoms):
             except IOError:
                 print("Wrong input file format: Mistake in vertices part.")
             if no_h_atoms:
-                print("number vertices" + str(number_vertices))
                 number_vertices = number_vertices - len(deleted_vertices)
-                print("number deleted vertices "+ str(len(deleted_vertices)))
-                print("new number_vertices" + str((number_vertices)))
         else:
             # read empty line
             empty = f.readline()
@@ -107,10 +100,7 @@ def parse_graph(file, neo4j, no_h_atoms):
             if newline != "\n":
                 raise Exception("Wrong input file format!")
             if no_h_atoms:
-                print("number vertices" + str(number_vertices))
                 number_vertices = number_vertices - len(deleted_vertices)
-                print("number deleted vertices "+ str(len(deleted_vertices)))
-                print("new number_vertices" + str((number_vertices)))
             # read edges part
             try:
                 lastlines = f.readlines()
@@ -131,10 +121,7 @@ def parse_graph(file, neo4j, no_h_atoms):
                 print("Wrong input file format: Mistake in edges part.")
             #change number_edges 
             if no_h_atoms:
-                print("number edges" + str(number_edges))
                 number_edges = number_edges - len(deleted_edges)
-                print("number deleted edges "+ str(len(deleted_edges)))
-                print("new number_edges" + str((number_edges)))
         file_path_name = file
     f.close()
 
