@@ -273,6 +273,10 @@ class GRAPH(object):
         if output_file[-6:] != ".graph":
             raise RuntimeError("Given path of filename must end with '.graph'")
 
+        # Quickfix for 'name too long'-Error
+        if len(output_file) > 40:
+            output_file = output_file[-40:0]
+
         # If multiple graphs should be saved to the same location, addition of a sequential number is necessary to
         # impede overwriting
         if sequential_number is not None:
