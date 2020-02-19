@@ -8,7 +8,7 @@ Created on 07.05.2019
 import os, string, random, itertools
 from typing import List, Tuple
 from Graph import GRAPH, density, retrieve_graph_from_clique, retrieve_original_subgraphs, \
-    anchor_from_anchor_vertex_list, remaining_candidates, retrieve_fusion_graph
+    anchor_from_anchor_vertex_list, remaining_candidates, retrieve_fusion_gap_graph
 from Vertex import VERTEX
 from Edge import EDGE
 from Command_Line_Parser import parse_command_line
@@ -914,7 +914,7 @@ if __name__ == '__main__':
                         selected_subgraphs.append(original_subgraphs)
                 else:
                     if matching_graph:
-                        fusion_graph = retrieve_fusion_graph(matching_graph, input_graphs)
+                        fusion_graph = retrieve_fusion_gap_graph(matching_graph, input_graphs)
                         selected_subgraphs.append([fusion_graph])
 
     # If guide tree option is selected, construct a guide using the passed comparison function.
