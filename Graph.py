@@ -275,7 +275,7 @@ class GRAPH(object):
 
         # Quickfix for 'name too long'-Error
         if len(output_file) > 40:
-            output_file = output_file[-40:0]
+            output_file = output_file[-40:]
 
         # If multiple graphs should be saved to the same location, addition of a sequential number is necessary to
         # impede overwriting
