@@ -152,8 +152,10 @@ def update_distance_matrix(comp_function, clusters, dist_matrix, new_cluster, in
     # and as line
     for i in range(len(dist_matrix)):
         dist_matrix[i].append(distance_between_clusters(comp_function, clusters[i], new_cluster, distance_matrix_graphs))
-    dist_matrix.append([distance_between_clusters(comp_function, clusters[i], new_cluster, distance_matrix_graphs)
-                        for i in range(len(dist_matrix))])
+    lastlist = [distance_between_clusters(comp_function, clusters[i], new_cluster, distance_matrix_graphs)
+     for i in range(len(dist_matrix))]
+    lastlist.append(0.0)
+    dist_matrix.append(lastlist)
     return dist_matrix
 
 
