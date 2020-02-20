@@ -501,7 +501,7 @@ if __name__ == '__main__':
             print("Input file path of file " + str(i) + ": " + file_path)
 
             if args.input_format == "graph":
-                graph = parse_graph(file_path, args.neo4j)
+                graph = parse_graph(file_path, args.neo4j, args.no_h_atoms)
             elif args.input_format == "json":
                 graph = json_parser(file_path, args.neo4j, args.no_h_atoms)
 
@@ -534,7 +534,7 @@ if __name__ == '__main__':
             file_path = os.path.abspath(args.anchor)
         else:
             file_path = args.anchor
-        anchor_graph = parse_graph(file_path, args.neo4j)
+        anchor_graph = parse_graph(file_path, args.neo4j, args.no_h_atoms)
         if not anchor_graph.check_clique_properties() and args.bron_kerbosch:
             raise Exception("Anchor is not a clique nor empty! For clique finding on a modular product using an anchor "
                             "pass a subgraph of the modular product which is a clique!")
