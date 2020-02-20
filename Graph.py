@@ -301,14 +301,13 @@ class GRAPH(object):
             if len(self.__list_of_edges) > 0:
                 f.write("\n")
                 if self.__is_directed == False:
-                    i = 0
+                    already_saved = []
                     for edge in self.__list_of_edges:
-                        if i%2 == 0:
+                        if edge.get_start_and_end() not in [[e.get_start_and_end()[1], e.get_start_and_end()[0]]
+                                                            for e in already_saved]:
                             f.write("\n" + str(edge.get_start_and_end()[0].get_id()) + ";"
                                     + str(edge.get_start_and_end()[1].get_id()) + ";" + str(edge.get_label()))
-                            i+=1
-                        else:
-                            i+=1
+                            already_saved.append(edge)
                 else:
                     for edge in self.__list_of_edges:
                         f.write("\n" + str(edge.get_start_and_end()[0].get_id()) + ";"
