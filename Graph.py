@@ -599,6 +599,7 @@ def retrieve_fusion_gap_graph(matching_graph, input_graphs):
                     if edge not in loe and edge.get_start_and_end()[0] == vertex or \
                             edge.get_start_and_end()[1] == vertex:
                         loe.append(edge)
+    loe = list(set(loe))
     for i in range(len(lov)):
         lov[i].set_id(i + 1)
         if not lov[i].get_label():
